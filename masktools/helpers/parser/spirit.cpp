@@ -114,6 +114,10 @@ public:
              str_p("ymax")[AddNamedSymbol("ymax", self.rpn)] |
              str_p("cmin")[AddNamedSymbol("cmin", self.rpn)] |
              str_p("cmax")[AddNamedSymbol("cmax", self.rpn)] |
+             str_p("yfmin")[AddNamedSymbol("yfmin", self.rpn)] |
+             str_p("yfmax")[AddNamedSymbol("yfmax", self.rpn)] |
+             str_p("cfmin")[AddNamedSymbol("cfmin", self.rpn)] |
+             str_p("cfmax")[AddNamedSymbol("cfmax", self.rpn)] |
              // ---
              str_p("pi")[AddNamedSymbol("pi", self.rpn)]
            ) | term0 | 

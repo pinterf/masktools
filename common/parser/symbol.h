@@ -51,6 +51,10 @@ public:
      VARIABLE_YMAX,
      VARIABLE_CMIN,
      VARIABLE_CMAX,
+     VARIABLE_YFMIN,
+     VARIABLE_YFMAX,
+     VARIABLE_CFMIN,
+     VARIABLE_CFMAX,
 
      VARIABLE_UNDEFINED,
    } VarType;
@@ -158,6 +162,10 @@ public:
    static Symbol YMAX;
    static Symbol CMIN;
    static Symbol CMAX;
+   static Symbol YFMIN;
+   static Symbol YFMAX;
+   static Symbol CFMIN;
+   static Symbol CFMAX;
 
    static Symbol Cos;
    static Symbol Sin;
