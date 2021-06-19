@@ -226,6 +226,10 @@ Symbol Symbol::YMIN           ("ymin", VARIABLE, VARIABLE_YMIN); // 16 scaled
 Symbol Symbol::YMAX           ("ymax", VARIABLE, VARIABLE_YMAX); // 235 or scaled
 Symbol Symbol::CMIN           ("cmin", VARIABLE, VARIABLE_CMIN); // 16 scaled = LIMITED_YMIN
 Symbol Symbol::CMAX           ("cmax", VARIABLE, VARIABLE_CMAX); // 240 scaled
+Symbol Symbol::YFMIN          ("yfmin", VARIABLE, VARIABLE_YFMIN);
+Symbol Symbol::YFMAX          ("yfmax", VARIABLE, VARIABLE_YFMAX);
+Symbol Symbol::CFMIN          ("cfmin", VARIABLE, VARIABLE_CFMIN);
+Symbol Symbol::CFMAX          ("cfmax", VARIABLE, VARIABLE_CFMAX);
 // Math
 Symbol Symbol::Cos            ("cos", FUNCTION, mtcos);
 Symbol Symbol::Sin            ("sin", FUNCTION, mtsin);
@@ -642,6 +646,10 @@ double Context::rec_compute()
     case Symbol::VARIABLE_YMAX: { last = bitdepth == 32 ? ymax_f : a_ymax[bitdepth - 8]; break; } // 235 scaled
     case Symbol::VARIABLE_CMIN: { last = bitdepth == 32 ? cmin_f : a_cmin[bitdepth - 8]; break;  } // 16 scaled
     case Symbol::VARIABLE_CMAX: { last = bitdepth == 32 ? cmax_f : a_cmax[bitdepth - 8]; break;  } // 240 scaled
+    case Symbol::VARIABLE_YFMIN: { last = bitdepth == 32 ? ymin_f : bitdepth == 10 ? 64 : bitdepth == 12 ? 257 : bitdepth == 14 ? 1028 : bitdepth == 16 ? 4112 : 16; break;  }
+    case Symbol::VARIABLE_YFMAX: { last = bitdepth == 32 ? ymax_f : bitdepth == 10 ? 1175 : bitdepth == 12 ? 3995 : bitdepth == 14 ? 15275 : bitdepth == 16 ? 60395 : 235; break; }
+    case Symbol::VARIABLE_CFMIN: { last = bitdepth == 32 ? cmin_f : bitdepth == 10 ? 64 : bitdepth == 12 ? 257 : bitdepth == 14 ? 1028 : bitdepth == 16 ? 4112 : 16; break;  }
+    case Symbol::VARIABLE_CFMAX: { last = bitdepth == 32 ? cmax_f : bitdepth == 10 ? 1200 : bitdepth == 12 ? 4080 : bitdepth == 14 ? 15600 : bitdepth == 16 ? 61680 : 240; break;  }
     default: assert(0);
     }
     break;
@@ -675,6 +683,10 @@ double Context::rec_compute()
       case Symbol::VARIABLE_YMAX: { exprstack[p++] = last; last = bitdepth == 32 ? ymax_f : a_ymax[bitdepth - 8]; break; } // 235 scaled
       case Symbol::VARIABLE_CMIN: { exprstack[p++] = last; last = bitdepth == 32 ? cmin_f : a_cmin[bitdepth - 8]; break;  } // 16 scaled
       case Symbol::VARIABLE_CMAX: { exprstack[p++] = last; last = bitdepth == 32 ? cmax_f : a_cmax[bitdepth - 8]; break;  } // 240 scaled
+      case Symbol::VARIABLE_YFMIN: { exprstack[p++] = last; last = bitdepth == 32 ? ymin_f : bitdepth == 10 ? 64 : bitdepth == 12 ? 257 : bitdepth == 14 ? 1028 : bitdepth == 16 ? 4112 : 16; break;  }
+      case Symbol::VARIABLE_YFMAX: { exprstack[p++] = last; last = bitdepth == 32 ? ymax_f : bitdepth == 10 ? 1175 : bitdepth == 12 ? 3995 : bitdepth == 14 ? 15275 : bitdepth == 16 ? 60395 : 235; break; }
+      case Symbol::VARIABLE_CFMIN: { exprstack[p++] = last; last = bitdepth == 32 ? cmin_f : bitdepth == 10 ? 64 : bitdepth == 12 ? 257 : bitdepth == 14 ? 1028 : bitdepth == 16 ? 4112 : 16; break;  }
+      case Symbol::VARIABLE_CFMAX: { exprstack[p++] = last; last = bitdepth == 32 ? cmax_f : bitdepth == 10 ? 1200 : bitdepth == 12 ? 4080 : bitdepth == 14 ? 15600 : bitdepth == 16 ? 61680 : 240; break;  }
       default: assert(0);
       }
       break;
@@ -763,6 +775,10 @@ double Context::rec_compute_old()
     case Symbol::VARIABLE_YMAX: return bitdepth == 32 ? 235.0 / 255 : (235 << (bitdepth - 8));  // 235 scaled
     case Symbol::VARIABLE_CMIN: return bitdepth == 32 ? 16.0 / 255 : (16 << (bitdepth - 8));    // 16 scaled
     case Symbol::VARIABLE_CMAX: return bitdepth == 32 ? 240.0 / 255 : (240 << (bitdepth - 8));  // 240 scaled
+    case Symbol::VARIABLE_YFMIN: return bitdepth == 32 ? 16.0 / 255 : bitdepth == 10 ? 64 : bitdepth == 12 ? 257 : bitdepth == 14 ? 1028 : bitdepth == 16 ? 4112 : 16;
+    case Symbol::VARIABLE_YFMAX: return bitdepth == 32 ? 235.0 / 255 : bitdepth == 10 ? 1175 : bitdepth == 12 ? 3995 : bitdepth == 14 ? 15275 : bitdepth == 16 ? 60395 : 235;
+    case Symbol::VARIABLE_CFMIN: return bitdepth == 32 ? 16.0 / 255 : bitdepth == 10 ? 64 : bitdepth == 12 ? 257 : bitdepth == 14 ? 1028 : bitdepth == 16 ? 4112 : 16;
+    case Symbol::VARIABLE_CFMAX: return bitdepth == 32 ? 240.0 / 255 : bitdepth == 10 ? 1200 : bitdepth == 12 ? 4080 : bitdepth == 14 ? 15600 : bitdepth == 16 ? 61680 : 240;
     default: 
       assert(0);
       return 0;
@@ -888,6 +904,10 @@ String Context::rec_infix()
       case Symbol::VARIABLE_YMAX:
       case Symbol::VARIABLE_CMIN:
       case Symbol::VARIABLE_CMAX:
+      case Symbol::VARIABLE_YFMIN:
+      case Symbol::VARIABLE_YFMAX:
+      case Symbol::VARIABLE_CFMIN:
+      case Symbol::VARIABLE_CFMAX:
         return s.value;
       }
     case Symbol::NUMBER: return s.value;

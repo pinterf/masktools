@@ -127,8 +127,8 @@ Parser::Parser Parser::getDefaultParser()
    parser.addSymbol(Symbol::SetFloatToClampUseI16Range).addSymbol(Symbol::SetFloatToClampUseF32Range).addSymbol(Symbol::SetFloatToClampUseF32Range_2);
    /* special bit-depth adaptive constants */
    parser.addSymbol(Symbol::RANGE_HALF).addSymbol(Symbol::RANGE_MIN).addSymbol(Symbol::RANGE_MAX).addSymbol(Symbol::YRANGE_HALF).addSymbol(Symbol::YRANGE_MIN).addSymbol(Symbol::YRANGE_MAX).addSymbol(Symbol::RANGE_SIZE);
-   parser.addSymbol(Symbol::YMIN).addSymbol(Symbol::YMAX);
-   parser.addSymbol(Symbol::CMIN).addSymbol(Symbol::CMAX);
+   parser.addSymbol(Symbol::YMIN).addSymbol(Symbol::YFMIN).addSymbol(Symbol::YMAX).addSymbol(Symbol::YFMAX);
+   parser.addSymbol(Symbol::CMIN).addSymbol(Symbol::CFMIN).addSymbol(Symbol::CMAX).addSymbol(Symbol::CFMAX);
 
    /* Symbol X, X and Y, X and Y and Z are added additionally at before processing lut expression */
    /* like this:       
