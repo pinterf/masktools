@@ -1,39 +1,12 @@
-// Microsoft Visual C++ generated resource script.
-//
 #include <windows.h>
 #include "mt_resource.h"
 
-#define APSTUDIO_READONLY_SYMBOLS
-
 /////////////////////////////////////////////////////////////////////////////
-#undef APSTUDIO_READONLY_SYMBOLS
-
-/////////////////////////////////////////////////////////////////////////////
-// English (United States) resources
+// English resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
-LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+LANGUAGE LANG_ENGLISH, SUBLANG_NEUTRAL
 #pragma code_page(1252)
-
-#ifdef APSTUDIO_INVOKED
-/////////////////////////////////////////////////////////////////////////////
-//
-// TEXTINCLUDE
-//
-
-1 TEXTINCLUDE 
-BEGIN
-    "mt_resource.h\0"
-END
-
-2 TEXTINCLUDE 
-BEGIN
-    "\r\n"
-    "\0"
-END
-
-#endif    // APSTUDIO_INVOKED
-
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -49,41 +22,31 @@ VS_VERSION_INFO VERSIONINFO
 #else
  FILEFLAGS 0x0L
 #endif
- FILEOS 0x4L
+ FILEOS 0x40004L
  FILETYPE 0x2L
  FILESUBTYPE 0x0L
 BEGIN
     BLOCK "StringFileInfo"
     BEGIN
-        BLOCK "040904b0"
+        BLOCK "040004b0"
         BEGIN
-            VALUE "FileDescription", "Masktools Dynamic Link Library"
+            VALUE "Comments", "Mask creation and LUT filters for AviSynth"
+            VALUE "FileDescription", "MaskTools2 for AviSynth"
             VALUE "FileVersion", "2.2.30"
-            VALUE "InternalName", "Masktools 2.2.30"
-            VALUE "LegalCopyright", "Copyright (C) 2013, 2022"
+            VALUE "InternalName", "masktools2"
+            // Keep this file ASCII: llvm-rc and windres ignore the code page pragma, so
+            // non-ASCII characters are written as wide-string escapes (\x00E9 = e acute).
+            VALUE "LegalCopyright", L"Copyright (C) 2005-2013 Mathieu Monnier (Manao), 2013 Victor Efimov (tp7), 2017-2026 Ferenc Pint\x00E9r"
             VALUE "OriginalFilename", "masktools2.dll"
-            VALUE "ProductName", "Masktools Dynamic Link Library"
+            VALUE "ProductName", "MaskTools2"
             VALUE "ProductVersion", "2.2.30"
         END
     END
     BLOCK "VarFileInfo"
     BEGIN
-        VALUE "Translation", 0x409, 1200
+        VALUE "Translation", 0x400, 1200
     END
 END
 
-#endif    // English (United States) resources
+#endif    // English resources
 /////////////////////////////////////////////////////////////////////////////
-
-
-
-#ifndef APSTUDIO_INVOKED
-/////////////////////////////////////////////////////////////////////////////
-//
-// Generated from the TEXTINCLUDE 3 resource.
-//
-
-
-/////////////////////////////////////////////////////////////////////////////
-#endif    // not APSTUDIO_INVOKED
-
