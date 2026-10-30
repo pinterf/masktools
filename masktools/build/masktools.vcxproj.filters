@@ -162,7 +162,7 @@
     <ClInclude Include="..\helpers\forms\forms.h">
       <Filter>helpers\forms</Filter>
     </ClInclude>
-    <ClInclude Include="..\helpers\parser\spirit.h">
+    <ClInclude Include="..\helpers\parser\polish.h">
       <Filter>helpers\parser</Filter>
     </ClInclude>
     <ClInclude Include="..\common\clip\inputconfig.h">
@@ -302,7 +302,7 @@
     <ClCompile Include="..\helpers\forms\forms.cpp">
       <Filter>helpers\forms</Filter>
     </ClCompile>
-    <ClCompile Include="..\helpers\parser\spirit.cpp">
+    <ClCompile Include="..\helpers\parser\polish.cpp">
       <Filter>helpers\parser</Filter>
     </ClCompile>
     <ClCompile Include="..\common\clip\inputconfig.cpp">

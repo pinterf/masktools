@@ -12,8 +12,7 @@ FILE(GLOB masktools_Sources RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
   "common/clip/*.h"
   "common/clip/*.cpp"
   "common/params/*.h"
-#parser is for mt_infix requires boost library
-#when MT_HAVE_BOOST_SPIRIT is defined
+#parser: mt_polish, mt_infix
   "helpers/parser/*.cpp"
   "helpers/parser/*.h"
   "filters/binarize/*.cpp"

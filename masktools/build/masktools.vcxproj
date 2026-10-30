@@ -279,15 +279,15 @@
     <OutDir>$(Platform)\Build\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\Temp\$(Configuration)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(SolutionDir)include\;C:\Soft\Boost;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x86);c:\Soft\Boost\lib32-msvc-14.2\;$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;</LibraryPath>
+    <IncludePath>$(SolutionDir)include\;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;</LibraryPath>
     <TargetName>$(ProjectName)2</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='release-no-boost|Win32'">
     <OutDir>$(Platform)\Build\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\Temp\$(Configuration)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(SolutionDir)include\;C:\Soft\Boost;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(WindowsSdk_71A_IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)include\;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(WindowsSdk_71A_IncludePath)</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;$(WindowsSdk_71A_LibraryPath_x86)</LibraryPath>
     <TargetName>$(ProjectName)2</TargetName>
   </PropertyGroup>
@@ -295,31 +295,31 @@
     <OutDir>$(Platform)\Build\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\Temp\$(Configuration)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(SolutionDir)include\;C:\Soft\Boost;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x86);c:\Soft\Boost\lib32-msvc-14.2\;$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;</LibraryPath>
+    <IncludePath>$(SolutionDir)include\;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;</LibraryPath>
     <TargetName>$(ProjectName)2</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='release-LLVM-boost|Win32'">
     <OutDir>$(Platform)\Build\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\Temp\$(Configuration)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(SolutionDir)include\;C:\Soft\Boost;$(IncludePath);$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x86);c:\Soft\Boost\lib32-msvc-14.2\;$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;</LibraryPath>
+    <IncludePath>$(SolutionDir)include\;$(IncludePath);$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;</LibraryPath>
     <TargetName>$(ProjectName)2</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='release-LLVM-clangCL|Win32'">
     <OutDir>$(Platform)\Build\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\Temp\$(Configuration)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(SolutionDir)include\;C:\Soft\Boost;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x86);c:\Soft\Boost\lib32-msvc-14.2\;$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;</LibraryPath>
+    <IncludePath>$(SolutionDir)include\;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;</LibraryPath>
     <TargetName>$(ProjectName)2</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='release-no-boost-dualsign|Win32'">
     <OutDir>$(Platform)\Build\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\Temp\$(Configuration)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(SolutionDir)include\;C:\Soft\Boost;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(WindowsSdk_71A_IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)include\;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(WindowsSdk_71A_IncludePath)</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;$(WindowsSdk_71A_LibraryPath_x86)</LibraryPath>
     <TargetName>$(ProjectName)2</TargetName>
   </PropertyGroup>
@@ -327,23 +327,23 @@
     <OutDir>$(Platform)\Build\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\Temp\$(Configuration)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(SolutionDir)include\;C:\Soft\Boost;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x86);c:\Soft\Boost\lib32-msvc-14.2\;$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;</LibraryPath>
+    <IncludePath>$(SolutionDir)include\;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;</LibraryPath>
     <TargetName>$(ProjectName)2</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='profile-avs26-16bit|x64'">
     <OutDir>$(Platform)\Build\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\Temp\$(Configuration)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(SolutionDir)include\;C:\Soft\Boost;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;c:\Soft\Boost\lib64-msvc-14.2\;$(WindowsSdk_LibraryPath_x64)</LibraryPath>
+    <IncludePath>$(SolutionDir)include\;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;$(WindowsSdk_LibraryPath_x64)</LibraryPath>
     <TargetName>$(ProjectName)2</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='release-no-boost|x64'">
     <OutDir>$(Platform)\Build\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\Temp\$(Configuration)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(SolutionDir)include\;C:\Soft\Boost;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(WindowsSdk_71A_IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)include\;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(WindowsSdk_71A_IncludePath)</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;$(WindowsSdk_71A_LibraryPath_x64)</LibraryPath>
     <TargetName>$(ProjectName)2</TargetName>
   </PropertyGroup>
@@ -351,31 +351,31 @@
     <OutDir>$(Platform)\Build\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\Temp\$(Configuration)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(SolutionDir)include\;C:\Soft\Boost;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;c:\Soft\Boost\lib64-msvc-14.2\;$(WindowsSdk_LibraryPath_x64)</LibraryPath>
+    <IncludePath>$(SolutionDir)include\;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;$(WindowsSdk_LibraryPath_x64)</LibraryPath>
     <TargetName>$(ProjectName)2</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='release-LLVM-boost|x64'">
     <OutDir>$(Platform)\Build\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\Temp\$(Configuration)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(SolutionDir)include\;C:\Soft\Boost;$(IncludePath);$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;c:\Soft\Boost\lib64-msvc-14.2\;$(WindowsSdk_LibraryPath_x64)</LibraryPath>
+    <IncludePath>$(SolutionDir)include\;$(IncludePath);$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;$(WindowsSdk_LibraryPath_x64)</LibraryPath>
     <TargetName>$(ProjectName)2</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='release-LLVM-clangCL|x64'">
     <OutDir>$(Platform)\Build\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\Temp\$(Configuration)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(SolutionDir)include\;C:\Soft\Boost;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;c:\Soft\Boost\lib64-msvc-14.2\;$(WindowsSdk_LibraryPath_x64)</LibraryPath>
+    <IncludePath>$(SolutionDir)include\;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;$(WindowsSdk_LibraryPath_x64)</LibraryPath>
     <TargetName>$(ProjectName)2</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='release-no-boost-dualsign|x64'">
     <OutDir>$(Platform)\Build\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\Temp\$(Configuration)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(SolutionDir)include\;C:\Soft\Boost;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(WindowsSdk_71A_IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)include\;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(WindowsSdk_71A_IncludePath)</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;$(WindowsSdk_71A_LibraryPath_x64)</LibraryPath>
     <TargetName>$(ProjectName)2</TargetName>
   </PropertyGroup>
@@ -383,24 +383,24 @@
     <OutDir>$(Platform)\Build\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\Temp\$(Configuration)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(SolutionDir)include\;C:\Soft\Boost;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;c:\Soft\Boost\lib64-msvc-14.2\;$(WindowsSdk_LibraryPath_x64)</LibraryPath>
+    <IncludePath>$(SolutionDir)include\;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;$(WindowsSdk_LibraryPath_x64)</LibraryPath>
     <TargetName>$(ProjectName)2</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='debug-avs26-16bit|Win32'">
     <OutDir>$(Platform)\Build\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\Temp\$(Configuration)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(SolutionDir)include\;C:\Soft\Boost;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x86);c:\Soft\Boost\lib32-msvc-14.2\;$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;</LibraryPath>
+    <IncludePath>$(SolutionDir)include\;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;</LibraryPath>
     <TargetName>$(ProjectName)2</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='debug-avs26-16bit|x64'">
     <OutDir>$(Platform)\Build\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\Temp\$(Configuration)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(SolutionDir)include\;C:\Soft\Boost;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;c:\Soft\Boost\lib64-msvc-14.2\;$(WindowsSdk_LibraryPath_x64)</LibraryPath>
+    <IncludePath>$(SolutionDir)include\;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;$(WindowsSdk_LibraryPath_x64)</LibraryPath>
     <TargetName>$(ProjectName)2</TargetName>
   </PropertyGroup>
   <PropertyGroup Label="LLVM" Condition="'$(Configuration)|$(Platform)'=='release-LLVM-boost|Win32'">
@@ -424,8 +424,8 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
-      <AdditionalIncludeDirectories>C:\Soft\Boost;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>MT_HAVE_BOOST_SPIRIT;WIN32;NDEBUG;_WINDOWS;_USRDLL;MASKTOOLS_EXPORTS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;MASKTOOLS_EXPORTS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <StructMemberAlignment>16Bytes</StructMemberAlignment>
@@ -466,7 +466,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
-      <AdditionalIncludeDirectories>C:\Soft\Boost;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;MASKTOOLS_EXPORTS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -510,8 +510,8 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
-      <AdditionalIncludeDirectories>C:\Soft\Boost;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>MT_HAVE_BOOST_SPIRIT;WIN32;NDEBUG;_WINDOWS;_USRDLL;MASKTOOLS_EXPORTS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;MASKTOOLS_EXPORTS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <StructMemberAlignment>16Bytes</StructMemberAlignment>
@@ -553,8 +553,8 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
-      <AdditionalIncludeDirectories>C:\Soft\Boost;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>MT_HAVE_BOOST_SPIRIT;WIN32;NDEBUG;_WINDOWS;_USRDLL;MASKTOOLS_EXPORTS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;MASKTOOLS_EXPORTS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <StructMemberAlignment>16Bytes</StructMemberAlignment>
@@ -597,8 +597,8 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
-      <AdditionalIncludeDirectories>C:\Soft\Boost;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>MT_HAVE_BOOST_SPIRIT;WIN32;NDEBUG;_WINDOWS;_USRDLL;MASKTOOLS_EXPORTS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;MASKTOOLS_EXPORTS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <StructMemberAlignment>16Bytes</StructMemberAlignment>
@@ -641,7 +641,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
-      <AdditionalIncludeDirectories>C:\Soft\Boost;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>MT_DUAL_SIGNATURES;WIN32;NDEBUG;_WINDOWS;_USRDLL;MASKTOOLS_EXPORTS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -685,8 +685,8 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
-      <AdditionalIncludeDirectories>C:\Soft\Boost;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>MT_HAVE_BOOST_SPIRIT;MT_DUAL_SIGNATURES;WIN32;NDEBUG;_WINDOWS;_USRDLL;MASKTOOLS_EXPORTS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>MT_DUAL_SIGNATURES;WIN32;NDEBUG;_WINDOWS;_USRDLL;MASKTOOLS_EXPORTS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <StructMemberAlignment>16Bytes</StructMemberAlignment>
@@ -731,8 +731,8 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
-      <AdditionalIncludeDirectories>C:\Soft\Boost;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN64;_AMD64_;MT_HAVE_BOOST_SPIRIT;NDEBUG;_WINDOWS;_USRDLL;MASKTOOLS_EXPORTS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN64;_AMD64_;NDEBUG;_WINDOWS;_USRDLL;MASKTOOLS_EXPORTS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <StructMemberAlignment>16Bytes</StructMemberAlignment>
       <BufferSecurityCheck>false</BufferSecurityCheck>
@@ -772,7 +772,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
-      <AdditionalIncludeDirectories>C:\Soft\Boost;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN64;_AMD64_;NDEBUG;_WINDOWS;_USRDLL;MASKTOOLS_EXPORTS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <StructMemberAlignment>16Bytes</StructMemberAlignment>
@@ -816,8 +816,8 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
-      <AdditionalIncludeDirectories>C:\Soft\Boost;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>MT_HAVE_BOOST_SPIRIT;WIN64;_AMD64_;NDEBUG;_WINDOWS;_USRDLL;MASKTOOLS_EXPORTS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN64;_AMD64_;NDEBUG;_WINDOWS;_USRDLL;MASKTOOLS_EXPORTS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <StructMemberAlignment>16Bytes</StructMemberAlignment>
       <BufferSecurityCheck>false</BufferSecurityCheck>
@@ -857,8 +857,8 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
-      <AdditionalIncludeDirectories>C:\Soft\Boost;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>MT_HAVE_BOOST_SPIRIT;WIN64;_AMD64_;NDEBUG;_WINDOWS;_USRDLL;MASKTOOLS_EXPORTS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN64;_AMD64_;NDEBUG;_WINDOWS;_USRDLL;MASKTOOLS_EXPORTS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <StructMemberAlignment>16Bytes</StructMemberAlignment>
       <BufferSecurityCheck>false</BufferSecurityCheck>
@@ -899,8 +899,8 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
-      <AdditionalIncludeDirectories>C:\Soft\Boost;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>MT_HAVE_BOOST_SPIRIT;WIN64;_AMD64_;NDEBUG;_WINDOWS;_USRDLL;MASKTOOLS_EXPORTS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN64;_AMD64_;NDEBUG;_WINDOWS;_USRDLL;MASKTOOLS_EXPORTS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <StructMemberAlignment>16Bytes</StructMemberAlignment>
       <BufferSecurityCheck>false</BufferSecurityCheck>
@@ -941,7 +941,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
-      <AdditionalIncludeDirectories>C:\Soft\Boost;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>MT_DUAL_SIGNATURES;WIN64;_AMD64_;NDEBUG;_WINDOWS;_USRDLL;MASKTOOLS_EXPORTS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <StructMemberAlignment>16Bytes</StructMemberAlignment>
@@ -985,8 +985,8 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
-      <AdditionalIncludeDirectories>C:\Soft\Boost;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>MT_HAVE_BOOST_SPIRIT;MT_DUAL_SIGNATURES;WIN64;_AMD64_;NDEBUG;_WINDOWS;_USRDLL;MASKTOOLS_EXPORTS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>MT_DUAL_SIGNATURES;WIN64;_AMD64_;NDEBUG;_WINDOWS;_USRDLL;MASKTOOLS_EXPORTS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <StructMemberAlignment>16Bytes</StructMemberAlignment>
       <BufferSecurityCheck>false</BufferSecurityCheck>
@@ -1021,8 +1021,8 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='debug-avs26-16bit|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>C:\Soft\Boost;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;MT_HAVE_BOOST_SPIRIT;_DEBUG;_WINDOWS;_USRDLL;MASKTOOLS_EXPORTS;DEBUG;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;MASKTOOLS_EXPORTS;DEBUG;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -1054,8 +1054,8 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>C:\Soft\Boost;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN64;_AMD64_;ENABLE_16BIT_SUPPORT;MT_HAVE_BOOST_SPIRIT;_DEBUG;_WINDOWS;_USRDLL;MASKTOOLS_EXPORTS;DEBUG;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN64;_AMD64_;ENABLE_16BIT_SUPPORT;_DEBUG;_WINDOWS;_USRDLL;MASKTOOLS_EXPORTS;DEBUG;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -1132,7 +1132,7 @@
     <ClInclude Include="..\common\clip\inputconfig.h" />
     <ClInclude Include="..\helpers\avs2x\helpers_avs2x.h" />
     <ClInclude Include="..\helpers\forms\forms.h" />
-    <ClInclude Include="..\helpers\parser\spirit.h" />
+    <ClInclude Include="..\helpers\parser\polish.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\filters\binarize\binarize16.cpp" />
@@ -1439,7 +1439,7 @@
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='release-boost-dualsign|x64'">Level3</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\helpers\forms\forms.cpp" />
-    <ClCompile Include="..\helpers\parser\spirit.cpp" />
+    <ClCompile Include="..\helpers\parser\polish.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\common\mt_resource.rc" />

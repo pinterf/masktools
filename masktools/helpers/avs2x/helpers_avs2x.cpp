@@ -13,7 +13,7 @@
 #include <avs/config.h>
 #include "../../../common/utils/utils.h"
 #include "../../helpers/forms/forms.h"
-#include "../../helpers/parser/spirit.h"
+#include "../../helpers/parser/polish.h"
 
 using namespace Filtering;
 using namespace Filtering::MaskTools::Helpers::Forms;
