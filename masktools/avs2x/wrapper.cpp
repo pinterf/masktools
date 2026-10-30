@@ -32,14 +32,10 @@
 using namespace Filtering;
 using namespace Filtering::MaskTools::Filters;
 
-#ifdef FILTER_AVS_25
-extern "C" __declspec(dllexport) const char* __stdcall AvisynthPluginInit2(IScriptEnvironment* env) {
-#else
 const AVS_Linkage *AVS_linkage = nullptr;
 
 extern "C" __declspec(dllexport) const char* __stdcall AvisynthPluginInit3(IScriptEnvironment* env, const AVS_Linkage* const vectors) {
     AVS_linkage = vectors;
-#endif
 
    Avisynth2x::Filter<Invert::Invert>::create( env ); // 8-32
    Avisynth2x::Filter<Binarize::Binarize>::create( env ); // 8-32, stacked

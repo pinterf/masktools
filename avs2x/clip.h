@@ -1,16 +1,9 @@
 #ifndef __Common_Avs2x_Clip_H__
 #define __Common_Avs2x_Clip_H__
 
-#if !defined(FILTER_AVS_25) && !defined(FILTER_AVS_26)
-#define FILTER_AVS_26
-#endif
-
 #include "filter.h"
 #include "../common/utils/utils.h"
 
-#if defined(FILTER_AVS_25)
-#include "avisynth-2_5.h"
-#elif defined(FILTER_AVS_26)
 #ifdef _WIN32
 #include <windows.h>
 #pragma warning( push )
@@ -21,9 +14,6 @@
 #include <avisynth.h>
 #endif
 #include <avs/config.h>
-#else
-#error FILTER_AVS_2x not defined
-#endif
 
 namespace Filtering { namespace Avisynth2x {
 
@@ -39,26 +29,6 @@ template<> inline Plane<const Byte> ConvertTo<const Byte>(const PVideoFrame &fra
    return Plane<const Byte>( frame->GetReadPtr( nPlane ), frame->GetPitch( nPlane ), frame->GetRowSize( nPlane ), frame->GetHeight( nPlane ), nPixelSize, frame->GetHeight(nPlane));
 }
 
-#if defined(FILTER_AVS_25)
-template<typename T> Plane<T> ConvertInterleavedTo(const PVideoFrame& frame, int nPlane);
-
-template<> static inline Plane<Byte> ConvertInterleavedTo<Byte>(const PVideoFrame &frame, int nPlane)
-{
-   const int nWidth = frame->GetRowSize() / (nPlane ? 2 : 1);
-   const int nHeight = frame->GetHeight();
-   const ptrdiff_t nPitch = frame->GetPitch();
-   return Plane<Byte>( frame->GetWritePtr() + (nPlane == 2 ? nPitch * 3 / 4 : nPlane == 1 ? nPitch / 2 : 0), nPitch, nWidth, nHeight );
-}
-
-template<> static inline Plane<const Byte> ConvertInterleavedTo<const Byte>(const PVideoFrame &frame, int nPlane)
-{
-   const int nWidth = frame->GetRowSize() / (nPlane ? 2 : 1);
-   const int nHeight = frame->GetHeight();
-   const ptrdiff_t nPitch = frame->GetPitch();
-   return Plane<const Byte>( frame->GetReadPtr() + (nPlane == 2 ? nPitch * 3 / 4 : nPlane == 1 ? nPitch / 2 : 0), nPitch, nWidth, nHeight );
-}
-#endif
-
 /* colorspace conversion */
 Colorspace AVSColorspaceToColorspace(int pixel_type)
 {
@@ -66,7 +36,6 @@ Colorspace AVSColorspaceToColorspace(int pixel_type)
    {
    case VideoInfo::CS_I420: return COLORSPACE_I420;
    case VideoInfo::CS_YV12: return COLORSPACE_YV12;
-#if defined(FILTER_AVS_26)
    case VideoInfo::CS_YV16: return COLORSPACE_YV16;
    case VideoInfo::CS_YV24: return COLORSPACE_YV24;
    case VideoInfo::CS_Y8  : return COLORSPACE_Y8;
@@ -139,11 +108,6 @@ Colorspace AVSColorspaceToColorspace(int pixel_type)
    case VideoInfo::CS_RGBAPS: return COLORSPACE_RGBAPS;
 
 
-
-#elif defined(FILTER_AVS_25)
-   case VideoInfo::CS_YUY2: return COLORSPACE_YV16;
-#endif
-
    default: return COLORSPACE_NONE;
    }
 }
@@ -174,14 +138,6 @@ public:
     template<typename T> Frame<T> ConvertTo(const PVideoFrame& frame)
     {
         Plane<T> planes[4];
-#if defined(FILTER_AVS_25)
-        if ( C == COLORSPACE_YV16 )
-        {
-            for ( int i = 0; i < plane_counts[C]; i++ )
-                planes[i] = Avisynth2x::ConvertInterleavedTo<T>( frame, i );
-        }
-        else
-#endif
         {
             int bit_depth = bit_depths[C];
             int nPixelSize = bit_depth == 8 ? 1 : ((bit_depth <= 16) ? 2 : 4); // uint8_t, uint16_t, float
