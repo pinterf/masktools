@@ -160,19 +160,14 @@ public:
 
     static void create(IScriptEnvironment *env)
     {
-#ifdef MT_DUAL_SIGNATURES
+      // Float parameters are registered with an integer alternative as well: with only the float one, an older
+      // masktools2 (integer-only signature) loaded earlier would be the better match for integer arguments.
+      // The integer one first, the order is important.
       String signature1 = SignatureToString(T::filter_signature(), true); // integer
       env->AddFunction(T::filter_signature().getName().c_str(), signature1.c_str(), _create, NULL);
-      // order is important! 
       String signature2 = SignatureToString(T::filter_signature(), false); // float
       if (signature1 != signature2)
         env->AddFunction(T::filter_signature().getName().c_str(), signature2.c_str(), _create, NULL);
-      // compatibility: alternative parameter list, int and float
-      // or else Avisynth would find the function from another, earlier loaded masktools2 version
-#else
-      String signature = SignatureToString(T::filter_signature(), false); // float
-      env->AddFunction(T::filter_signature().getName().c_str(), signature.c_str(), _create, NULL);
-#endif
     }
 };
 
