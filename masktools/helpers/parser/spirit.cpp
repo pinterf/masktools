@@ -245,14 +245,6 @@ String Converter(const String &str)
    return result;
 }
 
-String Infix(const String &str)
-{
-   Parser::Parser parser = Parser::getDefaultParser().addSymbol(Parser::Symbol::X).addSymbol(Parser::Symbol::Y).addSymbol(Parser::Symbol::Z);
-   parser.parse(str, Parser::SYMBOL_SEPARATORS);
-   Parser::Context ctx(parser.getExpression());
-   return ctx.infix();
-}
-
 } } } }
 
 #else
@@ -262,9 +254,16 @@ Filtering::String Filtering::MaskTools::Helpers::PolishConverter::Converter(cons
    return "spirit parser not available";
 }
 
-Filtering::String Filtering::MaskTools::Helpers::PolishConverter::Infix(const Filtering::String&)
+#endif
+
+namespace Filtering { namespace MaskTools { namespace Helpers { namespace PolishConverter {
+
+String Infix(const String &str)
 {
-    return "spirit parser not available";
+   Parser::Parser parser = Parser::getDefaultParser().addSymbol(Parser::Symbol::X).addSymbol(Parser::Symbol::Y).addSymbol(Parser::Symbol::Z);
+   parser.parse(str, Parser::SYMBOL_SEPARATORS);
+   Parser::Context ctx(parser.getExpression());
+   return ctx.infix();
 }
 
-#endif
+} } } }
