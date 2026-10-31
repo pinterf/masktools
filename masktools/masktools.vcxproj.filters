@@ -7,6 +7,33 @@
     <Filter Include="common">
       <UniqueIdentifier>{cf19c9c9-2e95-5de0-9a45-eba7874ff86a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="common (shared)">
+      <UniqueIdentifier>{a2ddc0b3-703f-538e-a63a-7ce3d6d175e2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="common (shared)\clip">
+      <UniqueIdentifier>{c8ddace0-59c4-5650-927c-5798e7b4cb52}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="common (shared)\constraints">
+      <UniqueIdentifier>{bf5552b5-d67e-55a7-9a41-6e5366629dbc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="common (shared)\frame">
+      <UniqueIdentifier>{cdeab729-7276-54af-80b4-1adb1989168b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="common (shared)\functions">
+      <UniqueIdentifier>{11959cbe-0f34-5c9d-a1b8-333c7bc3d536}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="common (shared)\params">
+      <UniqueIdentifier>{d9d8a082-1903-5472-9c39-1c92c3f4b472}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="common (shared)\parser">
+      <UniqueIdentifier>{86295998-00e1-5970-bc80-680c146c2958}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="common (shared)\plane">
+      <UniqueIdentifier>{555a76d1-7b0e-5587-85a6-c8dfa2569b44}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="common (shared)\utils">
+      <UniqueIdentifier>{aa4fb4b8-91e0-5d7a-a131-4a38a69e98db}</UniqueIdentifier>
+    </Filter>
     <Filter Include="common\base">
       <UniqueIdentifier>{22f669f4-e268-5869-a8fb-c2631b8711cd}</UniqueIdentifier>
     </Filter>
@@ -138,6 +165,18 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\common\constraints\constraints.cpp">
+      <Filter>common (shared)\constraints</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\functions\functions.cpp">
+      <Filter>common (shared)\functions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\parser\parser.cpp">
+      <Filter>common (shared)\parser</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\parser\symbol.cpp">
+      <Filter>common (shared)\parser</Filter>
+    </ClCompile>
     <ClCompile Include="avs2x\wrapper.cpp">
       <Filter>avs2x</Filter>
     </ClCompile>
@@ -464,6 +503,42 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\avs2x\clip.h">
+      <Filter>avs2x</Filter>
+    </ClInclude>
+    <ClInclude Include="..\avs2x\filter.h">
+      <Filter>avs2x</Filter>
+    </ClInclude>
+    <ClInclude Include="..\avs2x\params.h">
+      <Filter>avs2x</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\clip\clip.h">
+      <Filter>common (shared)\clip</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\constraints\constraints.h">
+      <Filter>common (shared)\constraints</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\frame\frame.h">
+      <Filter>common (shared)\frame</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\functions\functions.h">
+      <Filter>common (shared)\functions</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\params\params.h">
+      <Filter>common (shared)\params</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\parser\parser.h">
+      <Filter>common (shared)\parser</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\parser\symbol.h">
+      <Filter>common (shared)\parser</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\plane\plane.h">
+      <Filter>common (shared)\plane</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\utils\utils.h">
+      <Filter>common (shared)\utils</Filter>
+    </ClInclude>
     <ClInclude Include="common\16bit.h">
       <Filter>common</Filter>
     </ClInclude>

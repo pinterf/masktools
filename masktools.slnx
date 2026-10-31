@@ -6,6 +6,5 @@
     <Platform Name="Win32" />
     <Platform Name="x64" />
   </Configurations>
-  <Project Path="common/common.vcxproj" Id="dbfbe277-5b8d-4258-b522-13146fd1e722" />
   <Project Path="masktools/masktools.vcxproj" Id="185396d8-57bd-4ddf-8cd3-26035ea50db9" />
 </Solution>

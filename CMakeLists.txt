@@ -95,6 +95,7 @@ endfunction()
 function(group_sources)
   foreach(FILE ${ARGN})
     get_filename_component(PARENT_DIR "${FILE}" PATH)
+    string(REPLACE "../" "" PARENT_DIR "${PARENT_DIR}")
     string(REGEX REPLACE "(\\./)" "" GROUP "${PARENT_DIR}")
     string(REPLACE "/" "\\" GROUP "${GROUP}")
     if("${FILE}" MATCHES ".*\\.cpp")
@@ -106,7 +107,6 @@ function(group_sources)
   endforeach()
 endfunction()
 
-add_subdirectory("common")
 add_subdirectory("masktools")
 
 # uninstall target

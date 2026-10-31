@@ -129,6 +129,10 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\common\constraints\constraints.cpp" />
+    <ClCompile Include="..\common\functions\functions.cpp" />
+    <ClCompile Include="..\common\parser\parser.cpp" />
+    <ClCompile Include="..\common\parser\symbol.cpp" />
     <ClCompile Include="avs2x\wrapper.cpp" />
     <ClCompile Include="common\clip\inputconfig.cpp" />
     <ClCompile Include="filters\binarize\binarize.cpp" />
@@ -289,6 +293,18 @@
     <ClCompile Include="helpers\parser\polish.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\avs2x\clip.h" />
+    <ClInclude Include="..\avs2x\filter.h" />
+    <ClInclude Include="..\avs2x\params.h" />
+    <ClInclude Include="..\common\clip\clip.h" />
+    <ClInclude Include="..\common\constraints\constraints.h" />
+    <ClInclude Include="..\common\frame\frame.h" />
+    <ClInclude Include="..\common\functions\functions.h" />
+    <ClInclude Include="..\common\params\params.h" />
+    <ClInclude Include="..\common\parser\parser.h" />
+    <ClInclude Include="..\common\parser\symbol.h" />
+    <ClInclude Include="..\common\plane\plane.h" />
+    <ClInclude Include="..\common\utils\utils.h" />
     <ClInclude Include="common\16bit.h" />
     <ClInclude Include="common\base\filter.h" />
     <ClInclude Include="common\clip\inputconfig.h" />
@@ -372,11 +388,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="documentation\mt_masktools.html" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\common\common.vcxproj">
-      <Project>{DBFBE277-5B8D-4258-B522-13146FD1E722}</Project>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

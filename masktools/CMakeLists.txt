@@ -1,6 +1,9 @@
 set(PluginName "masktools2")
 
 file(GLOB_RECURSE masktools_Sources RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" CONFIGURE_DEPENDS "*.cpp" "*.h")
+# the shared sources (RPN parser, dispatch constraints, helpers) are compiled in, no separate library
+file(GLOB_RECURSE common_Sources RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" CONFIGURE_DEPENDS "../common/*.cpp" "../common/*.h")
+list(APPEND masktools_Sources ${common_Sources})
 
 handle_all_arch_flags(masktools_Sources)
 group_sources(${masktools_Sources})
@@ -20,7 +23,8 @@ if(WIN32)
 endif()
 
 target_include_directories(${PluginName} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(${PluginName} PRIVATE common)
+# dedicated include dir for avisynth.h
+target_include_directories(${PluginName} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../include)
 
 install(TARGETS ${PluginName}
         LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}/avisynth")
