@@ -13,7 +13,7 @@ static double multiplication  (double x, double y) { return x * y; }
 static double division        (double x, double y) { return x / y; }
 static double substraction    (double x, double y) { return x - y; }
 static double power           (double x, double y) { return pow(x, y); }
-static double modulo          (double x, double y) { return double(convert<int64_t, double>( x ) % convert<int64_t, double>( y )); }
+static double modulo          (double x, double y) { return fmod(x, y); }
 // Ternary operator helper
 static double interrogation   (double x, double y, double z) { return x > 0 ? y : z; }
 // comparison
