@@ -6,6 +6,8 @@
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Merge {
 
+namespace {
+
    static void merge_avx2_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
       const uint8_t *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
    {
@@ -301,6 +303,8 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Merge 
        merge_luma_411_avx2_c(pDst_s + wMod32, nDstPitch, pSrc1_s + wMod32, nSrc1Pitch, pMask_s + wMod32 * 4, nSrc2Pitch, nWidth - wMod32, nHeight);
      }
    }
+
+} // namespace
 
    // no MPEG2 option here in 8bit AVX2
    Processor *merge_avx2 = merge_avx2_t<MemoryMode::SSE2_UNALIGNED>;

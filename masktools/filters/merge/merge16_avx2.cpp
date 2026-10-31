@@ -6,6 +6,8 @@
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Merge {
 
+namespace {
+
 /* Common */
 
 // no MASK420_MPEG2, MASK420_TOPLEFT and MASK422_MPEG2 support in AVX2
@@ -261,6 +263,8 @@ MAKE_TEMPLATES(12)
 MAKE_TEMPLATES(14)
 MAKE_TEMPLATES(16)
 #undef MAKE_TEMPLATES
+
+} // namespace
 
 #define MAKE_EXPORTS(bits_per_pixel) \
 Processor16 *merge16_##bits_per_pixel##_avx2 = merge16_t_simd< MASK444, merge16_t_c<MASK444, bits_per_pixel>, bits_per_pixel>; \

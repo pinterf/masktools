@@ -6,6 +6,8 @@
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Merge {
 
+namespace {
+
    static void merge32_avx2_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
       const uint8_t *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
    {
@@ -383,6 +385,8 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Merge 
          merge32_luma_422_mpeg2_avx2_c(pDst_s + wMod32, nDstPitch, pSrc1_s + wMod32, nSrc1Pitch, pMask_s + wMod32 * 2, nSrc2Pitch, (nWidth - wMod32) / sizeof(float), nHeight);
      }
    }
+
+} // namespace
 
 
    Processor32 *merge32_avx2 = merge32_avx2_t<MemoryMode::SSE2_UNALIGNED>;
