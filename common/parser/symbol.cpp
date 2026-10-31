@@ -2,6 +2,7 @@
 #include <math.h>
 #include <sstream>
 #include <string>
+#include <stdexcept>
 
 using namespace Filtering;
 using namespace Filtering::Parser;
@@ -509,7 +510,6 @@ Context::Context(const std::deque<Symbol> &expression, String scale_inputs, int 
 
 Context::Context(const std::deque<Symbol> &expression)
 {
-   nPos_infix = -1;
    pSymbols.reserve(expression.size());
    exprstack.reserve(expression.size());
 
@@ -850,84 +850,68 @@ double Context::compute_1(double _x, int _bitdepth, bool _chroma)
   return rec_compute();
 }
 
-String Context::rec_infix()
-{
-    const Symbol &s = pSymbols[--nPos_infix];
-
-    switch ( s.type )
-    {
-    case Symbol::VARIABLE:
-      switch (s.vartype) {
-      case Symbol::VARIABLE_X:
-      case Symbol::VARIABLE_Y:
-      case Symbol::VARIABLE_Z:
-      case Symbol::VARIABLE_A:
-      case Symbol::VARIABLE_BITDEPTH:
-      case Symbol::VARIABLE_SCRIPT_BITDEPTH:
-      case Symbol::VARIABLE_RANGE_HALF:
-      case Symbol::VARIABLE_RANGE_MIN:
-      case Symbol::VARIABLE_RANGE_MAX:
-      case Symbol::VARIABLE_YRANGE_HALF:
-      case Symbol::VARIABLE_YRANGE_MIN:
-      case Symbol::VARIABLE_YRANGE_MAX:
-      case Symbol::VARIABLE_RANGE_SIZE:
-      case Symbol::VARIABLE_YMIN:
-      case Symbol::VARIABLE_YMAX:
-      case Symbol::VARIABLE_CMIN:
-      case Symbol::VARIABLE_CMAX:
-        return s.value;
-      }
-    case Symbol::NUMBER: return s.value;
-    case Symbol::FUNCTION:
-        if (s.nParameter == 1) {
-            return s.value + "(" + rec_infix() + ")";
-        } else if (s.nParameter == 2) {
-            auto op2 = rec_infix();
-            return s.value + "(" + rec_infix() + "," + op2 + ")";
-        } else {
-            auto op3 = rec_infix();
-            auto op2 = rec_infix();
-            return s.value + "(" + rec_infix() + "," + op2 + "," + op3 + ")";
-        }
-    case Symbol::OPERATOR:
-        {
-            auto op2 = rec_infix();
-            return "(" + rec_infix() + s.value + op2 + ")";
-        }
-    case Symbol::TERNARY:
-        {
-            auto op3 = rec_infix();
-            auto op2 = rec_infix();
-            return "((" + rec_infix() + ") ? " + op2 + " : " + op3 + ")";
-        }
-    case Symbol::FUNCTION_WITH_BITDEPTH_AS_AUTOPARAM:
-    {
-      return s.value + "(" + rec_infix() + ")";
-    }
-
-    case Symbol::DUP:
-    {
-      // really a stack operation, try to fake convert as function to infix
-      return s.value + "(" + rec_infix() + ")";
-    }
-
-    case Symbol::SWAP:
-    {
-      // really a stack operation, try to fake convert as function to infix
-      return s.value + "(" + rec_infix() + ")";
-    }
-
-    default:
-        assert(0);
-        return "";
-    }
-}
-
+// The reverse polish expression run on a stack of infix strings; dup and swap copy and exchange them.
 String Context::infix()
 {
-   nPos_infix = pSymbols.size();
+   std::vector<String> stack;
+   auto pop = [&stack]() {
+      String top = stack.back();
+      stack.pop_back();
+      return top;
+   };
 
-   return rec_infix();
+   for (const Symbol &s : pSymbols) {
+      int operands;
+      switch (s.type) {
+      case Symbol::OPERATOR: operands = 2; break;
+      case Symbol::TERNARY: operands = 3; break;
+      case Symbol::FUNCTION: operands = s.nParameter; break;
+      case Symbol::FUNCTION_WITH_BITDEPTH_AS_AUTOPARAM: operands = 1; break;
+      case Symbol::DUP: case Symbol::SWAP: operands = s.nParameter + 1; break;
+      default: operands = 0; break; // variables, constants, numbers
+      }
+      if ((int)stack.size() < operands)
+         throw std::runtime_error("mt_infix: not enough operands for \"" + s.value + "\"");
+
+      switch (s.type) {
+      case Symbol::OPERATOR: {
+         auto op2 = pop();
+         auto op1 = pop();
+         stack.push_back("(" + op1 + s.value + op2 + ")");
+         break;
+      }
+      case Symbol::TERNARY: {
+         auto op3 = pop();
+         auto op2 = pop();
+         auto op1 = pop();
+         stack.push_back("((" + op1 + ") ? " + op2 + " : " + op3 + ")");
+         break;
+      }
+      case Symbol::FUNCTION:
+      case Symbol::FUNCTION_WITH_BITDEPTH_AS_AUTOPARAM: {
+         String args;
+         for (int i = 0; i < operands; i++)
+            args = (i + 1 < operands ? "," : "") + pop() + args;
+         stack.push_back(s.value + "(" + args + ")");
+         break;
+      }
+      case Symbol::DUP:
+         stack.push_back(stack[stack.size() - 1 - s.nParameter]);
+         break;
+      case Symbol::SWAP:
+         std::swap(stack.back(), stack[stack.size() - 1 - s.nParameter]);
+         break;
+      default:
+         stack.push_back(s.value);
+         break;
+      }
+   }
+
+   if (stack.empty())
+      throw std::runtime_error("mt_infix: empty expression");
+   if (stack.size() > 1)
+      throw std::runtime_error("mt_infix: " + std::to_string(stack.size() - 1) + " value(s) left over");
+   return stack.back();
 }
 
 bool Context::check()

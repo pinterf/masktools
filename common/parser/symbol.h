@@ -221,7 +221,6 @@ public:
 class Context {
 
    std::vector<Symbol> pSymbols;
-   int nPos_infix; // for mt_infix
 
    int compute_error; // CE_xx
 
@@ -281,7 +280,6 @@ class Context {
 
    double rec_compute();
    double rec_compute_old();
-   String rec_infix();
 
 public:
    
