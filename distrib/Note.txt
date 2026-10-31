@@ -1,0 +1,27 @@
+This package contains DLLs built with different compilers.
+
+Win32\ClangCL, x64\ClangCL
+  LLVM clang-cl (Visual Studio 2026).
+
+Win32\MSVC_XP, x64\MSVC_XP
+  Visual C++ v141_xp toolset, runs on Windows XP and Windows 7 as well.
+  Contains the same AVX2 code as the other builds, but Windows XP does not support AVX
+  (it does not save the AVX registers), so on XP Avisynth reports no AVX/AVX2 and the
+  SSE2..SSE4.1 code is used. On Windows 7 SP1 and newer this build uses AVX2 as well.
+
+The CPU specific optimizations are chosen at runtime, up to AVX2.
+
+masktools2.dll requires the Microsoft Visual C++ Redistributable
+https://www.visualstudio.com/downloads/
+
+Which one to choose?
+
+When in doubt, use ClangCL. On Windows XP and Windows 7 use MSVC_XP.
+
+Integer and float parameters
+
+Every filter is registered twice: with integer and with float parameters (e.g. the
+thresholds). When an older masktools2 with integer-only parameters was loaded as well,
+Avisynth could choose the old DLL for a call with integer arguments; with both signatures
+this masktools2 is chosen. Earlier releases had this in a separate
+"with_dual_filter_signatures" folder, now every build has it.
