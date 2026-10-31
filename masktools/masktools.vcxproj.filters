@@ -447,6 +447,9 @@
     <ClCompile Include="filters\support\adddiff\adddiff.cpp">
       <Filter>filters\support\adddiff</Filter>
     </ClCompile>
+    <ClCompile Include="filters\support\adddiff\adddiff_neon.cpp">
+      <Filter>filters\support\adddiff</Filter>
+    </ClCompile>
     <ClCompile Include="filters\support\adddiff\adddiff_sse2.cpp">
       <Filter>filters\support\adddiff</Filter>
     </ClCompile>
@@ -487,6 +490,9 @@
       <Filter>filters\support\makediff16</Filter>
     </ClCompile>
     <ClCompile Include="filters\support\makediff\makediff.cpp">
+      <Filter>filters\support\makediff</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\support\makediff\makediff_neon.cpp">
       <Filter>filters\support\makediff</Filter>
     </ClCompile>
     <ClCompile Include="filters\support\makediff\makediff_sse2.cpp">

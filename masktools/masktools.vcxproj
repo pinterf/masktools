@@ -269,6 +269,7 @@
       <AdditionalOptions Condition="'$(Configuration)'=='Rel_Clang'">-msse4.1 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="filters\support\adddiff\adddiff.cpp" />
+    <ClCompile Include="filters\support\adddiff\adddiff_neon.cpp" />
     <ClCompile Include="filters\support\adddiff\adddiff_sse2.cpp" />
     <ClCompile Include="filters\support\average16\average16.cpp" />
     <ClCompile Include="filters\support\average16\average16_sse2.cpp" />
@@ -287,6 +288,7 @@
       <AdditionalOptions Condition="'$(Configuration)'=='Rel_Clang'">-msse4.1 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="filters\support\makediff\makediff.cpp" />
+    <ClCompile Include="filters\support\makediff\makediff_neon.cpp" />
     <ClCompile Include="filters\support\makediff\makediff_sse2.cpp" />
     <ClCompile Include="helpers\avs2x\helpers_avs2x.cpp" />
     <ClCompile Include="helpers\forms\forms.cpp" />
