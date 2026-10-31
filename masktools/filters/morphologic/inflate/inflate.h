@@ -15,6 +15,11 @@ extern Processor16 *inflate_16_c;
 extern Processor16 *inflate_sse4_16;
 extern Processor16 *inflate_asse4_16;
 
+#ifdef NEON_INTRINSICS
+extern Processor *inflate_neon;
+extern Processor16 *inflate_16_neon;
+#endif
+
 /*32 bit */
 extern Processor32 *inflate32_c;
 
@@ -30,6 +35,9 @@ public:
     /* add the processors */
     if (_bits_per_pixel == 8) {
       processors.push_back(Filtering::Processor<Processor>(inflate_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0));
+#ifdef NEON_INTRINSICS
+      processors.push_back(Filtering::Processor<Processor>(inflate_neon, Constraint(CPU_NEON, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 17), 1));
+#endif
 #ifdef INTEL_INTRINSICS
       processors.push_back(Filtering::Processor<Processor>(inflate_sse2, Constraint(CPU_SSE2, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 17), 1));
       processors.push_back(Filtering::Processor<Processor>(inflate_asse2, Constraint(CPU_SSE2, MODULO_NONE, MODULO_NONE, ALIGNMENT_16, 17), 2));
@@ -37,6 +45,9 @@ public:
     }
     else if (_bits_per_pixel <= 16){
       processors16.push_back(Filtering::Processor<Processor16>(inflate_16_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0));
+#ifdef NEON_INTRINSICS
+      processors16.push_back(Filtering::Processor<Processor16>(inflate_16_neon, Constraint(CPU_NEON, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 9), 1));
+#endif
 #ifdef INTEL_INTRINSICS
       processors16.push_back(Filtering::Processor<Processor16>(inflate_sse4_16, Constraint(CPU_SSE4_1, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 16), 1));
       processors16.push_back(Filtering::Processor<Processor16>(inflate_asse4_16, Constraint(CPU_SSE4_1, MODULO_NONE, MODULO_NONE, ALIGNMENT_16, 16), 2));

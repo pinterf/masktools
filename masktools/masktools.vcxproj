@@ -143,6 +143,7 @@
     <ClCompile Include="filters\binarize\binarize_avx2.cpp">
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
     </ClCompile>
+    <ClCompile Include="filters\binarize\binarize_neon.cpp" />
     <ClCompile Include="filters\binarize\binarize_sse2.cpp" />
     <ClCompile Include="filters\blur\mappedblur.cpp" />
     <ClCompile Include="filters\blur\mappedblur16.cpp" />
@@ -150,6 +151,7 @@
     <ClCompile Include="filters\convolution\convolution.cpp" />
     <ClCompile Include="filters\gradient\gradient.cpp" />
     <ClCompile Include="filters\invert\invert.cpp" />
+    <ClCompile Include="filters\invert\invert_neon.cpp" />
     <ClCompile Include="filters\invert\invert_sse2.cpp" />
     <ClCompile Include="filters\logic\logic.cpp" />
     <ClCompile Include="filters\logic\logic16.cpp" />
@@ -168,6 +170,7 @@
     <ClCompile Include="filters\logic\logic_avx2.cpp">
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
     </ClCompile>
+    <ClCompile Include="filters\logic\logic_neon.cpp" />
     <ClCompile Include="filters\logic\logic_sse2.cpp" />
     <ClCompile Include="filters\lut\lut\lut.cpp" />
     <ClCompile Include="filters\lut\lut\lut16.cpp" />
@@ -194,6 +197,7 @@
     <ClCompile Include="filters\mask\edge\edgemask_avx2.cpp">
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
     </ClCompile>
+    <ClCompile Include="filters\mask\edge\edgemask_neon.cpp" />
     <ClCompile Include="filters\mask\edge\edgemask_sse2.cpp" />
     <ClCompile Include="filters\mask\edge\edgemask_ssse3.cpp">
       <AdditionalOptions Condition="'$(Configuration)'=='Rel_Clang'">-mssse3 %(AdditionalOptions)</AdditionalOptions>
@@ -204,6 +208,7 @@
     <ClCompile Include="filters\mask\motion\motionmask16_sse2.cpp" />
     <ClCompile Include="filters\mask\motion\motionmask32.cpp" />
     <ClCompile Include="filters\mask\motion\motionmask32_sse2.cpp" />
+    <ClCompile Include="filters\mask\motion\motionmask_neon.cpp" />
     <ClCompile Include="filters\mask\motion\motionmask_sse2.cpp" />
     <ClCompile Include="filters\merge\merge.cpp" />
     <ClCompile Include="filters\merge\merge16.cpp" />
@@ -225,6 +230,7 @@
     <ClCompile Include="filters\merge\merge_avx2.cpp">
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
     </ClCompile>
+    <ClCompile Include="filters\merge\merge_neon.cpp" />
     <ClCompile Include="filters\merge\merge_sse2.cpp" />
     <ClCompile Include="filters\merge\merge_sse41.cpp">
       <AdditionalOptions Condition="'$(Configuration)'=='Rel_Clang'">-msse4.1 %(AdditionalOptions)</AdditionalOptions>
@@ -235,6 +241,7 @@
       <AdditionalOptions Condition="'$(Configuration)'=='Rel_Clang'">-msse4.1 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="filters\morphologic\deflate\deflate32.cpp" />
+    <ClCompile Include="filters\morphologic\deflate\deflate_neon.cpp" />
     <ClCompile Include="filters\morphologic\deflate\deflate_sse2.cpp" />
     <ClCompile Include="filters\morphologic\expand\expand.cpp" />
     <ClCompile Include="filters\morphologic\expand\expand16.cpp" />
@@ -245,6 +252,7 @@
       <AdditionalOptions Condition="'$(Configuration)'=='Rel_Clang'">-msse4.1 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="filters\morphologic\expand\expand32.cpp" />
+    <ClCompile Include="filters\morphologic\expand\expand_neon.cpp" />
     <ClCompile Include="filters\morphologic\expand\expand_sse2.cpp" />
     <ClCompile Include="filters\morphologic\inflate\inflate.cpp" />
     <ClCompile Include="filters\morphologic\inflate\inflate16.cpp" />
@@ -252,6 +260,7 @@
       <AdditionalOptions Condition="'$(Configuration)'=='Rel_Clang'">-msse4.1 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="filters\morphologic\inflate\inflate32.cpp" />
+    <ClCompile Include="filters\morphologic\inflate\inflate_neon.cpp" />
     <ClCompile Include="filters\morphologic\inflate\inflate_sse2.cpp" />
     <ClCompile Include="filters\morphologic\inpand\inpand.cpp" />
     <ClCompile Include="filters\morphologic\inpand\inpand16.cpp" />
@@ -262,6 +271,7 @@
       <AdditionalOptions Condition="'$(Configuration)'=='Rel_Clang'">-msse4.1 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="filters\morphologic\inpand\inpand32.cpp" />
+    <ClCompile Include="filters\morphologic\inpand\inpand_neon.cpp" />
     <ClCompile Include="filters\morphologic\inpand\inpand_sse2.cpp" />
     <ClCompile Include="filters\support\adddiff16\adddiff16.cpp" />
     <ClCompile Include="filters\support\adddiff16\adddiff16_sse2.cpp" />
@@ -274,6 +284,7 @@
     <ClCompile Include="filters\support\average16\average16.cpp" />
     <ClCompile Include="filters\support\average16\average16_sse2.cpp" />
     <ClCompile Include="filters\support\average\average.cpp" />
+    <ClCompile Include="filters\support\average\average_neon.cpp" />
     <ClCompile Include="filters\support\average\average_sse2.cpp" />
     <ClCompile Include="filters\support\clamp16\clamp16.cpp" />
     <ClCompile Include="filters\support\clamp16\clamp16_sse2.cpp" />
@@ -281,6 +292,7 @@
       <AdditionalOptions Condition="'$(Configuration)'=='Rel_Clang'">-msse4.1 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="filters\support\clamp\clamp.cpp" />
+    <ClCompile Include="filters\support\clamp\clamp_neon.cpp" />
     <ClCompile Include="filters\support\clamp\clamp_sse2.cpp" />
     <ClCompile Include="filters\support\makediff16\makediff16.cpp" />
     <ClCompile Include="filters\support\makediff16\makediff16_sse2.cpp" />
@@ -368,6 +380,7 @@
     <ClInclude Include="filters\morphologic\functions16_sse.h" />
     <ClInclude Include="filters\morphologic\functions32.h" />
     <ClInclude Include="filters\morphologic\functions32_sse.h" />
+    <ClInclude Include="filters\morphologic\functions_neon.h" />
     <ClInclude Include="filters\morphologic\functions_sse.h" />
     <ClInclude Include="filters\morphologic\inflate\inflate.h" />
     <ClInclude Include="filters\morphologic\inpand\inpand.h" />

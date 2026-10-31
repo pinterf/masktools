@@ -201,6 +201,9 @@
     <ClCompile Include="filters\binarize\binarize_avx2.cpp">
       <Filter>filters\binarize</Filter>
     </ClCompile>
+    <ClCompile Include="filters\binarize\binarize_neon.cpp">
+      <Filter>filters\binarize</Filter>
+    </ClCompile>
     <ClCompile Include="filters\binarize\binarize_sse2.cpp">
       <Filter>filters\binarize</Filter>
     </ClCompile>
@@ -220,6 +223,9 @@
       <Filter>filters\gradient</Filter>
     </ClCompile>
     <ClCompile Include="filters\invert\invert.cpp">
+      <Filter>filters\invert</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\invert\invert_neon.cpp">
       <Filter>filters\invert</Filter>
     </ClCompile>
     <ClCompile Include="filters\invert\invert_sse2.cpp">
@@ -250,6 +256,9 @@
       <Filter>filters\logic</Filter>
     </ClCompile>
     <ClCompile Include="filters\logic\logic_avx2.cpp">
+      <Filter>filters\logic</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\logic\logic_neon.cpp">
       <Filter>filters\logic</Filter>
     </ClCompile>
     <ClCompile Include="filters\logic\logic_sse2.cpp">
@@ -306,6 +315,9 @@
     <ClCompile Include="filters\mask\edge\edgemask_avx2.cpp">
       <Filter>filters\mask\edge</Filter>
     </ClCompile>
+    <ClCompile Include="filters\mask\edge\edgemask_neon.cpp">
+      <Filter>filters\mask\edge</Filter>
+    </ClCompile>
     <ClCompile Include="filters\mask\edge\edgemask_sse2.cpp">
       <Filter>filters\mask\edge</Filter>
     </ClCompile>
@@ -328,6 +340,9 @@
       <Filter>filters\mask\motion</Filter>
     </ClCompile>
     <ClCompile Include="filters\mask\motion\motionmask32_sse2.cpp">
+      <Filter>filters\mask\motion</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\mask\motion\motionmask_neon.cpp">
       <Filter>filters\mask\motion</Filter>
     </ClCompile>
     <ClCompile Include="filters\mask\motion\motionmask_sse2.cpp">
@@ -363,6 +378,9 @@
     <ClCompile Include="filters\merge\merge_avx2.cpp">
       <Filter>filters\merge</Filter>
     </ClCompile>
+    <ClCompile Include="filters\merge\merge_neon.cpp">
+      <Filter>filters\merge</Filter>
+    </ClCompile>
     <ClCompile Include="filters\merge\merge_sse2.cpp">
       <Filter>filters\merge</Filter>
     </ClCompile>
@@ -379,6 +397,9 @@
       <Filter>filters\morphologic\deflate</Filter>
     </ClCompile>
     <ClCompile Include="filters\morphologic\deflate\deflate32.cpp">
+      <Filter>filters\morphologic\deflate</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\morphologic\deflate\deflate_neon.cpp">
       <Filter>filters\morphologic\deflate</Filter>
     </ClCompile>
     <ClCompile Include="filters\morphologic\deflate\deflate_sse2.cpp">
@@ -399,6 +420,9 @@
     <ClCompile Include="filters\morphologic\expand\expand32.cpp">
       <Filter>filters\morphologic\expand</Filter>
     </ClCompile>
+    <ClCompile Include="filters\morphologic\expand\expand_neon.cpp">
+      <Filter>filters\morphologic\expand</Filter>
+    </ClCompile>
     <ClCompile Include="filters\morphologic\expand\expand_sse2.cpp">
       <Filter>filters\morphologic\expand</Filter>
     </ClCompile>
@@ -412,6 +436,9 @@
       <Filter>filters\morphologic\inflate</Filter>
     </ClCompile>
     <ClCompile Include="filters\morphologic\inflate\inflate32.cpp">
+      <Filter>filters\morphologic\inflate</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\morphologic\inflate\inflate_neon.cpp">
       <Filter>filters\morphologic\inflate</Filter>
     </ClCompile>
     <ClCompile Include="filters\morphologic\inflate\inflate_sse2.cpp">
@@ -430,6 +457,9 @@
       <Filter>filters\morphologic\inpand</Filter>
     </ClCompile>
     <ClCompile Include="filters\morphologic\inpand\inpand32.cpp">
+      <Filter>filters\morphologic\inpand</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\morphologic\inpand\inpand_neon.cpp">
       <Filter>filters\morphologic\inpand</Filter>
     </ClCompile>
     <ClCompile Include="filters\morphologic\inpand\inpand_sse2.cpp">
@@ -462,6 +492,9 @@
     <ClCompile Include="filters\support\average\average.cpp">
       <Filter>filters\support\average</Filter>
     </ClCompile>
+    <ClCompile Include="filters\support\average\average_neon.cpp">
+      <Filter>filters\support\average</Filter>
+    </ClCompile>
     <ClCompile Include="filters\support\average\average_sse2.cpp">
       <Filter>filters\support\average</Filter>
     </ClCompile>
@@ -475,6 +508,9 @@
       <Filter>filters\support\clamp16</Filter>
     </ClCompile>
     <ClCompile Include="filters\support\clamp\clamp.cpp">
+      <Filter>filters\support\clamp</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\support\clamp\clamp_neon.cpp">
       <Filter>filters\support\clamp</Filter>
     </ClCompile>
     <ClCompile Include="filters\support\clamp\clamp_sse2.cpp">
@@ -726,6 +762,9 @@
       <Filter>filters\morphologic</Filter>
     </ClInclude>
     <ClInclude Include="filters\morphologic\functions32_sse.h">
+      <Filter>filters\morphologic</Filter>
+    </ClInclude>
+    <ClInclude Include="filters\morphologic\functions_neon.h">
       <Filter>filters\morphologic</Filter>
     </ClInclude>
     <ClInclude Include="filters\morphologic\functions_sse.h">

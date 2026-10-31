@@ -51,6 +51,17 @@ extern Processor16* expand_vertical_aavx2_16;
 extern Processor16* expand_both_avx2_16;
 extern Processor16* expand_both_aavx2_16;
 
+#ifdef NEON_INTRINSICS
+extern Processor *expand_square_neon;
+extern Processor16 *expand_square_16_neon;
+extern Processor *expand_both_neon;
+extern Processor16 *expand_both_16_neon;
+extern Processor *expand_horizontal_neon;
+extern Processor16 *expand_horizontal_16_neon;
+extern Processor *expand_vertical_neon;
+extern Processor16 *expand_vertical_16_neon;
+#endif
+
 /* 32 bit */
 extern Processor32 *expand32_square_c;
 extern Processor32 *expand32_horizontal_c;
@@ -73,6 +84,9 @@ public:
     {
       if (_bits_per_pixel == 8) {
         processors.push_back(Filtering::Processor<Processor>(expand_square_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0));
+#ifdef NEON_INTRINSICS
+        processors.push_back(Filtering::Processor<Processor>(expand_square_neon, Constraint(CPU_NEON, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 17), 1));
+#endif
 #ifdef INTEL_INTRINSICS
         processors.push_back(Filtering::Processor<Processor>(expand_square_sse2, Constraint(CPU_SSE2, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 17), 1));
         processors.push_back(Filtering::Processor<Processor>(expand_square_asse2, Constraint(CPU_SSE2, MODULO_NONE, MODULO_NONE, ALIGNMENT_16, 17), 2));
@@ -80,6 +94,9 @@ public:
       }
       else if (_bits_per_pixel <= 16) {
         processors16.push_back(Filtering::Processor<Processor16>(expand_square_16_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0));
+#ifdef NEON_INTRINSICS
+        processors16.push_back(Filtering::Processor<Processor16>(expand_square_16_neon, Constraint(CPU_NEON, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 9), 1));
+#endif
 #ifdef INTEL_INTRINSICS
         processors16.push_back(Filtering::Processor<Processor16>(expand_square_sse4_16, Constraint(CPU_SSE4_1, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 16), 1));
         processors16.push_back(Filtering::Processor<Processor16>(expand_square_asse4_16, Constraint(CPU_SSE4_1, MODULO_NONE, MODULO_NONE, ALIGNMENT_16, 16), 2));
@@ -95,6 +112,9 @@ public:
     {
       if (_bits_per_pixel == 8) {
         processors.push_back(Filtering::Processor<Processor>(expand_horizontal_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0));
+#ifdef NEON_INTRINSICS
+        processors.push_back(Filtering::Processor<Processor>(expand_horizontal_neon, Constraint(CPU_NEON, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 17), 1));
+#endif
 #ifdef INTEL_INTRINSICS
         processors.push_back(Filtering::Processor<Processor>(expand_horizontal_sse2, Constraint(CPU_SSE2, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 17), 1));
         processors.push_back(Filtering::Processor<Processor>(expand_horizontal_asse2, Constraint(CPU_SSE2, MODULO_NONE, MODULO_NONE, ALIGNMENT_16, 17), 2));
@@ -102,6 +122,9 @@ public:
       }
       else if (_bits_per_pixel <= 16) {
         processors16.push_back(Filtering::Processor<Processor16>(expand_horizontal_16_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0));
+#ifdef NEON_INTRINSICS
+        processors16.push_back(Filtering::Processor<Processor16>(expand_horizontal_16_neon, Constraint(CPU_NEON, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 9), 1));
+#endif
 #ifdef INTEL_INTRINSICS
         processors16.push_back(Filtering::Processor<Processor16>(expand_horizontal_sse4_16, Constraint(CPU_SSE4_1, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 16), 1));
         processors16.push_back(Filtering::Processor<Processor16>(expand_horizontal_asse4_16, Constraint(CPU_SSE4_1, MODULO_NONE, MODULO_NONE, ALIGNMENT_16, 16), 2));
@@ -117,6 +140,9 @@ public:
     {
       if (_bits_per_pixel == 8) {
         processors.push_back(Filtering::Processor<Processor>(expand_vertical_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0));
+#ifdef NEON_INTRINSICS
+        processors.push_back(Filtering::Processor<Processor>(expand_vertical_neon, Constraint(CPU_NEON, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 17), 1));
+#endif
 #ifdef INTEL_INTRINSICS
         processors.push_back(Filtering::Processor<Processor>(expand_vertical_sse2, Constraint(CPU_SSE2, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 16), 1));
         processors.push_back(Filtering::Processor<Processor>(expand_vertical_asse2, Constraint(CPU_SSE2, MODULO_NONE, MODULO_NONE, ALIGNMENT_16, 16), 2));
@@ -124,6 +150,9 @@ public:
       }
       else if (_bits_per_pixel <= 16) {
         processors16.push_back(Filtering::Processor<Processor16>(expand_vertical_16_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0));
+#ifdef NEON_INTRINSICS
+        processors16.push_back(Filtering::Processor<Processor16>(expand_vertical_16_neon, Constraint(CPU_NEON, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 9), 1));
+#endif
 #ifdef INTEL_INTRINSICS
         processors16.push_back(Filtering::Processor<Processor16>(expand_vertical_sse4_16, Constraint(CPU_SSE4_1, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 16), 1));
         processors16.push_back(Filtering::Processor<Processor16>(expand_vertical_asse4_16, Constraint(CPU_SSE4_1, MODULO_NONE, MODULO_NONE, ALIGNMENT_16, 16), 2));
@@ -139,6 +168,9 @@ public:
     {
       if (_bits_per_pixel == 8) {
         processors.push_back(Filtering::Processor<Processor>(expand_both_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0));
+#ifdef NEON_INTRINSICS
+        processors.push_back(Filtering::Processor<Processor>(expand_both_neon, Constraint(CPU_NEON, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 17), 1));
+#endif
 #ifdef INTEL_INTRINSICS
         processors.push_back(Filtering::Processor<Processor>(expand_both_sse2, Constraint(CPU_SSE2, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 17), 1));
         processors.push_back(Filtering::Processor<Processor>(expand_both_asse2, Constraint(CPU_SSE2, MODULO_NONE, MODULO_NONE, ALIGNMENT_16, 17), 2));
@@ -146,6 +178,9 @@ public:
       }
       else if (_bits_per_pixel <= 16) {
         processors16.push_back(Filtering::Processor<Processor16>(expand_both_16_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0));
+#ifdef NEON_INTRINSICS
+        processors16.push_back(Filtering::Processor<Processor16>(expand_both_16_neon, Constraint(CPU_NEON, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 9), 1));
+#endif
 #ifdef INTEL_INTRINSICS
         processors16.push_back(Filtering::Processor<Processor16>(expand_both_sse4_16, Constraint(CPU_SSE4_1, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 16), 1));
         processors16.push_back(Filtering::Processor<Processor16>(expand_both_asse4_16, Constraint(CPU_SSE4_1, MODULO_NONE, MODULO_NONE, ALIGNMENT_16, 16), 2));
