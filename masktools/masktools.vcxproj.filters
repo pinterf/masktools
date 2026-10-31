@@ -198,6 +198,9 @@
     <ClCompile Include="filters\logic\logic16_sse2.cpp">
       <Filter>filters\logic</Filter>
     </ClCompile>
+    <ClCompile Include="filters\logic\logic16_sse41.cpp">
+      <Filter>filters\logic</Filter>
+    </ClCompile>
     <ClCompile Include="filters\logic\logic32.cpp">
       <Filter>filters\logic</Filter>
     </ClCompile>
@@ -516,6 +519,9 @@
       <Filter>filters\logic</Filter>
     </ClInclude>
     <ClInclude Include="filters\logic\logic16_c.h">
+      <Filter>filters\logic</Filter>
+    </ClInclude>
+    <ClInclude Include="filters\logic\logic16_sse.h">
       <Filter>filters\logic</Filter>
     </ClInclude>
     <ClInclude Include="filters\logic\logic32_c.h">
