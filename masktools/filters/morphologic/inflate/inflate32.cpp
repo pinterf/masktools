@@ -1,6 +1,5 @@
 #include "inflate.h"
 #include "../functions32.h"
-#include "../../../common/simd.h"
 
 using namespace Filtering;
 
