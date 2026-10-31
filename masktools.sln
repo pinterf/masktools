@@ -1,100 +1,31 @@
+﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.28729.10
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36000.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "common", "common\build\common.vcxproj", "{DBFBE277-5B8D-4258-B522-13146FD1E722}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "common", "common\common.vcxproj", "{DBFBE277-5B8D-4258-B522-13146FD1E722}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "masktools", "masktools\build\masktools.vcxproj", "{185396D8-57BD-4DDF-8CD3-26035EA50DB9}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "masktools", "masktools\masktools.vcxproj", "{185396D8-57BD-4DDF-8CD3-26035EA50DB9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		debug-avs26-16bit|Win32 = debug-avs26-16bit|Win32
-		debug-avs26-16bit|x64 = debug-avs26-16bit|x64
-		profile-avs26-16bit|Win32 = profile-avs26-16bit|Win32
-		profile-avs26-16bit|x64 = profile-avs26-16bit|x64
-		release-boost|Win32 = release-boost|Win32
-		release-boost|x64 = release-boost|x64
-		release-boost-dualsign|Win32 = release-boost-dualsign|Win32
-		release-boost-dualsign|x64 = release-boost-dualsign|x64
-		release-LLVM-boost|Win32 = release-LLVM-boost|Win32
-		release-LLVM-boost|x64 = release-LLVM-boost|x64
-		release-LLVM-clangCL|Win32 = release-LLVM-clangCL|Win32
-		release-LLVM-clangCL|x64 = release-LLVM-clangCL|x64
-		release-no-boost|Win32 = release-no-boost|Win32
-		release-no-boost|x64 = release-no-boost|x64
-		release-no-boost-dualsign|Win32 = release-no-boost-dualsign|Win32
-		release-no-boost-dualsign|x64 = release-no-boost-dualsign|x64
+		Release_v141_xp|Win32 = Release_v141_xp|Win32
+		Release_v141_xp|x64 = Release_v141_xp|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{DBFBE277-5B8D-4258-B522-13146FD1E722}.debug-avs26-16bit|Win32.ActiveCfg = debug-avs26-16bit|Win32
-		{DBFBE277-5B8D-4258-B522-13146FD1E722}.debug-avs26-16bit|Win32.Build.0 = debug-avs26-16bit|Win32
-		{DBFBE277-5B8D-4258-B522-13146FD1E722}.debug-avs26-16bit|x64.ActiveCfg = debug-avs26-16bit|x64
-		{DBFBE277-5B8D-4258-B522-13146FD1E722}.debug-avs26-16bit|x64.Build.0 = debug-avs26-16bit|x64
-		{DBFBE277-5B8D-4258-B522-13146FD1E722}.profile-avs26-16bit|Win32.ActiveCfg = profile-avs26-16bit|Win32
-		{DBFBE277-5B8D-4258-B522-13146FD1E722}.profile-avs26-16bit|Win32.Build.0 = profile-avs26-16bit|Win32
-		{DBFBE277-5B8D-4258-B522-13146FD1E722}.profile-avs26-16bit|x64.ActiveCfg = profile-avs26-16bit|x64
-		{DBFBE277-5B8D-4258-B522-13146FD1E722}.profile-avs26-16bit|x64.Build.0 = profile-avs26-16bit|x64
-		{DBFBE277-5B8D-4258-B522-13146FD1E722}.release-boost|Win32.ActiveCfg = release-boost|Win32
-		{DBFBE277-5B8D-4258-B522-13146FD1E722}.release-boost|Win32.Build.0 = release-boost|Win32
-		{DBFBE277-5B8D-4258-B522-13146FD1E722}.release-boost|x64.ActiveCfg = release-boost|x64
-		{DBFBE277-5B8D-4258-B522-13146FD1E722}.release-boost|x64.Build.0 = release-boost|x64
-		{DBFBE277-5B8D-4258-B522-13146FD1E722}.release-boost-dualsign|Win32.ActiveCfg = release-boost-dualsign|Win32
-		{DBFBE277-5B8D-4258-B522-13146FD1E722}.release-boost-dualsign|Win32.Build.0 = release-boost-dualsign|Win32
-		{DBFBE277-5B8D-4258-B522-13146FD1E722}.release-boost-dualsign|x64.ActiveCfg = release-boost-dualsign|x64
-		{DBFBE277-5B8D-4258-B522-13146FD1E722}.release-boost-dualsign|x64.Build.0 = release-boost-dualsign|x64
-		{DBFBE277-5B8D-4258-B522-13146FD1E722}.release-LLVM-boost|Win32.ActiveCfg = release-LLVM-boost|Win32
-		{DBFBE277-5B8D-4258-B522-13146FD1E722}.release-LLVM-boost|Win32.Build.0 = release-LLVM-boost|Win32
-		{DBFBE277-5B8D-4258-B522-13146FD1E722}.release-LLVM-boost|x64.ActiveCfg = release-LLVM-boost|x64
-		{DBFBE277-5B8D-4258-B522-13146FD1E722}.release-LLVM-boost|x64.Build.0 = release-LLVM-boost|x64
-		{DBFBE277-5B8D-4258-B522-13146FD1E722}.release-LLVM-clangCL|Win32.ActiveCfg = release-LLVM-clangCL|Win32
-		{DBFBE277-5B8D-4258-B522-13146FD1E722}.release-LLVM-clangCL|Win32.Build.0 = release-LLVM-clangCL|Win32
-		{DBFBE277-5B8D-4258-B522-13146FD1E722}.release-LLVM-clangCL|x64.ActiveCfg = release-LLVM-clangCL|x64
-		{DBFBE277-5B8D-4258-B522-13146FD1E722}.release-LLVM-clangCL|x64.Build.0 = release-LLVM-clangCL|x64
-		{DBFBE277-5B8D-4258-B522-13146FD1E722}.release-no-boost|Win32.ActiveCfg = release-no-boost|Win32
-		{DBFBE277-5B8D-4258-B522-13146FD1E722}.release-no-boost|Win32.Build.0 = release-no-boost|Win32
-		{DBFBE277-5B8D-4258-B522-13146FD1E722}.release-no-boost|x64.ActiveCfg = release-no-boost|x64
-		{DBFBE277-5B8D-4258-B522-13146FD1E722}.release-no-boost|x64.Build.0 = release-no-boost|x64
-		{DBFBE277-5B8D-4258-B522-13146FD1E722}.release-no-boost-dualsign|Win32.ActiveCfg = release-no-boost-dualsign|Win32
-		{DBFBE277-5B8D-4258-B522-13146FD1E722}.release-no-boost-dualsign|Win32.Build.0 = release-no-boost-dualsign|Win32
-		{DBFBE277-5B8D-4258-B522-13146FD1E722}.release-no-boost-dualsign|x64.ActiveCfg = release-no-boost-dualsign|x64
-		{DBFBE277-5B8D-4258-B522-13146FD1E722}.release-no-boost-dualsign|x64.Build.0 = release-no-boost-dualsign|x64
-		{185396D8-57BD-4DDF-8CD3-26035EA50DB9}.debug-avs26-16bit|Win32.ActiveCfg = debug-avs26-16bit|Win32
-		{185396D8-57BD-4DDF-8CD3-26035EA50DB9}.debug-avs26-16bit|Win32.Build.0 = debug-avs26-16bit|Win32
-		{185396D8-57BD-4DDF-8CD3-26035EA50DB9}.debug-avs26-16bit|x64.ActiveCfg = debug-avs26-16bit|x64
-		{185396D8-57BD-4DDF-8CD3-26035EA50DB9}.debug-avs26-16bit|x64.Build.0 = debug-avs26-16bit|x64
-		{185396D8-57BD-4DDF-8CD3-26035EA50DB9}.profile-avs26-16bit|Win32.ActiveCfg = profile-avs26-16bit|Win32
-		{185396D8-57BD-4DDF-8CD3-26035EA50DB9}.profile-avs26-16bit|Win32.Build.0 = profile-avs26-16bit|Win32
-		{185396D8-57BD-4DDF-8CD3-26035EA50DB9}.profile-avs26-16bit|x64.ActiveCfg = profile-avs26-16bit|x64
-		{185396D8-57BD-4DDF-8CD3-26035EA50DB9}.profile-avs26-16bit|x64.Build.0 = profile-avs26-16bit|x64
-		{185396D8-57BD-4DDF-8CD3-26035EA50DB9}.release-boost|Win32.ActiveCfg = release-boost|Win32
-		{185396D8-57BD-4DDF-8CD3-26035EA50DB9}.release-boost|Win32.Build.0 = release-boost|Win32
-		{185396D8-57BD-4DDF-8CD3-26035EA50DB9}.release-boost|x64.ActiveCfg = release-boost|x64
-		{185396D8-57BD-4DDF-8CD3-26035EA50DB9}.release-boost|x64.Build.0 = release-boost|x64
-		{185396D8-57BD-4DDF-8CD3-26035EA50DB9}.release-boost-dualsign|Win32.ActiveCfg = release-boost-dualsign|Win32
-		{185396D8-57BD-4DDF-8CD3-26035EA50DB9}.release-boost-dualsign|Win32.Build.0 = release-boost-dualsign|Win32
-		{185396D8-57BD-4DDF-8CD3-26035EA50DB9}.release-boost-dualsign|x64.ActiveCfg = release-boost-dualsign|x64
-		{185396D8-57BD-4DDF-8CD3-26035EA50DB9}.release-boost-dualsign|x64.Build.0 = release-boost-dualsign|x64
-		{185396D8-57BD-4DDF-8CD3-26035EA50DB9}.release-LLVM-boost|Win32.ActiveCfg = release-LLVM-boost|Win32
-		{185396D8-57BD-4DDF-8CD3-26035EA50DB9}.release-LLVM-boost|Win32.Build.0 = release-LLVM-boost|Win32
-		{185396D8-57BD-4DDF-8CD3-26035EA50DB9}.release-LLVM-boost|x64.ActiveCfg = release-LLVM-boost|x64
-		{185396D8-57BD-4DDF-8CD3-26035EA50DB9}.release-LLVM-boost|x64.Build.0 = release-LLVM-boost|x64
-		{185396D8-57BD-4DDF-8CD3-26035EA50DB9}.release-LLVM-clangCL|Win32.ActiveCfg = release-LLVM-clangCL|Win32
-		{185396D8-57BD-4DDF-8CD3-26035EA50DB9}.release-LLVM-clangCL|Win32.Build.0 = release-LLVM-clangCL|Win32
-		{185396D8-57BD-4DDF-8CD3-26035EA50DB9}.release-LLVM-clangCL|x64.ActiveCfg = release-LLVM-clangCL|x64
-		{185396D8-57BD-4DDF-8CD3-26035EA50DB9}.release-LLVM-clangCL|x64.Build.0 = release-LLVM-clangCL|x64
-		{185396D8-57BD-4DDF-8CD3-26035EA50DB9}.release-no-boost|Win32.ActiveCfg = release-no-boost|Win32
-		{185396D8-57BD-4DDF-8CD3-26035EA50DB9}.release-no-boost|Win32.Build.0 = release-no-boost|Win32
-		{185396D8-57BD-4DDF-8CD3-26035EA50DB9}.release-no-boost|x64.ActiveCfg = release-no-boost|x64
-		{185396D8-57BD-4DDF-8CD3-26035EA50DB9}.release-no-boost|x64.Build.0 = release-no-boost|x64
-		{185396D8-57BD-4DDF-8CD3-26035EA50DB9}.release-no-boost-dualsign|Win32.ActiveCfg = release-no-boost-dualsign|Win32
-		{185396D8-57BD-4DDF-8CD3-26035EA50DB9}.release-no-boost-dualsign|Win32.Build.0 = release-no-boost-dualsign|Win32
-		{185396D8-57BD-4DDF-8CD3-26035EA50DB9}.release-no-boost-dualsign|x64.ActiveCfg = release-no-boost-dualsign|x64
-		{185396D8-57BD-4DDF-8CD3-26035EA50DB9}.release-no-boost-dualsign|x64.Build.0 = release-no-boost-dualsign|x64
+		{DBFBE277-5B8D-4258-B522-13146FD1E722}.Release_v141_xp|Win32.ActiveCfg = Release_v141_xp|Win32
+		{DBFBE277-5B8D-4258-B522-13146FD1E722}.Release_v141_xp|Win32.Build.0 = Release_v141_xp|Win32
+		{DBFBE277-5B8D-4258-B522-13146FD1E722}.Release_v141_xp|x64.ActiveCfg = Release_v141_xp|x64
+		{DBFBE277-5B8D-4258-B522-13146FD1E722}.Release_v141_xp|x64.Build.0 = Release_v141_xp|x64
+		{185396D8-57BD-4DDF-8CD3-26035EA50DB9}.Release_v141_xp|Win32.ActiveCfg = Release_v141_xp|Win32
+		{185396D8-57BD-4DDF-8CD3-26035EA50DB9}.Release_v141_xp|Win32.Build.0 = Release_v141_xp|Win32
+		{185396D8-57BD-4DDF-8CD3-26035EA50DB9}.Release_v141_xp|x64.ActiveCfg = Release_v141_xp|x64
+		{185396D8-57BD-4DDF-8CD3-26035EA50DB9}.Release_v141_xp|x64.Build.0 = Release_v141_xp|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {653D2ED0-5D4C-409F-BD6B-91A276EAC352}
+		SolutionGuid = {6E0B1D0C-3F1A-4C59-9B67-2A51D6C0B7E4}
 	EndGlobalSection
 EndGlobal

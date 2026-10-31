@@ -1,0 +1,511 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="avs2x">
+      <UniqueIdentifier>{b01e131d-57c3-581b-b17d-2022380a486e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="common">
+      <UniqueIdentifier>{cf19c9c9-2e95-5de0-9a45-eba7874ff86a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="common\base">
+      <UniqueIdentifier>{22f669f4-e268-5869-a8fb-c2631b8711cd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="common\clip">
+      <UniqueIdentifier>{2b78a608-b9a0-5065-b5ea-04427ff600f5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="common\params">
+      <UniqueIdentifier>{d1124495-9008-5d22-aeaf-5b916b744483}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="documentation">
+      <UniqueIdentifier>{413ca36d-ef5d-5fc5-884e-8eefc17e3fc8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="filters">
+      <UniqueIdentifier>{f1d16eba-374a-515a-afa0-93069d9626fe}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="filters\binarize">
+      <UniqueIdentifier>{1ae498fd-66aa-512b-b4f5-85b09a470311}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="filters\blur">
+      <UniqueIdentifier>{d309b283-9ec9-54a1-a413-16d838a5c798}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="filters\convolution">
+      <UniqueIdentifier>{e4a893b4-5f96-51fd-841f-472c9c0f39bd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="filters\gradient">
+      <UniqueIdentifier>{f36e5535-a3a8-5f89-b579-19245c4bd124}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="filters\invert">
+      <UniqueIdentifier>{dea5c5e6-5dd8-52f5-894c-e01a4600d485}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="filters\logic">
+      <UniqueIdentifier>{862abc9a-e483-5906-aa6a-8e7ae3bc551e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="filters\lut">
+      <UniqueIdentifier>{95a5ec98-34fa-538b-8c66-fbc261c93904}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="filters\lut\lut">
+      <UniqueIdentifier>{2bc011a7-ca6d-5e9a-a154-ba6b2333d7aa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="filters\lut\lutf">
+      <UniqueIdentifier>{ee99af04-0822-5318-adcb-c51eeed0fb58}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="filters\lut\luts">
+      <UniqueIdentifier>{3eb7933b-115b-5164-892b-80cf6f0d56bd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="filters\lut\lutspa">
+      <UniqueIdentifier>{f7ca2afd-6c3f-5e99-9ac0-b0b4bf124385}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="filters\lut\lutsx">
+      <UniqueIdentifier>{acbddbb9-0ef8-5ddc-b7ef-3ee49e683877}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="filters\lut\lutxy">
+      <UniqueIdentifier>{ae18c14a-1cc9-5476-a3d6-37899c43f89d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="filters\lut\lutxyz">
+      <UniqueIdentifier>{83bf63c7-556c-5e91-9716-e986fce80340}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="filters\lut\lutxyza">
+      <UniqueIdentifier>{f5279b39-3bb4-5e3d-8f5e-bae44731df39}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="filters\mask">
+      <UniqueIdentifier>{b946b40b-8e1e-5093-a1ea-bd0c03358510}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="filters\mask\edge">
+      <UniqueIdentifier>{14192e10-1d26-5cb9-a579-aed18f36bc92}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="filters\mask\hysteresis">
+      <UniqueIdentifier>{33578a49-9b2b-5d2d-91dc-e10da35fbc00}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="filters\mask\motion">
+      <UniqueIdentifier>{66b6df3c-c953-5610-8fc6-3e8ae6eab0bc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="filters\merge">
+      <UniqueIdentifier>{df33811b-dea5-5861-8497-e1c85524f98a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="filters\morphologic">
+      <UniqueIdentifier>{7a6bebdc-3443-5729-aaa7-beb15c21ec15}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="filters\morphologic\deflate">
+      <UniqueIdentifier>{a8a99c15-c0ed-5445-b4e3-9821402c8bdb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="filters\morphologic\expand">
+      <UniqueIdentifier>{15fa7f58-5060-5741-ad97-4d57c27675cc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="filters\morphologic\inflate">
+      <UniqueIdentifier>{1c0ba0b1-da67-50f7-b616-18cf71674fc7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="filters\morphologic\inpand">
+      <UniqueIdentifier>{7e93b6ae-fb9b-5cb9-a724-7f1af68e6215}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="filters\support">
+      <UniqueIdentifier>{3386967e-090d-5de8-ad84-8d9b0b426045}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="filters\support\adddiff">
+      <UniqueIdentifier>{a9d6c446-9149-5b70-8c8b-8582e63134f5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="filters\support\adddiff16">
+      <UniqueIdentifier>{db068550-f797-5195-a231-e35d4b055118}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="filters\support\average">
+      <UniqueIdentifier>{99ae1904-db97-5372-ad1e-ed5f80dbaf0a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="filters\support\average16">
+      <UniqueIdentifier>{b97f3ba4-00f2-5dcf-8772-483fc63cc59a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="filters\support\clamp">
+      <UniqueIdentifier>{94be546e-c4aa-5502-a8e6-243e13d9ede7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="filters\support\clamp16">
+      <UniqueIdentifier>{b735a380-7810-5e0b-974c-d2ee26fd95e1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="filters\support\makediff">
+      <UniqueIdentifier>{9752613b-6919-596e-ab1a-7b57f2a1c509}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="filters\support\makediff16">
+      <UniqueIdentifier>{18cb83ca-c53d-5388-a32e-a52480a80bcd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="helpers">
+      <UniqueIdentifier>{8ed94e44-1a7e-5fd2-8edd-80bf175f8d71}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="helpers\avs2x">
+      <UniqueIdentifier>{a8429c63-fe55-5459-be62-4d8df8f6f316}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="helpers\forms">
+      <UniqueIdentifier>{88ae963d-dcb4-5de1-b3f2-8bc2ba841d38}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="helpers\parser">
+      <UniqueIdentifier>{1cd72c3a-6f1b-5d12-b4ff-0b433f6af70c}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="avs2x\wrapper.cpp">
+      <Filter>avs2x</Filter>
+    </ClCompile>
+    <ClCompile Include="common\clip\inputconfig.cpp">
+      <Filter>common\clip</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\binarize\binarize.cpp">
+      <Filter>filters\binarize</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\binarize\binarize16.cpp">
+      <Filter>filters\binarize</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\binarize\binarize32.cpp">
+      <Filter>filters\binarize</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\binarize\binarize_avx2.cpp">
+      <Filter>filters\binarize</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\blur\mappedblur.cpp">
+      <Filter>filters\blur</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\blur\mappedblur16.cpp">
+      <Filter>filters\blur</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\blur\mappedblur32.cpp">
+      <Filter>filters\blur</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\convolution\convolution.cpp">
+      <Filter>filters\convolution</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\gradient\gradient.cpp">
+      <Filter>filters\gradient</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\invert\invert.cpp">
+      <Filter>filters\invert</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\logic\logic.cpp">
+      <Filter>filters\logic</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\logic\logic16.cpp">
+      <Filter>filters\logic</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\logic\logic16_avx2.cpp">
+      <Filter>filters\logic</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\logic\logic32.cpp">
+      <Filter>filters\logic</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\logic\logic32_avx.cpp">
+      <Filter>filters\logic</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\logic\logic_avx2.cpp">
+      <Filter>filters\logic</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\lut\lut\lut.cpp">
+      <Filter>filters\lut\lut</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\lut\lut\lut16.cpp">
+      <Filter>filters\lut\lut</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\lut\lutf\lutf.cpp">
+      <Filter>filters\lut\lutf</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\lut\luts\luts.cpp">
+      <Filter>filters\lut\luts</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\lut\lutsx\lutsx.cpp">
+      <Filter>filters\lut\lutsx</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\lut\lutxy\lutxy.cpp">
+      <Filter>filters\lut\lutxy</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\lut\lutxyz\lutxyz.cpp">
+      <Filter>filters\lut\lutxyz</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\lut\lutxyza\lutxyza.cpp">
+      <Filter>filters\lut\lutxyza</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\mask\edge\edgemask.cpp">
+      <Filter>filters\mask\edge</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\mask\edge\edgemask16.cpp">
+      <Filter>filters\mask\edge</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\mask\edge\edgemask16_avx2.cpp">
+      <Filter>filters\mask\edge</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\mask\edge\edgemask32.cpp">
+      <Filter>filters\mask\edge</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\mask\edge\edgemask32_avx.cpp">
+      <Filter>filters\mask\edge</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\mask\edge\edgemask_avx2.cpp">
+      <Filter>filters\mask\edge</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\mask\hysteresis\hysteresis.cpp">
+      <Filter>filters\mask\hysteresis</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\mask\motion\motionmask.cpp">
+      <Filter>filters\mask\motion</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\mask\motion\motionmask16.cpp">
+      <Filter>filters\mask\motion</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\mask\motion\motionmask32.cpp">
+      <Filter>filters\mask\motion</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\merge\merge.cpp">
+      <Filter>filters\merge</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\merge\merge16.cpp">
+      <Filter>filters\merge</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\merge\merge16_avx2.cpp">
+      <Filter>filters\merge</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\merge\merge32.cpp">
+      <Filter>filters\merge</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\merge\merge32_avx2.cpp">
+      <Filter>filters\merge</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\merge\merge_avx2.cpp">
+      <Filter>filters\merge</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\morphologic\deflate\deflate.cpp">
+      <Filter>filters\morphologic\deflate</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\morphologic\deflate\deflate16.cpp">
+      <Filter>filters\morphologic\deflate</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\morphologic\deflate\deflate32.cpp">
+      <Filter>filters\morphologic\deflate</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\morphologic\expand\expand.cpp">
+      <Filter>filters\morphologic\expand</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\morphologic\expand\expand16.cpp">
+      <Filter>filters\morphologic\expand</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\morphologic\expand\expand16_avx2.cpp">
+      <Filter>filters\morphologic\expand</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\morphologic\expand\expand32.cpp">
+      <Filter>filters\morphologic\expand</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\morphologic\inflate\inflate.cpp">
+      <Filter>filters\morphologic\inflate</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\morphologic\inflate\inflate16.cpp">
+      <Filter>filters\morphologic\inflate</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\morphologic\inflate\inflate32.cpp">
+      <Filter>filters\morphologic\inflate</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\morphologic\inpand\inpand.cpp">
+      <Filter>filters\morphologic\inpand</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\morphologic\inpand\inpand16.cpp">
+      <Filter>filters\morphologic\inpand</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\morphologic\inpand\inpand16_avx2.cpp">
+      <Filter>filters\morphologic\inpand</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\morphologic\inpand\inpand32.cpp">
+      <Filter>filters\morphologic\inpand</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\support\adddiff16\adddiff16.cpp">
+      <Filter>filters\support\adddiff16</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\support\adddiff\adddiff.cpp">
+      <Filter>filters\support\adddiff</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\support\average16\average16.cpp">
+      <Filter>filters\support\average16</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\support\average\average.cpp">
+      <Filter>filters\support\average</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\support\clamp16\clamp16.cpp">
+      <Filter>filters\support\clamp16</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\support\clamp\clamp.cpp">
+      <Filter>filters\support\clamp</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\support\makediff16\makediff16.cpp">
+      <Filter>filters\support\makediff16</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\support\makediff\makediff.cpp">
+      <Filter>filters\support\makediff</Filter>
+    </ClCompile>
+    <ClCompile Include="helpers\avs2x\helpers_avs2x.cpp">
+      <Filter>helpers\avs2x</Filter>
+    </ClCompile>
+    <ClCompile Include="helpers\forms\forms.cpp">
+      <Filter>helpers\forms</Filter>
+    </ClCompile>
+    <ClCompile Include="helpers\parser\polish.cpp">
+      <Filter>helpers\parser</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="common\16bit.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="common\base\filter.h">
+      <Filter>common\base</Filter>
+    </ClInclude>
+    <ClInclude Include="common\clip\inputconfig.h">
+      <Filter>common\clip</Filter>
+    </ClInclude>
+    <ClInclude Include="common\common.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="common\mt_resource.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="common\params\params.h">
+      <Filter>common\params</Filter>
+    </ClInclude>
+    <ClInclude Include="common\simd.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="common\simd_avx.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="common\simd_avx2.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="filters\binarize\binarize.h">
+      <Filter>filters\binarize</Filter>
+    </ClInclude>
+    <ClInclude Include="filters\blur\mappedblur.h">
+      <Filter>filters\blur</Filter>
+    </ClInclude>
+    <ClInclude Include="filters\convolution\convolution.h">
+      <Filter>filters\convolution</Filter>
+    </ClInclude>
+    <ClInclude Include="filters\gradient\gradient.h">
+      <Filter>filters\gradient</Filter>
+    </ClInclude>
+    <ClInclude Include="filters\invert\invert.h">
+      <Filter>filters\invert</Filter>
+    </ClInclude>
+    <ClInclude Include="filters\logic\logic.h">
+      <Filter>filters\logic</Filter>
+    </ClInclude>
+    <ClInclude Include="filters\lut\functions.h">
+      <Filter>filters\lut</Filter>
+    </ClInclude>
+    <ClInclude Include="filters\lut\lut\lut.h">
+      <Filter>filters\lut\lut</Filter>
+    </ClInclude>
+    <ClInclude Include="filters\lut\lutf\lutf.h">
+      <Filter>filters\lut\lutf</Filter>
+    </ClInclude>
+    <ClInclude Include="filters\lut\luts\luts.h">
+      <Filter>filters\lut\luts</Filter>
+    </ClInclude>
+    <ClInclude Include="filters\lut\lutspa\lutspa.h">
+      <Filter>filters\lut\lutspa</Filter>
+    </ClInclude>
+    <ClInclude Include="filters\lut\lutsx\lutsx.h">
+      <Filter>filters\lut\lutsx</Filter>
+    </ClInclude>
+    <ClInclude Include="filters\lut\lutxy\lutxy.h">
+      <Filter>filters\lut\lutxy</Filter>
+    </ClInclude>
+    <ClInclude Include="filters\lut\lutxyz\lutxyz.h">
+      <Filter>filters\lut\lutxyz</Filter>
+    </ClInclude>
+    <ClInclude Include="filters\lut\lutxyza\lutxyza.h">
+      <Filter>filters\lut\lutxyza</Filter>
+    </ClInclude>
+    <ClInclude Include="filters\mask\edge\edgemask.h">
+      <Filter>filters\mask\edge</Filter>
+    </ClInclude>
+    <ClInclude Include="filters\mask\functions.h">
+      <Filter>filters\mask</Filter>
+    </ClInclude>
+    <ClInclude Include="filters\mask\functions16.h">
+      <Filter>filters\mask</Filter>
+    </ClInclude>
+    <ClInclude Include="filters\mask\functions16_avx2.h">
+      <Filter>filters\mask</Filter>
+    </ClInclude>
+    <ClInclude Include="filters\mask\functions32.h">
+      <Filter>filters\mask</Filter>
+    </ClInclude>
+    <ClInclude Include="filters\mask\functions32_avx.h">
+      <Filter>filters\mask</Filter>
+    </ClInclude>
+    <ClInclude Include="filters\mask\functions_avx2.h">
+      <Filter>filters\mask</Filter>
+    </ClInclude>
+    <ClInclude Include="filters\mask\hysteresis\hysteresis.h">
+      <Filter>filters\mask\hysteresis</Filter>
+    </ClInclude>
+    <ClInclude Include="filters\mask\motion\motionmask.h">
+      <Filter>filters\mask\motion</Filter>
+    </ClInclude>
+    <ClInclude Include="filters\merge\merge.h">
+      <Filter>filters\merge</Filter>
+    </ClInclude>
+    <ClInclude Include="filters\merge\merge16.h">
+      <Filter>filters\merge</Filter>
+    </ClInclude>
+    <ClInclude Include="filters\morphologic\deflate\deflate.h">
+      <Filter>filters\morphologic\deflate</Filter>
+    </ClInclude>
+    <ClInclude Include="filters\morphologic\expand\expand.h">
+      <Filter>filters\morphologic\expand</Filter>
+    </ClInclude>
+    <ClInclude Include="filters\morphologic\functions.h">
+      <Filter>filters\morphologic</Filter>
+    </ClInclude>
+    <ClInclude Include="filters\morphologic\functions16.h">
+      <Filter>filters\morphologic</Filter>
+    </ClInclude>
+    <ClInclude Include="filters\morphologic\functions16_avx2.h">
+      <Filter>filters\morphologic</Filter>
+    </ClInclude>
+    <ClInclude Include="filters\morphologic\functions32.h">
+      <Filter>filters\morphologic</Filter>
+    </ClInclude>
+    <ClInclude Include="filters\morphologic\inflate\inflate.h">
+      <Filter>filters\morphologic\inflate</Filter>
+    </ClInclude>
+    <ClInclude Include="filters\morphologic\inpand\inpand.h">
+      <Filter>filters\morphologic\inpand</Filter>
+    </ClInclude>
+    <ClInclude Include="filters\morphologic\morphologic.h">
+      <Filter>filters\morphologic</Filter>
+    </ClInclude>
+    <ClInclude Include="filters\morphologic\morphologic16.h">
+      <Filter>filters\morphologic</Filter>
+    </ClInclude>
+    <ClInclude Include="filters\support\adddiff\adddiff.h">
+      <Filter>filters\support\adddiff</Filter>
+    </ClInclude>
+    <ClInclude Include="filters\support\average\average.h">
+      <Filter>filters\support\average</Filter>
+    </ClInclude>
+    <ClInclude Include="filters\support\clamp\clamp.h">
+      <Filter>filters\support\clamp</Filter>
+    </ClInclude>
+    <ClInclude Include="filters\support\makediff\makediff.h">
+      <Filter>filters\support\makediff</Filter>
+    </ClInclude>
+    <ClInclude Include="helpers\avs2x\helpers_avs2x.h">
+      <Filter>helpers\avs2x</Filter>
+    </ClInclude>
+    <ClInclude Include="helpers\forms\forms.h">
+      <Filter>helpers\forms</Filter>
+    </ClInclude>
+    <ClInclude Include="helpers\parser\polish.h">
+      <Filter>helpers\parser</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="common\mt_resource.rc">
+      <Filter>common</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="documentation\mt_masktools.html">
+      <Filter>documentation</Filter>
+    </None>
+  </ItemGroup>
+</Project>

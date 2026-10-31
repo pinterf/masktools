@@ -13,8 +13,6 @@ makefile
 install_manifest.txt
 
 .vs/
-*/build/Win32
-*/build/x64
 Test
 /bin
 

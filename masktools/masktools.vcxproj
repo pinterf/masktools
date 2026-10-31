@@ -1,0 +1,293 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Rel_Clang|Win32">
+      <Configuration>Rel_Clang</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Rel_Clang|x64">
+      <Configuration>Rel_Clang</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release_v141_xp|Win32">
+      <Configuration>Release_v141_xp</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release_v141_xp|x64">
+      <Configuration>Release_v141_xp</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{185396D8-57BD-4DDF-8CD3-26035EA50DB9}</ProjectGuid>
+    <RootNamespace>masktools</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <PlatformToolset>v145</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration">
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Rel_Clang'" Label="Configuration">
+    <PlatformToolset>ClangCL</PlatformToolset>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Release_v141_xp'" Label="Configuration">
+    <!-- Visual Studio 2022 (masktools.sln); also the build for Windows 7 -->
+    <PlatformToolset>v141_xp</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <OutDir>$(SolutionDir)Build\$(Platform)\$(Configuration)\</OutDir>
+    <TargetName>masktools2</TargetName>
+    <IntDir>$(SolutionDir)Build\$(Platform)\Temp\$(Configuration)\$(ProjectName)\</IntDir>
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <AdditionalIncludeDirectories>$(MSBuildThisFileDirectory)..\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NDEBUG;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <OmitFramePointers>true</OmitFramePointers>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'">
+    <ClCompile>
+      <PreprocessorDefinitions>_DEBUG;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Optimization>Disabled</Optimization>
+      <InlineFunctionExpansion>Default</InlineFunctionExpansion>
+      <OmitFramePointers>false</OmitFramePointers>
+      <BufferSecurityCheck>true</BufferSecurityCheck>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
+      <OptimizeReferences>false</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Platform)'=='Win32'">
+    <ClCompile>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)'=='Rel_Clang'">
+    <ClCompile>
+      <!-- -msse4.1: until the x86 SIMD is split from the C code; then SSE2 base, SSE4.1 per function or file -->
+      <!-- -ffp-contract=off: float a*b+c is not contracted to FMA in the AVX2 files, as with MSVC -->
+      <AdditionalOptions>-msse4.1 -ffp-contract=off -Wno-gcc-compat -Wno-unused-function %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)'=='Release_v141_xp'">
+    <ClCompile>
+      <!-- XP: no thread-safe static initialization (TLS based, not supported in DLLs on XP) -->
+      <AdditionalOptions>/Zc:threadSafeInit- %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="avs2x\wrapper.cpp" />
+    <ClCompile Include="common\clip\inputconfig.cpp" />
+    <ClCompile Include="filters\binarize\binarize.cpp" />
+    <ClCompile Include="filters\binarize\binarize16.cpp" />
+    <ClCompile Include="filters\binarize\binarize32.cpp" />
+    <ClCompile Include="filters\binarize\binarize_avx2.cpp">
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+    </ClCompile>
+    <ClCompile Include="filters\blur\mappedblur.cpp" />
+    <ClCompile Include="filters\blur\mappedblur16.cpp" />
+    <ClCompile Include="filters\blur\mappedblur32.cpp" />
+    <ClCompile Include="filters\convolution\convolution.cpp" />
+    <ClCompile Include="filters\gradient\gradient.cpp" />
+    <ClCompile Include="filters\invert\invert.cpp" />
+    <ClCompile Include="filters\logic\logic.cpp" />
+    <ClCompile Include="filters\logic\logic16.cpp" />
+    <ClCompile Include="filters\logic\logic16_avx2.cpp">
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+    </ClCompile>
+    <ClCompile Include="filters\logic\logic32.cpp" />
+    <ClCompile Include="filters\logic\logic32_avx.cpp">
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
+    </ClCompile>
+    <ClCompile Include="filters\logic\logic_avx2.cpp">
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+    </ClCompile>
+    <ClCompile Include="filters\lut\lut\lut.cpp" />
+    <ClCompile Include="filters\lut\lut\lut16.cpp" />
+    <ClCompile Include="filters\lut\lutf\lutf.cpp" />
+    <ClCompile Include="filters\lut\luts\luts.cpp" />
+    <ClCompile Include="filters\lut\lutsx\lutsx.cpp" />
+    <ClCompile Include="filters\lut\lutxy\lutxy.cpp" />
+    <ClCompile Include="filters\lut\lutxyz\lutxyz.cpp" />
+    <ClCompile Include="filters\lut\lutxyza\lutxyza.cpp" />
+    <ClCompile Include="filters\mask\edge\edgemask.cpp" />
+    <ClCompile Include="filters\mask\edge\edgemask16.cpp" />
+    <ClCompile Include="filters\mask\edge\edgemask16_avx2.cpp">
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+    </ClCompile>
+    <ClCompile Include="filters\mask\edge\edgemask32.cpp" />
+    <ClCompile Include="filters\mask\edge\edgemask32_avx.cpp">
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
+    </ClCompile>
+    <ClCompile Include="filters\mask\edge\edgemask_avx2.cpp">
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+    </ClCompile>
+    <ClCompile Include="filters\mask\hysteresis\hysteresis.cpp" />
+    <ClCompile Include="filters\mask\motion\motionmask.cpp" />
+    <ClCompile Include="filters\mask\motion\motionmask16.cpp" />
+    <ClCompile Include="filters\mask\motion\motionmask32.cpp" />
+    <ClCompile Include="filters\merge\merge.cpp" />
+    <ClCompile Include="filters\merge\merge16.cpp" />
+    <ClCompile Include="filters\merge\merge16_avx2.cpp">
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+    </ClCompile>
+    <ClCompile Include="filters\merge\merge32.cpp" />
+    <ClCompile Include="filters\merge\merge32_avx2.cpp">
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+    </ClCompile>
+    <ClCompile Include="filters\merge\merge_avx2.cpp">
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+    </ClCompile>
+    <ClCompile Include="filters\morphologic\deflate\deflate.cpp" />
+    <ClCompile Include="filters\morphologic\deflate\deflate16.cpp" />
+    <ClCompile Include="filters\morphologic\deflate\deflate32.cpp" />
+    <ClCompile Include="filters\morphologic\expand\expand.cpp" />
+    <ClCompile Include="filters\morphologic\expand\expand16.cpp" />
+    <ClCompile Include="filters\morphologic\expand\expand16_avx2.cpp">
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+    </ClCompile>
+    <ClCompile Include="filters\morphologic\expand\expand32.cpp" />
+    <ClCompile Include="filters\morphologic\inflate\inflate.cpp" />
+    <ClCompile Include="filters\morphologic\inflate\inflate16.cpp" />
+    <ClCompile Include="filters\morphologic\inflate\inflate32.cpp" />
+    <ClCompile Include="filters\morphologic\inpand\inpand.cpp" />
+    <ClCompile Include="filters\morphologic\inpand\inpand16.cpp" />
+    <ClCompile Include="filters\morphologic\inpand\inpand16_avx2.cpp">
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+    </ClCompile>
+    <ClCompile Include="filters\morphologic\inpand\inpand32.cpp" />
+    <ClCompile Include="filters\support\adddiff16\adddiff16.cpp" />
+    <ClCompile Include="filters\support\adddiff\adddiff.cpp" />
+    <ClCompile Include="filters\support\average16\average16.cpp" />
+    <ClCompile Include="filters\support\average\average.cpp" />
+    <ClCompile Include="filters\support\clamp16\clamp16.cpp" />
+    <ClCompile Include="filters\support\clamp\clamp.cpp" />
+    <ClCompile Include="filters\support\makediff16\makediff16.cpp" />
+    <ClCompile Include="filters\support\makediff\makediff.cpp" />
+    <ClCompile Include="helpers\avs2x\helpers_avs2x.cpp" />
+    <ClCompile Include="helpers\forms\forms.cpp" />
+    <ClCompile Include="helpers\parser\polish.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="common\16bit.h" />
+    <ClInclude Include="common\base\filter.h" />
+    <ClInclude Include="common\clip\inputconfig.h" />
+    <ClInclude Include="common\common.h" />
+    <ClInclude Include="common\mt_resource.h" />
+    <ClInclude Include="common\params\params.h" />
+    <ClInclude Include="common\simd.h" />
+    <ClInclude Include="common\simd_avx.h" />
+    <ClInclude Include="common\simd_avx2.h" />
+    <ClInclude Include="filters\binarize\binarize.h" />
+    <ClInclude Include="filters\blur\mappedblur.h" />
+    <ClInclude Include="filters\convolution\convolution.h" />
+    <ClInclude Include="filters\gradient\gradient.h" />
+    <ClInclude Include="filters\invert\invert.h" />
+    <ClInclude Include="filters\logic\logic.h" />
+    <ClInclude Include="filters\lut\functions.h" />
+    <ClInclude Include="filters\lut\lut\lut.h" />
+    <ClInclude Include="filters\lut\lutf\lutf.h" />
+    <ClInclude Include="filters\lut\luts\luts.h" />
+    <ClInclude Include="filters\lut\lutspa\lutspa.h" />
+    <ClInclude Include="filters\lut\lutsx\lutsx.h" />
+    <ClInclude Include="filters\lut\lutxy\lutxy.h" />
+    <ClInclude Include="filters\lut\lutxyz\lutxyz.h" />
+    <ClInclude Include="filters\lut\lutxyza\lutxyza.h" />
+    <ClInclude Include="filters\mask\edge\edgemask.h" />
+    <ClInclude Include="filters\mask\functions.h" />
+    <ClInclude Include="filters\mask\functions16.h" />
+    <ClInclude Include="filters\mask\functions16_avx2.h" />
+    <ClInclude Include="filters\mask\functions32.h" />
+    <ClInclude Include="filters\mask\functions32_avx.h" />
+    <ClInclude Include="filters\mask\functions_avx2.h" />
+    <ClInclude Include="filters\mask\hysteresis\hysteresis.h" />
+    <ClInclude Include="filters\mask\motion\motionmask.h" />
+    <ClInclude Include="filters\merge\merge.h" />
+    <ClInclude Include="filters\merge\merge16.h" />
+    <ClInclude Include="filters\morphologic\deflate\deflate.h" />
+    <ClInclude Include="filters\morphologic\expand\expand.h" />
+    <ClInclude Include="filters\morphologic\functions.h" />
+    <ClInclude Include="filters\morphologic\functions16.h" />
+    <ClInclude Include="filters\morphologic\functions16_avx2.h" />
+    <ClInclude Include="filters\morphologic\functions32.h" />
+    <ClInclude Include="filters\morphologic\inflate\inflate.h" />
+    <ClInclude Include="filters\morphologic\inpand\inpand.h" />
+    <ClInclude Include="filters\morphologic\morphologic.h" />
+    <ClInclude Include="filters\morphologic\morphologic16.h" />
+    <ClInclude Include="filters\support\adddiff\adddiff.h" />
+    <ClInclude Include="filters\support\average\average.h" />
+    <ClInclude Include="filters\support\clamp\clamp.h" />
+    <ClInclude Include="filters\support\makediff\makediff.h" />
+    <ClInclude Include="helpers\avs2x\helpers_avs2x.h" />
+    <ClInclude Include="helpers\forms\forms.h" />
+    <ClInclude Include="helpers\parser\polish.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="common\mt_resource.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="documentation\mt_masktools.html" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\common\common.vcxproj">
+      <Project>{DBFBE277-5B8D-4258-B522-13146FD1E722}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
