@@ -84,8 +84,8 @@ typedef char Char;
 typedef short Short;
 typedef unsigned char Byte;
 typedef unsigned short Word;
-typedef long long Int64;
-typedef unsigned long long Uint64;
+typedef int64_t Int64; // the same type as int64_t: the Int64 specializations apply to int64_t as well (Linux: long)
+typedef uint64_t Uint64;
 typedef float Float;
 typedef double Double;
 typedef std::string String;
