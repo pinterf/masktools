@@ -232,10 +232,30 @@ static void xxpand_sse2_horizontal(uint8_t *pDst, ptrdiff_t nDstPitch, const uin
 
 /* Square mt_xxpand */
 
+// dst = limit(src, dst, deviation); the 3x3 result is limited by the source pixel, not by the vertical pass
+template<Limit limit>
+static void limit_by_source_sse2(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nMaxDeviation, int nWidth, int nHeight) {
+    auto max_dev_v = _mm_set1_epi8(uint8_t(nMaxDeviation));
+    for (int y = 0; y < nHeight; y++) {
+        for (int x = 0; x < nWidth; x += 16) {
+            int xx = x + 16 > nWidth ? nWidth - 16 : x; // the last vector overlaps, the limit is idempotent
+            auto src = simd_load_si128<MemoryMode::SSE2_UNALIGNED>(pSrc + xx);
+            auto dst = simd_load_si128<MemoryMode::SSE2_UNALIGNED>(pDst + xx);
+            simd_store_si128<MemoryMode::SSE2_UNALIGNED>(pDst + xx, limit(src, dst, max_dev_v));
+        }
+        pDst += nDstPitch;
+        pSrc += nSrcPitch;
+    }
+}
+
 template<decltype(_mm_max_epu8) op, Limit limit, MemoryMode mem_mode, decltype(expand_c_horizontal_core) c_core>
 static void xxpand_sse2_square(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight) {
-    xxpand_sse2_vertical<op, limit, mem_mode>(pDst, nDstPitch, pSrc, nSrcPitch, nMaxDeviation, pCoordinates, nCoordinates, nWidth, nHeight);
-    xxpand_sse2_horizontal<op, limit, mem_mode, c_core>(pDst, nDstPitch, pDst, nDstPitch, nMaxDeviation, pCoordinates, nCoordinates, nWidth, nHeight);
+    // a limit in both passes would allow up to 2 * deviation: the passes unlimited, then the limit by the source
+    const int no_limit = 255;
+    xxpand_sse2_vertical<op, limit, mem_mode>(pDst, nDstPitch, pSrc, nSrcPitch, no_limit, pCoordinates, nCoordinates, nWidth, nHeight);
+    xxpand_sse2_horizontal<op, limit, mem_mode, c_core>(pDst, nDstPitch, pDst, nDstPitch, no_limit, pCoordinates, nCoordinates, nWidth, nHeight);
+    if (nMaxDeviation < no_limit)
+        limit_by_source_sse2<limit>(pDst, nDstPitch, pSrc, nSrcPitch, nMaxDeviation, nWidth, nHeight);
 }
 
 template<ProcessLineSse2 process_line_left, ProcessLineSse2 process_line, ProcessLineSse2 process_line_right>
