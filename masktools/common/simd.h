@@ -19,12 +19,6 @@ namespace {
 
 #define USE_MOVPS
 
-  enum class MemoryMode {
-    SSE2_UNALIGNED,
-    SSE2_ALIGNED
-  };
-
-
   template<MemoryMode mem_mode, typename T>
   static MT_FORCEINLINE __m128i simd_load_si128(const T* ptr) {
 #ifdef USE_MOVPS
@@ -124,12 +118,6 @@ namespace {
   }
 
 
-
-  enum class Border {
-    Left,
-    Right,
-    None
-  };
 
 #pragma warning(disable: 4309)
 
