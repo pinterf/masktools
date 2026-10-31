@@ -145,46 +145,58 @@ class InfixToPolish {
    {
       const size_t start = pos;
       skip_spaces();
-      const size_t number_start = pos;
-      if (peek() == '+' || peek() == '-')
+      bool negative = false;
+      if (peek() == '+' || peek() == '-') {
+         negative = peek() == '-';
          pos++;
-      bool digits = false;
-      while (is_digit(peek())) {
-         pos++;
-         digits = true;
       }
+      String digits;
+      int fraction_digits = 0;
+      while (is_digit(peek()))
+         digits += str[pos++];
       bool dot = false;
       if (peek() == '.') {
          pos++;
          dot = true;
          while (is_digit(peek())) {
-            pos++;
-            digits = true;
+            digits += str[pos++];
+            fraction_digits++;
          }
       }
-      if (!digits) {
+      if (digits.empty()) {
          pos = start;
          return false;
       }
-      bool exponent = false;
+      int exponent = 0;
+      bool has_exponent = false;
       if (peek() == 'e' || peek() == 'E') {
          pos++;
-         if (peek() == '+' || peek() == '-')
+         bool negative_exponent = false;
+         if (peek() == '+' || peek() == '-') {
+            negative_exponent = peek() == '-';
             pos++;
+         }
          if (!is_digit(peek())) {
             pos = start;
             return false;
          }
-         while (is_digit(peek()))
+         while (is_digit(peek())) {
+            if (exponent < 100000) // saturate, the result is 0 or inf way before that
+               exponent = exponent * 10 + (peek() - '0');
             pos++;
-         exponent = true;
+         }
+         if (negative_exponent)
+            exponent = -exponent;
+         has_exponent = true;
       }
-      if (!dot && !exponent) {
+      if (!dot && !has_exponent) {
          pos = start;
          return false;
       }
-      const double value = strtod(str.substr(number_start, pos - number_start).c_str(), nullptr);
-      add_double(value);
+      // the digits go to strtod without a decimal point: correctly rounded and independent of the locale
+      const String number = digits + "e" + std::to_string(exponent - fraction_digits);
+      const double value = strtod(number.c_str(), nullptr);
+      add_double(negative ? -value : value);
       return true;
    }
 
