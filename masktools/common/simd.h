@@ -362,6 +362,11 @@ namespace {
     }
   }
 
+  // SSE2 version of the SSE3 _mm_hadd_ps: (a0+a1, a2+a3, b0+b1, b2+b3), the same sums
+  static MT_FORCEINLINE __m128 simd_hadd_ps(__m128 a, __m128 b) {
+    return _mm_add_ps(_mm_shuffle_ps(a, b, _MM_SHUFFLE(2, 0, 2, 0)), _mm_shuffle_ps(a, b, _MM_SHUFFLE(3, 1, 3, 1)));
+  }
+
   static MT_FORCEINLINE __m128 simd_abs_ps(__m128 a) {
     // maybe not optimal, mask may be generated 
     const __m128 absmask = _mm_castsi128_ps(_mm_set1_epi32(~(1 << 31))); // 0x7FFFFFFF

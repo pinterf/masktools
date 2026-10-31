@@ -75,7 +75,7 @@ namespace {
          auto tmp1 = _mm_add_ps(src2_row1_t1, src2_row2_t1);
          auto tmp2 = _mm_add_ps(src2_row1_t2, src2_row2_t2);
          // sum horizontally
-         auto sum = _mm_hadd_ps(tmp1, tmp2);
+         auto sum = simd_hadd_ps(tmp1, tmp2);
          // make average
          auto mask = _mm_mul_ps(sum, vOneFourth);
 
@@ -167,7 +167,7 @@ namespace {
          auto mask_row_t1 = simd_load_ps<mem_mode>(pMask + i * 2);
          auto mask_row_t2 = simd_load_ps<mem_mode>(pMask + i * 2 + 16);
          // sum horizontally
-         auto sum = _mm_hadd_ps(mask_row_t1, mask_row_t2);
+         auto sum = simd_hadd_ps(mask_row_t1, mask_row_t2);
          // make average
          auto mask = _mm_mul_ps(sum, vHalf);
          auto result = merge32_sse2_core<mem_mode>(pDst + i, pSrc1 + i, mask);
