@@ -61,6 +61,13 @@
 #endif
 #endif
 
+// MT_X86(x): x only in the x86 builds, e.g. the registration of an SSE2 processor inside a macro
+#ifdef INTEL_INTRINSICS
+#define MT_X86(...) __VA_ARGS__
+#else
+#define MT_X86(...)
+#endif
+
 #ifndef _WIN32
 #define OutputDebugString(x)
 #endif
