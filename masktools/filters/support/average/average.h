@@ -24,6 +24,12 @@ extern Processor32 *average32_sse2;
 extern Processor32 *average32_asse2;
 
 
+#ifdef NEON_INTRINSICS
+extern Processor *average_neon;
+extern Processor16 *average16_native_neon;
+extern Processor32 *average32_neon;
+#endif
+
 class Average : public MaskTools::Filter
 {
     ProcessorList<Processor> processors;
@@ -65,6 +71,9 @@ public:
       /* add the processors */
       if (bits_per_pixel == 8) {
         processors.push_back(Filtering::Processor<Processor>(&average_c, Constraint(CPU_NONE, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 1), 0));
+#ifdef NEON_INTRINSICS
+        processors.push_back(Filtering::Processor<Processor>(average_neon, Constraint(CPU_NEON, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 1), 1));
+#endif
 #ifdef INTEL_INTRINSICS
         processors.push_back(Filtering::Processor<Processor>(average_sse2, Constraint(CPU_SSE2, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 1), 1));
         processors.push_back(Filtering::Processor<Processor>(average_asse2, Constraint(CPU_SSE2, MODULO_NONE, MODULO_NONE, ALIGNMENT_16, 16), 2));
@@ -72,12 +81,18 @@ public:
       }else if(bits_per_pixel <= 16)
       {
         processors16.push_back(Filtering::Processor<Processor16>(average16_native_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0));
+#ifdef NEON_INTRINSICS
+        processors16.push_back(Filtering::Processor<Processor16>(average16_native_neon, Constraint(CPU_NEON, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 1), 1));
+#endif
 #ifdef INTEL_INTRINSICS
         processors16.push_back(Filtering::Processor<Processor16>(average16_native_sse2, Constraint(CPU_SSE2, 1, 1, 1, 1), 1));
 #endif
       }
       else {
         processors32.push_back(Filtering::Processor<Processor32>(&average32_c, Constraint(CPU_NONE, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 1), 0));
+#ifdef NEON_INTRINSICS
+        processors32.push_back(Filtering::Processor<Processor32>(average32_neon, Constraint(CPU_NEON, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 1), 1));
+#endif
 #ifdef INTEL_INTRINSICS
         processors32.push_back(Filtering::Processor<Processor32>(average32_sse2, Constraint(CPU_SSE2, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 1), 1));
         processors32.push_back(Filtering::Processor<Processor32>(average32_asse2, Constraint(CPU_SSE2, MODULO_NONE, MODULO_NONE, ALIGNMENT_16, 16), 2));

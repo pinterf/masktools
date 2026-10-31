@@ -37,6 +37,15 @@ extern Processor32 *clamp32_sse2;
 extern Processor32 *clamp32_asse2;
 
 
+#ifdef NEON_INTRINSICS
+extern Processor *clamp_neon;
+extern Processor16 *clamp16_native_10_neon;
+extern Processor16 *clamp16_native_12_neon;
+extern Processor16 *clamp16_native_14_neon;
+extern Processor16 *clamp16_native_16_neon;
+extern Processor32 *clamp32_neon;
+#endif
+
 class Clamp : public MaskTools::Filter
 {
     int nOvershoot, nUndershoot;
@@ -111,6 +120,9 @@ public:
         switch (bits_per_pixel) {
         case 8:
           processors.push_back(Filtering::Processor<Processor>(&clamp_c, Constraint(CPU_NONE, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 1), 0));
+#ifdef NEON_INTRINSICS
+          processors.push_back(Filtering::Processor<Processor>(clamp_neon, Constraint(CPU_NEON, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 1), 1));
+#endif
 #ifdef INTEL_INTRINSICS
           processors.push_back(Filtering::Processor<Processor>(clamp_sse2, Constraint(CPU_SSE2, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 1), 1));
           processors.push_back(Filtering::Processor<Processor>(clamp_asse2, Constraint(CPU_SSE2, MODULO_NONE, MODULO_NONE, ALIGNMENT_16, 16), 2));
@@ -118,6 +130,9 @@ public:
           break;
         case 10:
           processors16.push_back(Filtering::Processor<Processor16>(clamp16_native_10_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0));
+#ifdef NEON_INTRINSICS
+          processors16.push_back(Filtering::Processor<Processor16>(clamp16_native_10_neon, Constraint(CPU_NEON, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 1), 1));
+#endif
 #ifdef INTEL_INTRINSICS
           processors16.push_back(Filtering::Processor<Processor16>(clamp16_native_10_sse2, Constraint(CPU_SSE2, 1, 1, 1, 1), 1));
           processors16.push_back(Filtering::Processor<Processor16>(clamp16_native_10_sse4_1, Constraint(CPU_SSE4_1, 1, 1, 1, 1), 2));
@@ -125,6 +140,9 @@ public:
           break;
         case 12:
           processors16.push_back(Filtering::Processor<Processor16>(clamp16_native_12_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0));
+#ifdef NEON_INTRINSICS
+          processors16.push_back(Filtering::Processor<Processor16>(clamp16_native_12_neon, Constraint(CPU_NEON, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 1), 1));
+#endif
 #ifdef INTEL_INTRINSICS
           processors16.push_back(Filtering::Processor<Processor16>(clamp16_native_12_sse2, Constraint(CPU_SSE2, 1, 1, 1, 1), 1));
           processors16.push_back(Filtering::Processor<Processor16>(clamp16_native_12_sse4_1, Constraint(CPU_SSE4_1, 1, 1, 1, 1), 2));
@@ -132,6 +150,9 @@ public:
           break;
         case 14:
           processors16.push_back(Filtering::Processor<Processor16>(clamp16_native_14_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0));
+#ifdef NEON_INTRINSICS
+          processors16.push_back(Filtering::Processor<Processor16>(clamp16_native_14_neon, Constraint(CPU_NEON, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 1), 1));
+#endif
 #ifdef INTEL_INTRINSICS
           processors16.push_back(Filtering::Processor<Processor16>(clamp16_native_14_sse2, Constraint(CPU_SSE2, 1, 1, 1, 1), 1));
           processors16.push_back(Filtering::Processor<Processor16>(clamp16_native_14_sse4_1, Constraint(CPU_SSE4_1, 1, 1, 1, 1), 2));
@@ -139,6 +160,9 @@ public:
           break;
         case 16:
           processors16.push_back(Filtering::Processor<Processor16>(clamp16_native_16_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0));
+#ifdef NEON_INTRINSICS
+          processors16.push_back(Filtering::Processor<Processor16>(clamp16_native_16_neon, Constraint(CPU_NEON, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 1), 1));
+#endif
 #ifdef INTEL_INTRINSICS
           processors16.push_back(Filtering::Processor<Processor16>(clamp16_native_16_sse2, Constraint(CPU_SSE2, 1, 1, 1, 1), 1));
           processors16.push_back(Filtering::Processor<Processor16>(clamp16_native_16_sse4_1, Constraint(CPU_SSE4_1, 1, 1, 1, 1), 2));
@@ -146,6 +170,9 @@ public:
           break;
         case 32:
           processors32.push_back(Filtering::Processor<Processor32>(clamp32_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0));
+#ifdef NEON_INTRINSICS
+          processors32.push_back(Filtering::Processor<Processor32>(clamp32_neon, Constraint(CPU_NEON, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 1), 1));
+#endif
 #ifdef INTEL_INTRINSICS
           processors32.push_back(Filtering::Processor<Processor32>(clamp32_sse2, Constraint(CPU_SSE2, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 1), 1));
           processors32.push_back(Filtering::Processor<Processor32>(clamp32_asse2, Constraint(CPU_SSE2, MODULO_NONE, MODULO_NONE, ALIGNMENT_16, 16), 2));

@@ -13,7 +13,8 @@ typedef void(Processor32)(uint8_t *pDst, ptrdiff_t nDstPitch, float nThreshold, 
    extern Processor *binarize_##name##_c; \
    extern Processor *binarize_##name##_sse2; \
    extern Processor *binarize_##name##_asse2; \
-   extern Processor *binarize_##name##_avx2
+   extern Processor *binarize_##name##_avx2; \
+   extern Processor *binarize_##name##_neon
 
 DEFINE_PROCESSOR(upper);
 DEFINE_PROCESSOR(lower);
@@ -40,7 +41,11 @@ extern Processor16 *binarize_##name##_native_12_sse2; \
 extern Processor16 *binarize_##name##_native_14_c; \
 extern Processor16 *binarize_##name##_native_14_sse2; \
 extern Processor16 *binarize_##name##_native_16_c; \
-extern Processor16 *binarize_##name##_native_16_sse2;
+extern Processor16 *binarize_##name##_native_16_sse2; \
+extern Processor16 *binarize_##name##_native_10_neon; \
+extern Processor16 *binarize_##name##_native_12_neon; \
+extern Processor16 *binarize_##name##_native_14_neon; \
+extern Processor16 *binarize_##name##_native_16_neon;
 
 DEFINE_PROCESSOR(upper);
 DEFINE_PROCESSOR(lower);
@@ -61,7 +66,8 @@ DEFINE_PROCESSOR(255_t);
 #define DEFINE_PROCESSOR(name) \
    extern Processor32 *binarize32_##name##_c; \
    extern Processor32 *binarize32_##name##_sse2; \
-   extern Processor32 *binarize32_##name##_asse2
+   extern Processor32 *binarize32_##name##_asse2; \
+   extern Processor32 *binarize32_##name##_neon
 
 DEFINE_PROCESSOR(upper);
 DEFINE_PROCESSOR(lower);
@@ -144,6 +150,7 @@ public:
       processors.push_back(Filtering::Processor<Processor>(binarize_##mode##_c, Constraint(CPU_NONE, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 1), 0)); \
       MT_X86(processors.push_back(Filtering::Processor<Processor>(binarize_##mode##_sse2, Constraint(CPU_SSE2, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 1), 1))); \
       MT_X86(processors.push_back(Filtering::Processor<Processor>(binarize_##mode##_asse2, Constraint(CPU_SSE2, MODULO_NONE, MODULO_NONE, ALIGNMENT_16, 16), 2))); \
+      MT_NEON(processors.push_back(Filtering::Processor<Processor>(binarize_##mode##_neon, Constraint(CPU_NEON, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 1), 1))); \
       /*processors.push_back(Filtering::Processor<Processor>(binarize_##mode##_avx2, Constraint(CPU_AVX2, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 1), 3));*/
       // avx2: not any faster than 128bit sse2, don't go live
 
@@ -173,15 +180,19 @@ public:
         switch(bits_per_pixel) { /* stacked: 16 */ \
         case 10: processors16.push_back(Filtering::Processor<Processor16>(binarize_##mode##_native_10_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0)); \
                  MT_X86(processors16.push_back( Filtering::Processor<Processor16>( binarize_##mode##_native_10_sse2, Constraint( CPU_SSE2 , 1, 1, 1, 1 ), 1 ) )); \
+                 MT_NEON(processors16.push_back( Filtering::Processor<Processor16>( binarize_##mode##_native_10_neon, Constraint( CPU_NEON , 1, 1, 1, 1 ), 1 ) )); \
                  break; \
         case 12: processors16.push_back(Filtering::Processor<Processor16>(binarize_##mode##_native_12_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0)); \
                  MT_X86(processors16.push_back( Filtering::Processor<Processor16>( binarize_##mode##_native_12_sse2, Constraint( CPU_SSE2 , 1, 1, 1, 1 ), 1 ) )); \
+                 MT_NEON(processors16.push_back( Filtering::Processor<Processor16>( binarize_##mode##_native_12_neon, Constraint( CPU_NEON , 1, 1, 1, 1 ), 1 ) )); \
                  break; \
         case 14: processors16.push_back(Filtering::Processor<Processor16>(binarize_##mode##_native_14_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0)); \
                  MT_X86(processors16.push_back( Filtering::Processor<Processor16>( binarize_##mode##_native_14_sse2, Constraint( CPU_SSE2 , 1, 1, 1, 1 ), 1 ) )); \
+                 MT_NEON(processors16.push_back( Filtering::Processor<Processor16>( binarize_##mode##_native_14_neon, Constraint( CPU_NEON , 1, 1, 1, 1 ), 1 ) )); \
                  break; \
         case 16: processors16.push_back(Filtering::Processor<Processor16>(binarize_##mode##_native_16_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0)); \
                  MT_X86(processors16.push_back( Filtering::Processor<Processor16>( binarize_##mode##_native_16_sse2, Constraint( CPU_SSE2 , 1, 1, 1, 1 ), 1 ) )); \
+                 MT_NEON(processors16.push_back( Filtering::Processor<Processor16>( binarize_##mode##_native_16_neon, Constraint( CPU_NEON , 1, 1, 1, 1 ), 1 ) )); \
                  break; \
         }\
     }
@@ -208,7 +219,8 @@ public:
 #define SET_MODE(mode) \
       processors32.push_back(Filtering::Processor<Processor32>(binarize32_##mode##_c, Constraint(CPU_NONE, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 1), 0)); \
       MT_X86(processors32.push_back(Filtering::Processor<Processor32>(binarize32_##mode##_sse2, Constraint(CPU_SSE2, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 1), 1))); \
-      MT_X86(processors32.push_back(Filtering::Processor<Processor32>(binarize32_##mode##_asse2, Constraint(CPU_SSE2, MODULO_NONE, MODULO_NONE, ALIGNMENT_16, 16), 2)));
+      MT_X86(processors32.push_back(Filtering::Processor<Processor32>(binarize32_##mode##_asse2, Constraint(CPU_SSE2, MODULO_NONE, MODULO_NONE, ALIGNMENT_16, 16), 2))); \
+      MT_NEON(processors32.push_back(Filtering::Processor<Processor32>(binarize32_##mode##_neon, Constraint(CPU_NEON, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 1), 1)));
 
        if (isMode("0 x")) { SET_MODE(0_x); }
        else if (isMode("t x")) { SET_MODE(t_x); }
