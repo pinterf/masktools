@@ -2,7 +2,7 @@
 #define __Mt_MorphologicFunctions32_H__
 
 #include "../../../common/utils/utils.h"
-#include "../../common/simd.h"
+#include "../../common/common.h"
 #include "../../common/16bit.h"
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Morphologic {
@@ -50,7 +50,6 @@ struct MorphologicProcessor {
         const T *pSrcp = pSrc - nSrcPitch;
         const T *pSrcn = pSrc + nSrcPitch;
 
-
         UNUSED(nCoordinates); UNUSED(pCoordinates);
 
         /* top-left */
@@ -91,7 +90,6 @@ struct MorphologicProcessor {
     }
 };
 
-
 template<class T>
 void generic_custom_32_c(float *pDst, ptrdiff_t nDstPitch, const float *pSrc, ptrdiff_t nSrcPitch, float nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight)
 {
@@ -113,7 +111,6 @@ void generic_custom_32_c(float *pDst, ptrdiff_t nDstPitch, const float *pSrc, pt
         pDst += nDstPitch;
     }
 }
-
 
 } // namespace
 

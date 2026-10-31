@@ -1,6 +1,5 @@
 #include "inflate.h"
 #include "../functions16.h"
-#include "../../../common/simd.h"
 
 using namespace Filtering;
 
@@ -31,17 +30,6 @@ Processor16 *inflate_16_c = &MorphologicProcessor<uint16_t>::generic_16_c<
     process_line_morpho_16_c<Border::Left, meanMaxThresholded>,
     process_line_morpho_16_c<Border::None, meanMaxThresholded>,
     process_line_morpho_16_c<Border::Right, meanMaxThresholded>
->;
-
-Processor16 *inflate_sse4_16 = &generic_sse4_16<
-  process_line_xxflate_16<Border::Left, limit_up_sse4_16, MemoryMode::SSE2_UNALIGNED>,
-  process_line_xxflate_16<Border::None, limit_up_sse4_16, MemoryMode::SSE2_UNALIGNED>,
-  process_line_xxflate_16<Border::Right, limit_up_sse4_16, MemoryMode::SSE2_UNALIGNED>
->;
-Processor16 *inflate_asse4_16 = &generic_sse4_16<
-  process_line_xxflate_16<Border::Left, limit_up_sse4_16, MemoryMode::SSE2_ALIGNED>,
-  process_line_xxflate_16<Border::None, limit_up_sse4_16, MemoryMode::SSE2_ALIGNED>,
-  process_line_xxflate_16<Border::Right, limit_up_sse4_16, MemoryMode::SSE2_UNALIGNED>
 >;
 
 } } } } }

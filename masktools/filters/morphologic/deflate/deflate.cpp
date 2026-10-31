@@ -1,6 +1,5 @@
 #include "deflate.h"
 #include "../functions.h"
-#include "../../../common/simd.h"
 
 using namespace Filtering;
 
@@ -24,15 +23,5 @@ static inline uint8_t meanMinThresholded(uint8_t a1, uint8_t a2, uint8_t a3, uin
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Morphologic { namespace Deflate {
 
 Processor *deflate_c = &generic_c<meanMinThresholded>;
-Processor *deflate_sse2 = &generic_sse2<
-    process_line_xxflate<Border::Left, limit_down_sse2, MemoryMode::SSE2_UNALIGNED>,
-    process_line_xxflate<Border::None, limit_down_sse2, MemoryMode::SSE2_UNALIGNED>,
-    process_line_xxflate<Border::Right, limit_down_sse2, MemoryMode::SSE2_UNALIGNED>
->;
-Processor *deflate_asse2 = &generic_sse2<
-    process_line_xxflate<Border::Left, limit_down_sse2, MemoryMode::SSE2_ALIGNED>,
-    process_line_xxflate<Border::None, limit_down_sse2, MemoryMode::SSE2_ALIGNED>,
-    process_line_xxflate<Border::Right, limit_down_sse2, MemoryMode::SSE2_UNALIGNED>
->;
 
 } } } } }

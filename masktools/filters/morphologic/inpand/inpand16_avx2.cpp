@@ -1,7 +1,12 @@
 #include "inpand.h"
+
+#ifdef INTEL_INTRINSICS
+
 #include "../functions16_avx2.h"
 
 using namespace Filtering;
+
+namespace {
 
 typedef uint16_t (local_minimum_f)(uint16_t a1, uint16_t a2, uint16_t a3, uint16_t a4, uint16_t a5, uint16_t a6, uint16_t a7, uint16_t a8, uint16_t a9);
 
@@ -66,6 +71,8 @@ extern "C" MT_FORCEINLINE __m256i inpand_operator_avx2_16(__m256i a, __m256i b) 
   return _mm256_min_epu16(a, b);
 }
 
+} // namespace
+
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Morphologic { namespace Inpand {
 
     class NewValue16 {
@@ -126,3 +133,5 @@ Processor16 *inpand_square_aavx2_16 = &xxpand_avx2_square_16<inpand_operator_avx
 Processor16 *inpand_custom_16_avx2_c = &generic_custom_16_avx2_c<NewValue16>;
 
 } } } } }
+
+#endif // INTEL_INTRINSICS

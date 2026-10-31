@@ -318,7 +318,13 @@
     <ClCompile Include="filters\morphologic\deflate\deflate16.cpp">
       <Filter>filters\morphologic\deflate</Filter>
     </ClCompile>
+    <ClCompile Include="filters\morphologic\deflate\deflate16_sse41.cpp">
+      <Filter>filters\morphologic\deflate</Filter>
+    </ClCompile>
     <ClCompile Include="filters\morphologic\deflate\deflate32.cpp">
+      <Filter>filters\morphologic\deflate</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\morphologic\deflate\deflate_sse2.cpp">
       <Filter>filters\morphologic\deflate</Filter>
     </ClCompile>
     <ClCompile Include="filters\morphologic\expand\expand.cpp">
@@ -330,7 +336,13 @@
     <ClCompile Include="filters\morphologic\expand\expand16_avx2.cpp">
       <Filter>filters\morphologic\expand</Filter>
     </ClCompile>
+    <ClCompile Include="filters\morphologic\expand\expand16_sse41.cpp">
+      <Filter>filters\morphologic\expand</Filter>
+    </ClCompile>
     <ClCompile Include="filters\morphologic\expand\expand32.cpp">
+      <Filter>filters\morphologic\expand</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\morphologic\expand\expand_sse2.cpp">
       <Filter>filters\morphologic\expand</Filter>
     </ClCompile>
     <ClCompile Include="filters\morphologic\inflate\inflate.cpp">
@@ -339,7 +351,13 @@
     <ClCompile Include="filters\morphologic\inflate\inflate16.cpp">
       <Filter>filters\morphologic\inflate</Filter>
     </ClCompile>
+    <ClCompile Include="filters\morphologic\inflate\inflate16_sse41.cpp">
+      <Filter>filters\morphologic\inflate</Filter>
+    </ClCompile>
     <ClCompile Include="filters\morphologic\inflate\inflate32.cpp">
+      <Filter>filters\morphologic\inflate</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\morphologic\inflate\inflate_sse2.cpp">
       <Filter>filters\morphologic\inflate</Filter>
     </ClCompile>
     <ClCompile Include="filters\morphologic\inpand\inpand.cpp">
@@ -351,7 +369,13 @@
     <ClCompile Include="filters\morphologic\inpand\inpand16_avx2.cpp">
       <Filter>filters\morphologic\inpand</Filter>
     </ClCompile>
+    <ClCompile Include="filters\morphologic\inpand\inpand16_sse41.cpp">
+      <Filter>filters\morphologic\inpand</Filter>
+    </ClCompile>
     <ClCompile Include="filters\morphologic\inpand\inpand32.cpp">
+      <Filter>filters\morphologic\inpand</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\morphologic\inpand\inpand_sse2.cpp">
       <Filter>filters\morphologic\inpand</Filter>
     </ClCompile>
     <ClCompile Include="filters\support\adddiff16\adddiff16.cpp">
@@ -578,7 +602,16 @@
     <ClInclude Include="filters\morphologic\functions16_avx2.h">
       <Filter>filters\morphologic</Filter>
     </ClInclude>
+    <ClInclude Include="filters\morphologic\functions16_sse.h">
+      <Filter>filters\morphologic</Filter>
+    </ClInclude>
     <ClInclude Include="filters\morphologic\functions32.h">
+      <Filter>filters\morphologic</Filter>
+    </ClInclude>
+    <ClInclude Include="filters\morphologic\functions32_sse.h">
+      <Filter>filters\morphologic</Filter>
+    </ClInclude>
+    <ClInclude Include="filters\morphologic\functions_sse.h">
       <Filter>filters\morphologic</Filter>
     </ClInclude>
     <ClInclude Include="filters\morphologic\inflate\inflate.h">
