@@ -1,4 +1,7 @@
 #include "merge.h"
+
+#ifdef INTEL_INTRINSICS
+
 #include "../../common/simd_avx2.h"
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Merge {
@@ -271,3 +274,5 @@ MAKE_EXPORTS(16)
 #undef MAKE_EXPORTS
 
 } } } }
+
+#endif // INTEL_INTRINSICS

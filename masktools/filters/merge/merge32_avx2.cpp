@@ -1,4 +1,7 @@
 #include "merge.h"
+
+#ifdef INTEL_INTRINSICS
+
 #include "../../common/simd_avx2.h"
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Merge {
@@ -389,3 +392,5 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Merge 
    Processor32 *merge32_luma_422_mpeg2_avx2 = merge32_luma_422_mpeg2_avx2_t<MemoryMode::SSE2_UNALIGNED>;
 
 } } } }
+
+#endif // INTEL_INTRINSICS
