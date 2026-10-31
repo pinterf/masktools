@@ -118,9 +118,8 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Rel_Clang'">
     <ClCompile>
-      <!-- -msse4.1: until the x86 SIMD is split from the C code; then SSE2 base, SSE4.1 per function or file -->
       <!-- -ffp-contract=off: float a*b+c is not contracted to FMA in the AVX2 files, as with MSVC (clang-cl: /clang:) -->
-      <AdditionalOptions>-msse4.1 /clang:-ffp-contract=off -Wno-gcc-compat -Wno-unused-function %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/clang:-ffp-contract=off -Wno-gcc-compat -Wno-unused-function %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Release_v141_xp'">

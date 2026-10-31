@@ -41,19 +41,15 @@ option(ENABLE_NEON_SIMD "Enable SIMD intrinsics for AArch64 processors" "${NEON_
 if(ENABLE_INTEL_SIMD AND ENABLE_NEON_SIMD)
   message(FATAL_ERROR "ENABLE_INTEL_SIMD and ENABLE_NEON_SIMD are mutually exclusive")
 endif()
-if(NOT ENABLE_INTEL_SIMD)
-  # the x86 intrinsics are not separated from the C code yet
-  message(FATAL_ERROR "Only the x86/x64 build with ENABLE_INTEL_SIMD=ON is possible for now")
-endif()
-
 if(MSVC)
   message(FATAL_ERROR "Use masktools.slnx (Visual Studio 2026) or masktools.sln (Visual Studio 2022) for the MSVC builds.")
 endif()
 
 if(ENABLE_INTEL_SIMD)
-  # -msse4.1: until the x86 SIMD is split from the C code; then SSE2 base (32 bit x86: -msse2), higher ISA
-  # levels per file or per function
-  add_compile_options(-msse4.1)
+  if(CMAKE_SIZEOF_VOID_P EQUAL 4)
+    # SSE2 base for 32 bit x86 (x86-64 has it anyway); higher ISA levels are per file or per function
+    add_compile_options(-msse2)
+  endif()
   # float: a*b+c is not contracted to FMA in the AVX2 files, as with MSVC
   add_compile_options(-ffp-contract=off)
 endif()
