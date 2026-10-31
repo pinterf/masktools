@@ -4,6 +4,8 @@
 #include <cstdlib>
 #include <climits>
 #include <cstdio>
+#include <cfloat>
+#include <cmath>
 
 namespace Filtering { namespace MaskTools { namespace Helpers { namespace PolishConverter {
 
@@ -196,16 +198,99 @@ class InfixToPolish {
       // the digits go to strtod without a decimal point: correctly rounded and independent of the locale
       const String number = digits + "e" + std::to_string(exponent - fraction_digits);
       const double value = strtod(number.c_str(), nullptr);
-      add_double(negative ? -value : value);
+      if (std::isinf(value)) { // out of the double range: no match, like an int above INT_MAX
+         pos = start;
+         return false;
+      }
+      rpn.append(double_to_string(negative ? -value : value)).append(" ");
       return true;
    }
 
-   void add_double(double value)
+   // Shortest decimal digits which read back to the same value, laid out like Python's repr() (1.5, 1.0,
+   // 0.0001, 1e-05, 1.5e+16), '.' whatever the locale (as Avisynth+ Format). Finite values only.
+   // Starting at DBL_DIG digits is enough: when the shortest form has k <= DBL_DIG digits, printing DBL_DIG
+   // digits gives the same k digits followed by zeros, which are stripped. Subnormals start from 1 digit.
+   // A power of two has a narrower rounding interval below than above: when the nearest decimal is below and
+   // does not read back, the next one up may (2^-24: 5.960464477539063e-08, not 5.9604644775390625e-08).
+   static String double_to_string(double d)
    {
-      char buffer[400];
-      snprintf(buffer, sizeof(buffer), "%7f", value);
-      buffer[19] = 0; // as before: at most 19 characters
-      rpn.append(buffer).append(" ");
+      if (d == 0)
+         return std::signbit(d) ? "-0.0" : "0.0";
+
+      const double a = std::fabs(d);
+      int binary_exponent;
+      const bool power_of_two = std::frexp(a, &binary_exponent) == 0.5;
+      // digits read back without a decimal point, so locale independent
+      auto reads_back = [a](const String &digits, int exponent) {
+         const String number = digits + "e" + std::to_string(exponent - (int)(digits.size() - 1));
+         return strtod(number.c_str(), nullptr) == a;
+      };
+
+      String digits; // significant digits, without the decimal point
+      int exponent = 0; // decimal exponent of the first digit
+      const bool subnormal = a < DBL_MIN;
+      for (int precision = subnormal ? 1 : DBL_DIG; precision <= 17; precision++) {
+         char buffer[40];
+         snprintf(buffer, sizeof(buffer), "%.*e", precision - 1, a); // e.g. "1.5e-05"
+         // collect the digits, skipping the decimal point (which can be locale dependent)
+         digits.clear();
+         const char *p = buffer;
+         for (; *p && *p != 'e' && *p != 'E'; p++)
+            if (is_digit(*p))
+               digits += *p;
+         exponent = (int)strtol(p + 1, nullptr, 10);
+         if (reads_back(digits, exponent))
+            break;
+         if (power_of_two) {
+            // one unit up in the last digit
+            String up = digits;
+            int i = (int)up.size() - 1;
+            for (; i >= 0 && up[i] == '9'; i--)
+               up[i] = '0';
+            int up_exponent = exponent;
+            if (i >= 0)
+               up[i]++;
+            else {
+               up.insert(up.begin(), '1');
+               up.pop_back();
+               up_exponent++;
+            }
+            if (reads_back(up, up_exponent)) {
+               digits = up;
+               exponent = up_exponent;
+               break;
+            }
+         }
+      }
+      while (digits.size() > 1 && digits.back() == '0')
+         digits.pop_back();
+
+      String s = d < 0 ? "-" : "";
+      const int ndigits = (int)digits.size();
+      if (exponent < -4 || exponent >= 16) {
+         // 1e-05, 1.5e+16
+         s += digits[0];
+         if (ndigits > 1)
+            s += "." + digits.substr(1);
+         const int abs_exponent = std::abs(exponent);
+         s += exponent < 0 ? "e-" : "e+";
+         if (abs_exponent < 10)
+            s += '0';
+         s += std::to_string(abs_exponent);
+      }
+      else if (exponent < 0) {
+         // 0.0001, 0.015
+         s += "0." + String(-exponent - 1, '0') + digits;
+      }
+      else if (ndigits > exponent + 1) {
+         // 1.5, 123.25
+         s += digits.substr(0, exponent + 1) + "." + digits.substr(exponent + 1);
+      }
+      else {
+         // 1.0, 100.0, 1234567890123456.0
+         s += digits + String(exponent + 1 - ndigits, '0') + ".0";
+      }
+      return s;
    }
 
    bool function()
