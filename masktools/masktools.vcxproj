@@ -211,13 +211,30 @@
     </ClCompile>
     <ClCompile Include="filters\morphologic\inpand\inpand32.cpp" />
     <ClCompile Include="filters\support\adddiff16\adddiff16.cpp" />
+    <ClCompile Include="filters\support\adddiff16\adddiff16_sse2.cpp" />
+    <ClCompile Include="filters\support\adddiff16\adddiff16_sse41.cpp">
+      <AdditionalOptions Condition="'$(Configuration)'=='Rel_Clang'">-msse4.1 %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
     <ClCompile Include="filters\support\adddiff\adddiff.cpp" />
+    <ClCompile Include="filters\support\adddiff\adddiff_sse2.cpp" />
     <ClCompile Include="filters\support\average16\average16.cpp" />
+    <ClCompile Include="filters\support\average16\average16_sse2.cpp" />
     <ClCompile Include="filters\support\average\average.cpp" />
+    <ClCompile Include="filters\support\average\average_sse2.cpp" />
     <ClCompile Include="filters\support\clamp16\clamp16.cpp" />
+    <ClCompile Include="filters\support\clamp16\clamp16_sse2.cpp" />
+    <ClCompile Include="filters\support\clamp16\clamp16_sse41.cpp">
+      <AdditionalOptions Condition="'$(Configuration)'=='Rel_Clang'">-msse4.1 %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
     <ClCompile Include="filters\support\clamp\clamp.cpp" />
+    <ClCompile Include="filters\support\clamp\clamp_sse2.cpp" />
     <ClCompile Include="filters\support\makediff16\makediff16.cpp" />
+    <ClCompile Include="filters\support\makediff16\makediff16_sse2.cpp" />
+    <ClCompile Include="filters\support\makediff16\makediff16_sse41.cpp">
+      <AdditionalOptions Condition="'$(Configuration)'=='Rel_Clang'">-msse4.1 %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
     <ClCompile Include="filters\support\makediff\makediff.cpp" />
+    <ClCompile Include="filters\support\makediff\makediff_sse2.cpp" />
     <ClCompile Include="helpers\avs2x\helpers_avs2x.cpp" />
     <ClCompile Include="helpers\forms\forms.cpp" />
     <ClCompile Include="helpers\parser\polish.cpp" />
@@ -268,9 +285,12 @@
     <ClInclude Include="filters\morphologic\inpand\inpand.h" />
     <ClInclude Include="filters\morphologic\morphologic.h" />
     <ClInclude Include="filters\morphologic\morphologic16.h" />
+    <ClInclude Include="filters\support\adddiff16\adddiff16_sse.h" />
     <ClInclude Include="filters\support\adddiff\adddiff.h" />
     <ClInclude Include="filters\support\average\average.h" />
+    <ClInclude Include="filters\support\clamp16\clamp16_sse.h" />
     <ClInclude Include="filters\support\clamp\clamp.h" />
+    <ClInclude Include="filters\support\makediff16\makediff16_sse.h" />
     <ClInclude Include="filters\support\makediff\makediff.h" />
     <ClInclude Include="helpers\avs2x\helpers_avs2x.h" />
     <ClInclude Include="helpers\forms\forms.h" />

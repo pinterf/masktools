@@ -309,25 +309,58 @@
     <ClCompile Include="filters\support\adddiff16\adddiff16.cpp">
       <Filter>filters\support\adddiff16</Filter>
     </ClCompile>
+    <ClCompile Include="filters\support\adddiff16\adddiff16_sse2.cpp">
+      <Filter>filters\support\adddiff16</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\support\adddiff16\adddiff16_sse41.cpp">
+      <Filter>filters\support\adddiff16</Filter>
+    </ClCompile>
     <ClCompile Include="filters\support\adddiff\adddiff.cpp">
+      <Filter>filters\support\adddiff</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\support\adddiff\adddiff_sse2.cpp">
       <Filter>filters\support\adddiff</Filter>
     </ClCompile>
     <ClCompile Include="filters\support\average16\average16.cpp">
       <Filter>filters\support\average16</Filter>
     </ClCompile>
+    <ClCompile Include="filters\support\average16\average16_sse2.cpp">
+      <Filter>filters\support\average16</Filter>
+    </ClCompile>
     <ClCompile Include="filters\support\average\average.cpp">
+      <Filter>filters\support\average</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\support\average\average_sse2.cpp">
       <Filter>filters\support\average</Filter>
     </ClCompile>
     <ClCompile Include="filters\support\clamp16\clamp16.cpp">
       <Filter>filters\support\clamp16</Filter>
     </ClCompile>
+    <ClCompile Include="filters\support\clamp16\clamp16_sse2.cpp">
+      <Filter>filters\support\clamp16</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\support\clamp16\clamp16_sse41.cpp">
+      <Filter>filters\support\clamp16</Filter>
+    </ClCompile>
     <ClCompile Include="filters\support\clamp\clamp.cpp">
+      <Filter>filters\support\clamp</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\support\clamp\clamp_sse2.cpp">
       <Filter>filters\support\clamp</Filter>
     </ClCompile>
     <ClCompile Include="filters\support\makediff16\makediff16.cpp">
       <Filter>filters\support\makediff16</Filter>
     </ClCompile>
+    <ClCompile Include="filters\support\makediff16\makediff16_sse2.cpp">
+      <Filter>filters\support\makediff16</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\support\makediff16\makediff16_sse41.cpp">
+      <Filter>filters\support\makediff16</Filter>
+    </ClCompile>
     <ClCompile Include="filters\support\makediff\makediff.cpp">
+      <Filter>filters\support\makediff</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\support\makediff\makediff_sse2.cpp">
       <Filter>filters\support\makediff</Filter>
     </ClCompile>
     <ClCompile Include="helpers\avs2x\helpers_avs2x.cpp">
@@ -476,14 +509,23 @@
     <ClInclude Include="filters\morphologic\morphologic16.h">
       <Filter>filters\morphologic</Filter>
     </ClInclude>
+    <ClInclude Include="filters\support\adddiff16\adddiff16_sse.h">
+      <Filter>filters\support\adddiff16</Filter>
+    </ClInclude>
     <ClInclude Include="filters\support\adddiff\adddiff.h">
       <Filter>filters\support\adddiff</Filter>
     </ClInclude>
     <ClInclude Include="filters\support\average\average.h">
       <Filter>filters\support\average</Filter>
     </ClInclude>
+    <ClInclude Include="filters\support\clamp16\clamp16_sse.h">
+      <Filter>filters\support\clamp16</Filter>
+    </ClInclude>
     <ClInclude Include="filters\support\clamp\clamp.h">
       <Filter>filters\support\clamp</Filter>
+    </ClInclude>
+    <ClInclude Include="filters\support\makediff16\makediff16_sse.h">
+      <Filter>filters\support\makediff16</Filter>
     </ClInclude>
     <ClInclude Include="filters\support\makediff\makediff.h">
       <Filter>filters\support\makediff</Filter>
