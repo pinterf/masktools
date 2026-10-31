@@ -156,11 +156,6 @@ public:
         realtime = true;
       }
 
-      if (realtime && isStacked) {
-        error = "realtime calculation not supported for stacked clip";
-        return;
-      }
-
       // 2.2.15- decide on using external Expr filter
       // This part is duplicated in lut, lutxy, lutxyz, lutxyza
       use_expr = parameters["use_expr"].toInt();
@@ -175,6 +170,8 @@ public:
         use_external_expr = true;
       if (use_expr == 3) // mode 3: use Expr always
         use_external_expr = true;
+      if (isStacked) // Expr would see the 8 bit double height clip: always the internal 16 bit calculation
+        use_external_expr = false;
       if (use_external_expr) {
         if (nXOffset != 0 || nYOffset != 0) {
           error = "X and Y offset must be zero when using 'use_expr'";

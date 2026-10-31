@@ -70,6 +70,7 @@ extern Processor16 *merge16_luma_420_mpeg2_##bits_per_pixel##_c; \
 extern Processor16 *merge16_luma_420_topleft_##bits_per_pixel##_c; \
 extern Processor16 *merge16_luma_422_##bits_per_pixel##_c; \
 extern Processor16 *merge16_luma_422_mpeg2_##bits_per_pixel##_c; \
+extern Processor16 *merge16_luma_411_##bits_per_pixel##_c; \
 extern Processor16 *merge16_##bits_per_pixel##_sse2; \
 extern Processor16 *merge16_##bits_per_pixel##_sse4_1; \
 extern Processor16 *merge16_##bits_per_pixel##_avx2; \
@@ -237,14 +238,8 @@ public:
         error = "Stacked specified for a non-8 bit clip";
         return;
       }
-      if (isStacked && is411) {
-        error = "Stacked 16 bit for 4:1:1 not supported";
-        return;
-      }
-      if (isStacked) {
+      if (isStacked)
         bits_per_pixel = 16; // processed as native 16 bit
-        isTopLeft = false; // the stacked versions had no top_left chroma placement
-      }
 
       use_luma = parameters["luma"].toBool();
       // PF: for greyscale: graceful fallback to chromaless operation
@@ -366,8 +361,11 @@ public:
           MT_X86(processors16.push_back( Filtering::Processor<Processor16>( merge16_##bits_per_pixel##_sse4_1, Constraint( CPU_SSE4_1, 1, 1, 1, 1 ), 2 ) )); \
           MT_X86(processors16.push_back( Filtering::Processor<Processor16>( merge16_##bits_per_pixel##_avx2, Constraint( CPU_AVX2, 1, 1, 1, 1 ), 3 ) )); \
           /* add the chroma processors16 */ \
-          /* used only for 420 and 422  */ \
-          if (is420) { \
+          /* used only for 420, 422 and 411 */ \
+          if (is411) { /* C only so far: stacked YV411 */ \
+            chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_411_##bits_per_pixel##_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0)); \
+          } \
+          else if (is420) { \
             if (isTopLeft) { \
               chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_420_topleft_##bits_per_pixel##_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0)); \
               MT_X86(chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_420_topleft_##bits_per_pixel##_sse2, Constraint(CPU_SSE2, 1, 1, 1, 1), 1))); \

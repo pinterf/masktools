@@ -18,6 +18,7 @@ enum MaskMode {
     MASK420_TOPLEFT,
     MASK422,
     MASK422_MPEG2,
+    MASK411,
     MASK444
 };
 
@@ -79,6 +80,12 @@ MT_FORCEINLINE static uint16_t get_mask_422_c(const uint8_t *ptr, int x) {
   return (reinterpret_cast<const uint16_t*>(ptr)[x] + reinterpret_cast<const uint16_t*>(ptr)[x + 1] + 1) >> 1;
 }
 
+// 411: the average of the 4 mask pixels of the row (pair averages, as the 8 bit version)
+MT_FORCEINLINE static uint16_t get_mask_411_c(const uint8_t *ptr, int x) {
+  const uint16_t *p = reinterpret_cast<const uint16_t*>(ptr) + x * 4;
+  return (uint16_t)((((p[0] + p[1] + 1) >> 1) + ((p[2] + p[3] + 1) >> 1) + 1) >> 1);
+}
+
 MT_FORCEINLINE static uint16_t get_mask_422_mpeg2_c(const uint8_t *ptr, int x, int &right) {
   x = x * 2;
 
@@ -120,6 +127,8 @@ static void internal_merge16_t_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8
               mask = get_mask_422_c(pMask, x);
             else if (mode == MASK422_MPEG2)
               mask = get_mask_422_mpeg2_c(pMask, x, right);
+            else if (mode == MASK411)
+              mask = get_mask_411_c(pMask, x);
             else
               mask = reinterpret_cast<const uint16_t*>(pMask)[x];
 
