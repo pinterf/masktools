@@ -2,7 +2,6 @@
 #define __Mt_Invert_H__
 
 #include "../../common/base/filter.h"
-#include <xmmintrin.h>
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Invert {
 
