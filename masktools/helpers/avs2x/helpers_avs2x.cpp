@@ -31,8 +31,14 @@ AVSValue __cdecl CreateRadiusForm(AVSValue args, void *user_data, IScriptEnviron
 template<StringConverter sc>
 AVSValue __cdecl CreateStringConverter(AVSValue args, void *user_data, IScriptEnvironment *env)
 {
-   UNUSED(user_data); UNUSED(env);
-   return AVSValue((new String(sc(args[0].AsString("x"))))->c_str()); /* grrrrr -> memory leak */
+   UNUSED(user_data);
+   try {
+      return AVSValue((new String(sc(args[0].AsString("x"))))->c_str()); /* grrrrr -> memory leak */
+   }
+   catch (const std::exception &e) {
+      env->ThrowError("%s", e.what());
+   }
+   return AVSValue();
 }
 
 template<Form bf>

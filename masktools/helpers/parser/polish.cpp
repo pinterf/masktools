@@ -6,15 +6,16 @@
 #include <cstdio>
 #include <cfloat>
 #include <cmath>
+#include <stdexcept>
 
 namespace Filtering { namespace MaskTools { namespace Helpers { namespace PolishConverter {
 
 /*
    Infix -> reverse polish converter of mt_polish.
 
-   A backtracking recursive descent parser. Operands and operators are appended to the output as soon as their
-   rule matches, also inside an alternative that fails later (e.g. "min(x)" gives "x "), and parsing stops at
-   the first character that does not fit (the rest is ignored). Whitespace is allowed between tokens.
+   A backtracking recursive descent parser. Operands and operators are appended to the output as their rule
+   matches; an alternative that fails takes back its output. Whitespace is allowed between tokens. An
+   expression which is not parsed to its end is an error.
 
    Grammar, in order of the alternatives:
       termter = term6 ( '?' termter ':' termter )*
@@ -295,6 +296,7 @@ class InfixToPolish {
    {
       for (const Function &f : functions) {
          const size_t start = pos;
+         const size_t rpn_start = rpn.size();
          if (literal(f.name) && literal("(") && termter()) {
             bool ok = true;
             for (int i = 1; i < f.nArgs && ok; i++)
@@ -305,6 +307,7 @@ class InfixToPolish {
             }
          }
          pos = start;
+         rpn.resize(rpn_start);
       }
       return false;
    }
@@ -312,11 +315,13 @@ class InfixToPolish {
    bool factor()
    {
       const size_t start = pos;
+      const size_t rpn_start = rpn.size();
       if (real() || integer())
          return true;
       if (literal("(") && termter() && literal(")"))
          return true;
       pos = start;
+      rpn.resize(rpn_start);
       for (const char *c : constants) {
          if (literal(c)) {
             add(c);
@@ -342,6 +347,7 @@ class InfixToPolish {
          return false;
       for (;;) {
          const size_t start = pos;
+         const size_t rpn_start = rpn.size();
          bool matched = false;
          for (int i = 0; i < levels[level].count && !matched; i++) {
             const char *op = levels[level].operators[i];
@@ -349,8 +355,10 @@ class InfixToPolish {
                add(op);
                matched = true;
             }
-            else
+            else {
                pos = start;
+               rpn.resize(rpn_start);
+            }
          }
          if (!matched)
             return true;
@@ -363,10 +371,12 @@ class InfixToPolish {
          return false;
       for (;;) {
          const size_t start = pos;
+         const size_t rpn_start = rpn.size();
          if (literal("?") && termter() && literal(":") && termter())
             add("?");
          else {
             pos = start;
+            rpn.resize(rpn_start);
             return true;
          }
       }
@@ -374,7 +384,14 @@ class InfixToPolish {
 
 public:
    InfixToPolish(const String &str, String &rpn) : str(str), pos(0), rpn(rpn) {}
-   void convert() { termter(); }
+   void convert()
+   {
+      termter();
+      skip_spaces();
+      if (pos < str.size())
+         throw std::runtime_error("mt_polish: syntax error at position " + std::to_string(pos + 1) + ": \"" +
+                                  str.substr(pos, 20) + (str.size() - pos > 20 ? "...\"" : "\""));
+   }
 };
 
 } // namespace
