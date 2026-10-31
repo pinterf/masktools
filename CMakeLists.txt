@@ -53,6 +53,12 @@ if(ENABLE_INTEL_SIMD)
   # float: a*b+c is not contracted to FMA in the AVX2 files, as with MSVC
   add_compile_options(-ffp-contract=off)
 endif()
+if(ENABLE_NEON_SIMD)
+  # float: no a*b+c -> fmadd contraction while the NEON port is verified (the C results are then the same on
+  # x86 and aarch64, with GCC and Clang; NEON float code unfused). Later: -ffp-contract=fast, the NEON float code
+  # fused as GCC contracts the C (as RgTools, mvtools).
+  add_compile_options(-ffp-contract=off)
+endif()
 if(WIN32)
   set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--enable-stdcall-fixup")
 elseif(APPLE)
