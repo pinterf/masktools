@@ -14,7 +14,8 @@ typedef void(Processor32)(float *pDst, ptrdiff_t nDstPitch, const float *pSrc1, 
    extern Processor *name##_sse2; \
    extern Processor *name##_asse2; \
    extern Processor *name##_avx2; \
-   extern Processor *name##_aavx2;
+   extern Processor *name##_aavx2; \
+   extern Processor *name##_neon;
 
 DEFINE_PROCESSOR(and);
 DEFINE_PROCESSOR(or);
@@ -42,7 +43,8 @@ DEFINE_NINE(max);
 #define DEFINE_PROCESSOR(name) \
    extern Processor16 *name##_native_c; \
    extern Processor16 *name##_native_sse2; \
-   extern Processor16 *name##_native_avx2;
+   extern Processor16 *name##_native_avx2; \
+   extern Processor16 *name##_native_neon;
 
 DEFINE_PROCESSOR(and16);
 DEFINE_PROCESSOR(or16 );
@@ -82,7 +84,8 @@ DEFINE_NINE(max);
    extern Processor32 *name##_32_sse2; \
    extern Processor32 *name##_32_asse2; \
    extern Processor32 *name##_32_avx; \
-   extern Processor32 *name##_32_aavx;
+   extern Processor32 *name##_32_aavx; \
+   extern Processor32 *name##_32_neon;
 
 DEFINE_PROCESSOR(and);
 DEFINE_PROCESSOR(or );
@@ -192,6 +195,7 @@ public:
       MT_X86(processors.push_back( Filtering::Processor<Processor>( mode##_asse2, Constraint( CPU_SSE2 , 1, 1, 16, 16 ), 2 ) )); \
       MT_X86(processors.push_back( Filtering::Processor<Processor>( mode##_avx2, Constraint( CPU_AVX2 , 1, 1, 1, 1 ), 3 ) )); \
       MT_X86(processors.push_back( Filtering::Processor<Processor>( mode##_aavx2, Constraint( CPU_AVX2 , 1, 1, 32, 32 ), 4 ) )); \
+      MT_NEON(processors.push_back( Filtering::Processor<Processor>( mode##_neon, Constraint( CPU_NEON , 1, 1, 1, 1 ), 1 ) )); \
    } while(0)
       
       if (parameters["mode"].toString() == "and")
@@ -246,11 +250,9 @@ public:
 #define SET_MODE(mode, needSSE4) \
     { \
         processors16.push_back( Filtering::Processor<Processor16>( mode##_native_c, Constraint( CPU_NONE, 1, 1, 1, 1 ), 0 ) ); \
-        if(needSSE4) \
-          MT_X86(processors16.push_back( Filtering::Processor<Processor16>( mode##_native_sse2, Constraint( CPU_SSE4_1 , 1, 1, 1, 1 ), 1 ) )); \
-        else \
-          MT_X86(processors16.push_back( Filtering::Processor<Processor16>( mode##_native_sse2, Constraint( CPU_SSE2 , 1, 1, 1, 1 ), 1 ) )); \
+        MT_X86(processors16.push_back( Filtering::Processor<Processor16>( mode##_native_sse2, Constraint( (needSSE4) ? CPU_SSE4_1 : CPU_SSE2, 1, 1, 1, 1 ), 1 ) )); \
         MT_X86(processors16.push_back( Filtering::Processor<Processor16>( mode##_native_avx2, Constraint( CPU_AVX2 , 1, 1, 1, 1 ), 1 ) )); \
+        MT_NEON(processors16.push_back( Filtering::Processor<Processor16>( mode##_native_neon, Constraint( CPU_NEON , 1, 1, 1, 1 ), 1 ) )); \
     }
 
       // modes containing min, max, add require SSE4
@@ -385,6 +387,7 @@ public:
       MT_X86(processors32.push_back( Filtering::Processor<Processor32>( mode##_32_asse2, Constraint( CPU_SSE2 , 1, 1, 16, 16 ), 2 ) )); \
       MT_X86(processors32.push_back( Filtering::Processor<Processor32>( mode##_32_avx, Constraint( CPU_AVX , 1, 1, 1, 1 ), 3 ) )); \
       MT_X86(processors32.push_back( Filtering::Processor<Processor32>( mode##_32_aavx, Constraint( CPU_AVX , 1, 1, 32, 32 ), 4 ) )); \
+      MT_NEON(processors32.push_back( Filtering::Processor<Processor32>( mode##_32_neon, Constraint( CPU_NEON , 1, 1, 1, 1 ), 1 ) )); \
    } while(0)
 
       if (parameters["mode"].toString() == "and")
