@@ -134,10 +134,13 @@
     <ClCompile Include="common\clip\inputconfig.cpp" />
     <ClCompile Include="filters\binarize\binarize.cpp" />
     <ClCompile Include="filters\binarize\binarize16.cpp" />
+    <ClCompile Include="filters\binarize\binarize16_sse2.cpp" />
     <ClCompile Include="filters\binarize\binarize32.cpp" />
+    <ClCompile Include="filters\binarize\binarize32_sse2.cpp" />
     <ClCompile Include="filters\binarize\binarize_avx2.cpp">
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
     </ClCompile>
+    <ClCompile Include="filters\binarize\binarize_sse2.cpp" />
     <ClCompile Include="filters\blur\mappedblur.cpp" />
     <ClCompile Include="filters\blur\mappedblur16.cpp" />
     <ClCompile Include="filters\blur\mappedblur32.cpp" />
@@ -251,6 +254,9 @@
     <ClInclude Include="common\simd_avx.h" />
     <ClInclude Include="common\simd_avx2.h" />
     <ClInclude Include="filters\binarize\binarize.h" />
+    <ClInclude Include="filters\binarize\binarize16_c.h" />
+    <ClInclude Include="filters\binarize\binarize32_c.h" />
+    <ClInclude Include="filters\binarize\binarize_c.h" />
     <ClInclude Include="filters\blur\mappedblur.h" />
     <ClInclude Include="filters\convolution\convolution.h" />
     <ClInclude Include="filters\gradient\gradient.h" />

@@ -150,10 +150,19 @@
     <ClCompile Include="filters\binarize\binarize16.cpp">
       <Filter>filters\binarize</Filter>
     </ClCompile>
+    <ClCompile Include="filters\binarize\binarize16_sse2.cpp">
+      <Filter>filters\binarize</Filter>
+    </ClCompile>
     <ClCompile Include="filters\binarize\binarize32.cpp">
       <Filter>filters\binarize</Filter>
     </ClCompile>
+    <ClCompile Include="filters\binarize\binarize32_sse2.cpp">
+      <Filter>filters\binarize</Filter>
+    </ClCompile>
     <ClCompile Include="filters\binarize\binarize_avx2.cpp">
+      <Filter>filters\binarize</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\binarize\binarize_sse2.cpp">
       <Filter>filters\binarize</Filter>
     </ClCompile>
     <ClCompile Include="filters\blur\mappedblur.cpp">
@@ -405,6 +414,15 @@
       <Filter>common</Filter>
     </ClInclude>
     <ClInclude Include="filters\binarize\binarize.h">
+      <Filter>filters\binarize</Filter>
+    </ClInclude>
+    <ClInclude Include="filters\binarize\binarize16_c.h">
+      <Filter>filters\binarize</Filter>
+    </ClInclude>
+    <ClInclude Include="filters\binarize\binarize32_c.h">
+      <Filter>filters\binarize</Filter>
+    </ClInclude>
+    <ClInclude Include="filters\binarize\binarize_c.h">
       <Filter>filters\binarize</Filter>
     </ClInclude>
     <ClInclude Include="filters\blur\mappedblur.h">

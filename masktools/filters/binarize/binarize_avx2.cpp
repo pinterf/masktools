@@ -1,7 +1,12 @@
 #include "binarize.h"
+
+#ifdef INTEL_INTRINSICS
+
 #include "../../common/simd_avx2.h"
 
 using namespace Filtering;
+
+namespace {
 
 typedef uint8_t (Operator)(uint8_t, uint8_t);
 
@@ -123,6 +128,8 @@ void binarize_avx2_t(uint8_t *dstp, ptrdiff_t dst_pitch, uint8_t threshold, int 
 // Experimental 256 bit AVX2 for 8bit video. 
 // Not any faster than 128 bit XMM version, perpaps we have too few operations between load and store.
 
+} // namespace
+
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Binarize {
 
 #define DEFINE_AVX2_VERSIONS(name, mem_mode) \
@@ -146,3 +153,5 @@ DEFINE_AVX2_VERSIONS(avx2, MemoryMode::SSE2_UNALIGNED)
 
 
 } } } }
+
+#endif // INTEL_INTRINSICS
