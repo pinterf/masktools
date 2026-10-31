@@ -153,13 +153,16 @@
     <ClCompile Include="filters\logic\logic16_avx2.cpp">
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
     </ClCompile>
+    <ClCompile Include="filters\logic\logic16_sse2.cpp" />
     <ClCompile Include="filters\logic\logic32.cpp" />
     <ClCompile Include="filters\logic\logic32_avx.cpp">
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
     </ClCompile>
+    <ClCompile Include="filters\logic\logic32_sse2.cpp" />
     <ClCompile Include="filters\logic\logic_avx2.cpp">
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
     </ClCompile>
+    <ClCompile Include="filters\logic\logic_sse2.cpp" />
     <ClCompile Include="filters\lut\lut\lut.cpp" />
     <ClCompile Include="filters\lut\lut\lut16.cpp" />
     <ClCompile Include="filters\lut\lutf\lutf.cpp" />
@@ -262,6 +265,9 @@
     <ClInclude Include="filters\gradient\gradient.h" />
     <ClInclude Include="filters\invert\invert.h" />
     <ClInclude Include="filters\logic\logic.h" />
+    <ClInclude Include="filters\logic\logic16_c.h" />
+    <ClInclude Include="filters\logic\logic32_c.h" />
+    <ClInclude Include="filters\logic\logic_c.h" />
     <ClInclude Include="filters\lut\functions.h" />
     <ClInclude Include="filters\lut\lut\lut.h" />
     <ClInclude Include="filters\lut\lutf\lutf.h" />

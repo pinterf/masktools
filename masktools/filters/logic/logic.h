@@ -190,10 +190,10 @@ public:
 #define SET_MODE(mode) \
    do { \
       processors.push_back( Filtering::Processor<Processor>( mode##_c, Constraint( CPU_NONE, 1, 1, 1, 1 ), 0 ) ); \
-      processors.push_back( Filtering::Processor<Processor>( mode##_sse2, Constraint( CPU_SSE2 , 1, 1, 1, 1 ), 1 ) ); \
-      processors.push_back( Filtering::Processor<Processor>( mode##_asse2, Constraint( CPU_SSE2 , 1, 1, 16, 16 ), 2 ) ); \
-      processors.push_back( Filtering::Processor<Processor>( mode##_avx2, Constraint( CPU_AVX2 , 1, 1, 1, 1 ), 3 ) ); \
-      processors.push_back( Filtering::Processor<Processor>( mode##_aavx2, Constraint( CPU_AVX2 , 1, 1, 32, 32 ), 4 ) ); \
+      MT_X86(processors.push_back( Filtering::Processor<Processor>( mode##_sse2, Constraint( CPU_SSE2 , 1, 1, 1, 1 ), 1 ) )); \
+      MT_X86(processors.push_back( Filtering::Processor<Processor>( mode##_asse2, Constraint( CPU_SSE2 , 1, 1, 16, 16 ), 2 ) )); \
+      MT_X86(processors.push_back( Filtering::Processor<Processor>( mode##_avx2, Constraint( CPU_AVX2 , 1, 1, 1, 1 ), 3 ) )); \
+      MT_X86(processors.push_back( Filtering::Processor<Processor>( mode##_aavx2, Constraint( CPU_AVX2 , 1, 1, 32, 32 ), 4 ) )); \
    } while(0)
       
       if (parameters["mode"].toString() == "and")
@@ -249,16 +249,16 @@ public:
     if (isStacked) { \
         processors16.push_back( Filtering::Processor<Processor16>( mode##_stacked_c, Constraint( CPU_NONE, 1, 1, 1, 1 ), 0 ) ); \
         if(needSSE4) \
-          processors16.push_back( Filtering::Processor<Processor16>( mode##_stacked_sse2, Constraint( CPU_SSE4_1 , 1, 1, 1, 1 ), 1 ) ); \
+          MT_X86(processors16.push_back( Filtering::Processor<Processor16>( mode##_stacked_sse2, Constraint( CPU_SSE4_1 , 1, 1, 1, 1 ), 1 ) )); \
         else \
-          processors16.push_back( Filtering::Processor<Processor16>( mode##_stacked_sse2, Constraint( CPU_SSE2 , 1, 1, 1, 1 ), 1 ) ); \
+          MT_X86(processors16.push_back( Filtering::Processor<Processor16>( mode##_stacked_sse2, Constraint( CPU_SSE2 , 1, 1, 1, 1 ), 1 ) )); \
     } else { \
         processors16.push_back( Filtering::Processor<Processor16>( mode##_native_c, Constraint( CPU_NONE, 1, 1, 1, 1 ), 0 ) ); \
         if(needSSE4) \
-          processors16.push_back( Filtering::Processor<Processor16>( mode##_native_sse2, Constraint( CPU_SSE4_1 , 1, 1, 1, 1 ), 1 ) ); \
+          MT_X86(processors16.push_back( Filtering::Processor<Processor16>( mode##_native_sse2, Constraint( CPU_SSE4_1 , 1, 1, 1, 1 ), 1 ) )); \
         else \
-          processors16.push_back( Filtering::Processor<Processor16>( mode##_native_sse2, Constraint( CPU_SSE2 , 1, 1, 1, 1 ), 1 ) ); \
-        processors16.push_back( Filtering::Processor<Processor16>( mode##_native_avx2, Constraint( CPU_AVX2 , 1, 1, 1, 1 ), 1 ) ); \
+          MT_X86(processors16.push_back( Filtering::Processor<Processor16>( mode##_native_sse2, Constraint( CPU_SSE2 , 1, 1, 1, 1 ), 1 ) )); \
+        MT_X86(processors16.push_back( Filtering::Processor<Processor16>( mode##_native_avx2, Constraint( CPU_AVX2 , 1, 1, 1, 1 ), 1 ) )); \
     }
 
       // modes containing min, max, add require SSE4
@@ -389,10 +389,10 @@ public:
 #define SET_MODE(mode) \
    do { \
       processors32.push_back( Filtering::Processor<Processor32>( mode##_32_c, Constraint( CPU_NONE, 1, 1, 1, 1 ), 0 ) ); \
-      processors32.push_back( Filtering::Processor<Processor32>( mode##_32_sse2, Constraint( CPU_SSE2 , 1, 1, 1, 1 ), 1 ) ); \
-      processors32.push_back( Filtering::Processor<Processor32>( mode##_32_asse2, Constraint( CPU_SSE2 , 1, 1, 16, 16 ), 2 ) ); \
-      processors32.push_back( Filtering::Processor<Processor32>( mode##_32_avx, Constraint( CPU_AVX , 1, 1, 1, 1 ), 3 ) ); \
-      processors32.push_back( Filtering::Processor<Processor32>( mode##_32_aavx, Constraint( CPU_AVX , 1, 1, 32, 32 ), 4 ) ); \
+      MT_X86(processors32.push_back( Filtering::Processor<Processor32>( mode##_32_sse2, Constraint( CPU_SSE2 , 1, 1, 1, 1 ), 1 ) )); \
+      MT_X86(processors32.push_back( Filtering::Processor<Processor32>( mode##_32_asse2, Constraint( CPU_SSE2 , 1, 1, 16, 16 ), 2 ) )); \
+      MT_X86(processors32.push_back( Filtering::Processor<Processor32>( mode##_32_avx, Constraint( CPU_AVX , 1, 1, 1, 1 ), 3 ) )); \
+      MT_X86(processors32.push_back( Filtering::Processor<Processor32>( mode##_32_aavx, Constraint( CPU_AVX , 1, 1, 32, 32 ), 4 ) )); \
    } while(0)
 
       if (parameters["mode"].toString() == "and")

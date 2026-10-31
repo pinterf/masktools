@@ -1,7 +1,12 @@
 #include "logic.h"
+
+#ifdef INTEL_INTRINSICS
+
 #include "../../common/simd_avx2.h"
 
 using namespace Filtering;
+
+namespace {
 
 static MT_FORCEINLINE uint8_t add(uint8_t a, uint8_t b) { return clip<uint8_t, int>(a + (int)b); }
 static MT_FORCEINLINE uint8_t sub(uint8_t a, uint8_t b) { return clip<uint8_t, int>(a - (int)b); }
@@ -96,6 +101,8 @@ template<MemoryMode mem_mode, decltype(and_avx2_op) op, decltype(_and) op_c>
 
 
 
+} // namespace
+
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Logic {
 
 #define DEFINE_AVX2_VERSIONS(name, mem_mode) \
@@ -128,3 +135,5 @@ DEFINE_SILLY_AVX2_VERSIONS(max, aavx2, MemoryMode::SSE2_ALIGNED)
 #undef DEFINE_C_VERSIONS
 
 } } } }
+
+#endif // INTEL_INTRINSICS

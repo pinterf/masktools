@@ -1,8 +1,13 @@
 #include "logic.h"
+
+#ifdef INTEL_INTRINSICS
+
 #include "../../common/simd_avx2.h"
 #include "../../common/16bit.h"
 
 using namespace Filtering;
+
+namespace {
 
 // remarks:
 // bits_per_pixel templating for add16: needs because of clamping to a value less than max(uint16_t)
@@ -111,6 +116,8 @@ static void logic16_native_t_avx2(uint8_t *pDst, ptrdiff_t nDstPitch, const uint
 }
 
 
+} // namespace
+
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Logic {
 
 Processor16 *and16_native_avx2  = &logic16_native_t_avx2<and16_avx2, and16_c>;
@@ -151,3 +158,5 @@ DEFINE_SILLY_AVX2_VERSIONS(max)
 
 
 } } } }
+
+#endif // INTEL_INTRINSICS

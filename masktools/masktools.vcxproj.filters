@@ -195,13 +195,22 @@
     <ClCompile Include="filters\logic\logic16_avx2.cpp">
       <Filter>filters\logic</Filter>
     </ClCompile>
+    <ClCompile Include="filters\logic\logic16_sse2.cpp">
+      <Filter>filters\logic</Filter>
+    </ClCompile>
     <ClCompile Include="filters\logic\logic32.cpp">
       <Filter>filters\logic</Filter>
     </ClCompile>
     <ClCompile Include="filters\logic\logic32_avx.cpp">
       <Filter>filters\logic</Filter>
     </ClCompile>
+    <ClCompile Include="filters\logic\logic32_sse2.cpp">
+      <Filter>filters\logic</Filter>
+    </ClCompile>
     <ClCompile Include="filters\logic\logic_avx2.cpp">
+      <Filter>filters\logic</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\logic\logic_sse2.cpp">
       <Filter>filters\logic</Filter>
     </ClCompile>
     <ClCompile Include="filters\lut\lut\lut.cpp">
@@ -438,6 +447,15 @@
       <Filter>filters\invert</Filter>
     </ClInclude>
     <ClInclude Include="filters\logic\logic.h">
+      <Filter>filters\logic</Filter>
+    </ClInclude>
+    <ClInclude Include="filters\logic\logic16_c.h">
+      <Filter>filters\logic</Filter>
+    </ClInclude>
+    <ClInclude Include="filters\logic\logic32_c.h">
+      <Filter>filters\logic</Filter>
+    </ClInclude>
+    <ClInclude Include="filters\logic\logic_c.h">
       <Filter>filters\logic</Filter>
     </ClInclude>
     <ClInclude Include="filters\lut\functions.h">
