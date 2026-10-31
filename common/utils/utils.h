@@ -208,6 +208,9 @@ static inline void print(LogLevel level, const char *format, ...)
 #endif
 }
 
+// Anonymous namespace: this header is included from files built with different per file compiler flags.
+namespace {
+
 /* min & max */
 template<typename T> T min(T a, T b) { return a < b ? a : b; }
 template<typename T> T max(T a, T b) { return a > b ? a : b; }
@@ -395,6 +398,8 @@ static const int pixel_sizes[3][COLORSPACE_COUNT] =
 
 template<Colorspace C> int pixel_size(int nPlane) { return pixel_sizes[C][nPlane]; }
 */
+} // namespace
+
 } // namespace Filtering
 
 #endif

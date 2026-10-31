@@ -14,6 +14,8 @@
 #include "common.h"
 
 namespace Filtering {
+// Anonymous namespace: this header is included from files built with different per file compiler flags.
+namespace {
 
 #define USE_MOVPS
 
@@ -401,6 +403,8 @@ namespace Filtering {
     _mm_storel_epi64(reinterpret_cast<__m128i*>(pLsb + x), result_lsb);
   }
 #pragma warning(default: 4556)
+} // namespace
+
 }
 
 #endif // __Mt_SIMD_H__

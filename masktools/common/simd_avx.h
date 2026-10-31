@@ -38,6 +38,8 @@
 #include "common.h"
 
 namespace Filtering {
+// Anonymous namespace: this header is included from files built with different per file compiler flags.
+namespace {
 
 #define USE_MOVPS
 
@@ -197,6 +199,8 @@ static MT_FORCEINLINE __m256 simd256_abs_diff_ps(__m256 a, __m256 b) {
   const __m256 absmask = _mm256_castsi256_ps(_mm256_set1_epi32(~(1 << 31))); // 0x7FFFFFFF
   return _mm256_and_ps(_mm256_sub_ps(a, b), absmask);
 }
+
+} // namespace
 
 }
 

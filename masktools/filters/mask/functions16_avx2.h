@@ -5,6 +5,8 @@
 #include "../../common/simd_avx2.h"
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Mask {
+// Anonymous namespace: this header is included from files built with different per file compiler flags.
+namespace {
 
 typedef uint16_t (Operator)(uint16_t, uint16_t, uint16_t, uint16_t, uint16_t, uint16_t, uint16_t, uint16_t, uint16_t, const int16_t matrix[10], int nLowThreshold, int nHighThreshold);
 typedef void (ProcessLineAvx2)(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m256i &lowThresh, const __m256i &highThresh, int width);
@@ -121,6 +123,8 @@ void generic16_avx2(uint16_t *pDst0, ptrdiff_t nDstPitch, const uint16_t *pSrc0,
     process_line_right(pDst + nWidth - 32, pSrcp + nWidth - 32, pSrc + nWidth - 32, pSrc + nWidth - 32, matrix, low_thr_v, high_thr_v, 32);
 
 }
+
+} // namespace
 
 } } } }
 

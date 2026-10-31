@@ -5,6 +5,8 @@
 #include "../../common/simd.h"
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Mask {
+// Anonymous namespace: this header is included from files built with different per file compiler flags.
+namespace {
 
 typedef float (Operator)(float, float, float, float, float, float, float, float, float, const float matrix[10], float nLowThreshold, float nHighThreshold);
 typedef void (ProcessLineSse2)(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const float matrix[10], const __m128 &lowThresh, const __m128 &highThresh, int width);
@@ -113,6 +115,8 @@ static void generic32_sse2(float *pDst0, ptrdiff_t nDstPitch, const float *pSrc0
     /* bottom-right */
     process_line_right(pDst + nWidth - 16, pSrcp + nWidth - 16, pSrc + nWidth - 16, pSrc + nWidth - 16, matrix, low_thr_v, high_thr_v, 16);
 }
+
+} // namespace
 
 } } } }
 

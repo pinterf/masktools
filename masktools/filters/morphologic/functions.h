@@ -5,6 +5,8 @@
 #include "../../common/simd.h"
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Morphologic {
+// Anonymous namespace: this header is included from files built with different per file compiler flags.
+namespace {
 
 typedef uint8_t (Operator)(uint8_t, uint8_t, uint8_t, uint8_t, uint8_t, uint8_t, uint8_t, uint8_t, uint8_t, int);
 typedef __m128i (Limit)(__m128i source, __m128i sum, __m128i deviation);
@@ -385,6 +387,8 @@ void generic_custom_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, p
       pDst += nDstPitch;
    }
 }
+
+} // namespace
 
 } } } } // namespace Morphologic, Filters, MaskTools, Filtering
 

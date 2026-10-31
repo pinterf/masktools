@@ -53,6 +53,8 @@
 #include "common.h"
 
 namespace Filtering {
+// Anonymous namespace: this header is included from files built with different per file compiler flags.
+namespace {
 
 #define USE_MOVPS
 
@@ -237,6 +239,8 @@ MT_FORCEINLINE __m256i _MM256_SRLI_SI256(__m256i a)
   return _mm256_setzero_si256();
 }
 #pragma warning(default: 4556)
+
+} // namespace
 
 }
 

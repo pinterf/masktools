@@ -6,6 +6,8 @@
 #include "../../common/16bit.h"
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Morphologic {
+// Anonymous namespace: this header is included from files built with different per file compiler flags.
+namespace {
 
 typedef float (Operator32)(float, float, float, float, float, float, float, float, float, float); // last is nMaxDeviation
 
@@ -112,6 +114,8 @@ void generic_custom_32_c(float *pDst, ptrdiff_t nDstPitch, const float *pSrc, pt
     }
 }
 
+
+} // namespace
 
 } } } } // namespace Morphologic, Filters, MaskTools, Filtering
 

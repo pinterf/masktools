@@ -5,6 +5,8 @@
 #include "../../common/simd_avx.h"
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Mask {
+// Anonymous namespace: this header is included from files built with different per file compiler flags.
+namespace {
 
 typedef float (Operator)(float, float, float, float, float, float, float, float, float, const float matrix[10], float nLowThreshold, float nHighThreshold);
 typedef void (ProcessLineAvx)(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const float matrix[10], const __m256 &lowThresh, const __m256 &highThresh, int width);
@@ -113,6 +115,8 @@ static void generic32_avx(float *pDst0, ptrdiff_t nDstPitch, const float *pSrc0,
     /* bottom-right */
     process_line_right(pDst + nWidth - 32, pSrcp + nWidth - 32, pSrc + nWidth - 32, pSrc + nWidth - 32, matrix, low_thr_v, high_thr_v, 32);
 }
+
+} // namespace
 
 } } } }
 
