@@ -352,7 +352,7 @@ class InfixToPolish {
          for (int i = 0; i < levels[level].count && !matched; i++) {
             const char *op = levels[level].operators[i];
             if (literal(op) && term(level - 1)) {
-               add(op);
+               add(strcmp(op, "!&") == 0 ? "&!" : op); // and-not: "&!" in reverse polish
                matched = true;
             }
             else {
