@@ -144,6 +144,7 @@
     <ClCompile Include="filters\convolution\convolution.cpp" />
     <ClCompile Include="filters\gradient\gradient.cpp" />
     <ClCompile Include="filters\invert\invert.cpp" />
+    <ClCompile Include="filters\invert\invert_sse2.cpp" />
     <ClCompile Include="filters\logic\logic.cpp" />
     <ClCompile Include="filters\logic\logic16.cpp" />
     <ClCompile Include="filters\logic\logic16_avx2.cpp">
