@@ -20,6 +20,7 @@ enum {
   CPU_SSE4_2 = 0x100,
   CPU_AVX    = 0x200,
   CPU_AVX2   = 0x400,
+  CPU_NEON   = 0x800, // aarch64
 };
 
 typedef int CpuFlags;

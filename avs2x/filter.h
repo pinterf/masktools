@@ -18,6 +18,8 @@ static CpuFlags AvsToInternalCpuFlags(int avsCpuFlags) {
   if (avsCpuFlags & CPUF_SSSE3) flags |= CPU_SSSE3;
   if (avsCpuFlags & CPUF_SSE3) flags |= CPU_SSE3;
   if (avsCpuFlags & CPUF_SSE2) flags |= CPU_SSE2;
+#elif defined(NEON_INTRINSICS)
+  if (avsCpuFlags & CPUF_ARM_NEON) flags |= CPU_NEON;
 #else
   UNUSED(avsCpuFlags);
 #endif

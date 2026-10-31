@@ -67,6 +67,12 @@
 #else
 #define MT_X86(...)
 #endif
+// MT_NEON(x): x only in the aarch64 NEON builds
+#ifdef NEON_INTRINSICS
+#define MT_NEON(...) __VA_ARGS__
+#else
+#define MT_NEON(...)
+#endif
 
 #ifndef _WIN32
 #define OutputDebugString(x)
