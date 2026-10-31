@@ -165,8 +165,8 @@ static MT_FORCEINLINE __m256i threshold_avx2(const __m256i &value, const __m256i
   auto sat = _mm256_sub_epi8(value, v128);
   auto low = _mm256_cmpgt_epi8(sat, lowThresh);
   auto high = _mm256_cmpgt_epi8(sat, highThresh);
-  auto result = _mm256_and_si256(value, low);
-  return _mm256_or_si256(result, high);
+  // as the C threshold: value <= low ? 0 : value > high ? max : value (also when low > high)
+  return _mm256_and_si256(_mm256_or_si256(value, high), low);
 }
 
 //  thresholds are decreased by half range in order to do signed comparison
@@ -178,10 +178,9 @@ static MT_FORCEINLINE __m256i threshold16_avx2(const __m256i &value, const __m25
   auto sat = _mm256_sub_epi16(value, vHalf);
   auto low = _mm256_cmpgt_epi16(sat, lowThresh);
   auto high = _mm256_cmpgt_epi16(sat, highThresh);
-  if (bits_per_pixel < 16)
-    high = _mm256_and_si256(high, maxMask); // clamp FFFF to 03FF 0FFF or 3FFF at 10, 12 and 14 bits
-  auto result = _mm256_and_si256(value, low);
-  return _mm256_or_si256(result, high);
+  // as the C threshold: value <= low ? 0 : value > high ? max : value; value can be above max (prewitt, cartoon).
+  // maxMask: the max pixel value (FFFF at 16 bit), no bit depth dependent branch
+  return _mm256_and_si256(_mm256_or_si256(_mm256_andnot_si256(high, value), _mm256_and_si256(high, maxMask)), low);
 }
 
 #if defined(GCC) || defined(CLANG)
