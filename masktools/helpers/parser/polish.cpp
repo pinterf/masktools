@@ -109,7 +109,7 @@ class InfixToPolish {
       return false;
    }
 
-   // [+-]digits: an int, fails on overflow
+   // [+-]digits: an int; out of the int range a double
    bool integer()
    {
       const size_t start = pos;
@@ -123,22 +123,20 @@ class InfixToPolish {
          pos = start;
          return false;
       }
-      long long value = 0;
-      while (is_digit(peek())) {
-         value = value * 10 + (peek() - '0');
-         if (value > (long long)INT_MAX + 1) {
-            pos = start;
-            return false;
-         }
-         pos++;
-      }
-      if (negative)
-         value = -value;
-      if (value > INT_MAX || value < INT_MIN) {
+      String digits;
+      while (is_digit(peek()))
+         digits += str[pos++];
+      const double value = strtod(digits.c_str(), nullptr);
+      if (std::isinf(value)) {
          pos = start;
          return false;
       }
-      rpn.append(std::to_string((int)value)).append(" ");
+      if (value <= INT_MAX + (negative ? 1.0 : 0.0)) {
+         const long long int_value = std::stoll(digits);
+         rpn.append(std::to_string(negative ? -int_value : int_value)).append(" ");
+      }
+      else
+         rpn.append(double_to_string(negative ? -value : value)).append(" ");
       return true;
    }
 
