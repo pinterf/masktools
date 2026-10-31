@@ -51,6 +51,16 @@
 #endif
 
 
+// INTEL_INTRINSICS / NEON_INTRINSICS: the x86 / NEON SIMD code is compiled. CMake defines them
+// (ENABLE_INTEL_SIMD, ENABLE_NEON_SIMD), the MSVC solution does not: derive them from the target there.
+#if defined(_MSC_VER) && !defined(INTEL_INTRINSICS) && !defined(NEON_INTRINSICS)
+#if defined(_M_IX86) || defined(_M_X64)
+#define INTEL_INTRINSICS
+#elif defined(_M_ARM64)
+#define NEON_INTRINSICS
+#endif
+#endif
+
 #ifndef _WIN32
 #define OutputDebugString(x)
 #endif
