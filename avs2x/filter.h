@@ -9,6 +9,8 @@ namespace Filtering { namespace Avisynth2x {
 
 static CpuFlags AvsToInternalCpuFlags(int avsCpuFlags) {
   int flags = CPU_NONE;
+#ifdef INTEL_INTRINSICS
+  // the CPUF_ values of x86 and ARM overlap (CPUF_ARM_NEON == CPUF_FORCE): x86 builds only
   if (avsCpuFlags & CPUF_AVX2) flags |= CPU_AVX2;
   if (avsCpuFlags & CPUF_AVX) flags |= CPU_AVX;
   if (avsCpuFlags & CPUF_SSE4_2) flags |= CPU_SSE4_2;
@@ -16,6 +18,9 @@ static CpuFlags AvsToInternalCpuFlags(int avsCpuFlags) {
   if (avsCpuFlags & CPUF_SSSE3) flags |= CPU_SSSE3;
   if (avsCpuFlags & CPUF_SSE3) flags |= CPU_SSE3;
   if (avsCpuFlags & CPUF_SSE2) flags |= CPU_SSE2;
+#else
+  UNUSED(avsCpuFlags);
+#endif
   return flags;
 }
 
