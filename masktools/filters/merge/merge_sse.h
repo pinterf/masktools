@@ -397,6 +397,27 @@ namespace {
      }
    }
 
+   // 411: the masks of 16 chroma pixels from 64 luma mask pixels of the row, as words (lo: 0-7, hi: 8-15);
+   // pair averages of pair averages, as the C version
+   template <MemoryMode mem_mode>
+   MT_FORCEINLINE void mask_411_sse2(const uint8_t *pMask, __m128i &mask_lo, __m128i &mask_hi) {
+     auto v255 = _mm_set1_epi16(0x00FF);
+     auto m0 = simd_load_si128<mem_mode>(pMask);
+     auto m1 = simd_load_si128<mem_mode>(pMask + 16);
+     auto m2 = simd_load_si128<mem_mode>(pMask + 32);
+     auto m3 = simd_load_si128<mem_mode>(pMask + 48);
+     // pair averages at the even bytes
+     auto p0 = _mm_and_si128(_mm_avg_epu8(m0, _mm_srli_si128(m0, 1)), v255);
+     auto p1 = _mm_and_si128(_mm_avg_epu8(m1, _mm_srli_si128(m1, 1)), v255);
+     auto p2 = _mm_and_si128(_mm_avg_epu8(m2, _mm_srli_si128(m2, 1)), v255);
+     auto p3 = _mm_and_si128(_mm_avg_epu8(m3, _mm_srli_si128(m3, 1)), v255);
+     auto p01 = _mm_packus_epi16(p0, p1);
+     auto p23 = _mm_packus_epi16(p2, p3);
+     // and their pair averages
+     mask_lo = _mm_and_si128(_mm_avg_epu8(p01, _mm_srli_si128(p01, 1)), v255);
+     mask_hi = _mm_and_si128(_mm_avg_epu8(p23, _mm_srli_si128(p23, 1)), v255);
+   }
+
    template <MemoryMode mem_mode, CpuFlags flags>
    void merge_luma_411_sse2_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
      const uint8_t *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
@@ -406,7 +427,6 @@ namespace {
      auto pSrc1_s = pSrc1;
      auto pMask_s = pMask;
 #pragma warning(disable: 4309)
-     auto v255 = _mm_set1_epi16((short)0x00FF);
      auto v128 = _mm_set1_epi16((short)0x0080);
      auto maxMaskFF = _mm_set1_epi8(0xFF);
 #pragma warning(default: 4309)
@@ -415,18 +435,8 @@ namespace {
        for (int i = 0; i < wMod16; i += 16) {
          _mm_prefetch(reinterpret_cast<const char*>(pMask) + i * 4 + 64, _MM_HINT_T0);
          // preparing mask
-         auto src2_row1_t1 = simd_load_si128<mem_mode>(pMask + i * 4);
-         auto src2_row1_t2 = simd_load_si128<mem_mode>(pMask + i * 4 + 16);
-         auto src2_row2_t1 = simd_load_si128<mem_mode>(pMask + i * 4 + 32);
-         auto src2_row2_t2 = simd_load_si128<mem_mode>(pMask + i * 4 + 48);
-         auto avg_t1 = _mm_avg_epu8(src2_row1_t1, src2_row2_t1);
-         auto avg_t2 = _mm_avg_epu8(src2_row1_t2, src2_row2_t2);
-         auto shifted_t1 = _mm_srli_si128(avg_t1, 1);
-         auto shifted_t2 = _mm_srli_si128(avg_t2, 1);
-         avg_t1 = _mm_avg_epu8(avg_t1, shifted_t1);
-         avg_t2 = _mm_avg_epu8(avg_t2, shifted_t2);
-         auto mask_t1 = _mm_and_si128(avg_t1, v255);
-         auto mask_t2 = _mm_and_si128(avg_t2, v255);
+         __m128i mask_t1, mask_t2;
+         mask_411_sse2<mem_mode>(pMask + i * 4, mask_t1, mask_t2);
 
          auto result = merge_sse2_core<mem_mode, flags>(pDst + i, pSrc1 + i, mask_t1, mask_t2, v128, zero, maxMaskFF);
 

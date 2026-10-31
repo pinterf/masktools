@@ -78,7 +78,7 @@ namespace {
          const int nMask = (
            ((pMask[x * 4 + 0] + pMask[x * 4 + 1] + 1) >> 1) +
            ((pMask[x * 4 + 2] + pMask[x * 4 + 3] + 1) >> 1)
-           + 1) >> 2; // 411: averaging from four pixels of full size mask
+           + 1) >> 1; // 411: averaging from four pixels of full size mask
          if (nMask == 255)
            pDst[x] = pSrc1[x];
          else if (nMask != 0)
@@ -258,6 +258,27 @@ namespace {
      }
    }
 
+   // 411: the masks of 16 chroma pixels from 64 luma mask pixels of the row, as words (lo: 0-7, hi: 8-15);
+   // pair averages of pair averages, as the C version
+   template <MemoryMode mem_mode>
+   MT_FORCEINLINE void mask_411_sse2(const uint8_t *pMask, __m128i &mask_lo, __m128i &mask_hi) {
+     auto v255 = _mm_set1_epi16(0x00FF);
+     auto m0 = simd_load_si128<mem_mode>(pMask);
+     auto m1 = simd_load_si128<mem_mode>(pMask + 16);
+     auto m2 = simd_load_si128<mem_mode>(pMask + 32);
+     auto m3 = simd_load_si128<mem_mode>(pMask + 48);
+     // pair averages at the even bytes
+     auto p0 = _mm_and_si128(_mm_avg_epu8(m0, _mm_srli_si128(m0, 1)), v255);
+     auto p1 = _mm_and_si128(_mm_avg_epu8(m1, _mm_srli_si128(m1, 1)), v255);
+     auto p2 = _mm_and_si128(_mm_avg_epu8(m2, _mm_srli_si128(m2, 1)), v255);
+     auto p3 = _mm_and_si128(_mm_avg_epu8(m3, _mm_srli_si128(m3, 1)), v255);
+     auto p01 = _mm_packus_epi16(p0, p1);
+     auto p23 = _mm_packus_epi16(p2, p3);
+     // and their pair averages
+     mask_lo = _mm_and_si128(_mm_avg_epu8(p01, _mm_srli_si128(p01, 1)), v255);
+     mask_hi = _mm_and_si128(_mm_avg_epu8(p23, _mm_srli_si128(p23, 1)), v255);
+   }
+
    template <MemoryMode mem_mode>
    void merge_luma_411_avx2_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
      const uint8_t *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
@@ -266,7 +287,6 @@ namespace {
      auto pDst_s = pDst;
      auto pSrc1_s = pSrc1;
      auto pMask_s = pMask;
-     auto v255 = _mm256_set1_epi16(0x00FF);
      auto v128 = _mm256_set1_epi16(0x0080);
      auto zero = _mm256_setzero_si256();
 #pragma warning(disable: 4309)
@@ -275,21 +295,12 @@ namespace {
      for (int j = 0; j < nHeight; ++j) {
        for (int i = 0; i < wMod32; i += 32) {
          _mm_prefetch(reinterpret_cast<const char*>(pMask) + i * 4 + 2*64, _MM_HINT_T0);
-         // preparing mask
-         auto src2_row1_t1 = simd256_load_si256<mem_mode>(pMask + i * 4);
-         auto src2_row1_t2 = simd256_load_si256<mem_mode>(pMask + i * 4 + 1*32);
-         auto src2_row2_t1 = simd256_load_si256<mem_mode>(pMask + i * 4 + 2*32);
-         auto src2_row2_t2 = simd256_load_si256<mem_mode>(pMask + i * 4 + 3*32);
-         auto avg_t1 = _mm256_avg_epu8(src2_row1_t1, src2_row2_t1);
-         auto avg_t2 = _mm256_avg_epu8(src2_row1_t2, src2_row2_t2);
-         auto shifted_t1 = _mm256_srli_si256(src2_row1_t1, 1); // srli with 2x128 lane is OK here
-         auto shifted_t2 = _mm256_srli_si256(src2_row1_t2, 1);
-         avg_t1 = _mm256_avg_epu8(avg_t1, shifted_t1);
-         avg_t2 = _mm256_avg_epu8(avg_t2, shifted_t2);
-         auto mask_t1 = _mm256_permute2x128_si256(avg_t1, avg_t2, (0 << 0) + (2 << 4)); // 0: src1lo 1:src1hi 2:src2lo 3:src2hi
-         auto mask_t2 = _mm256_permute2x128_si256(avg_t1, avg_t2, (1 << 0) + (3 << 4)); // 0: src1lo 1:src1hi 2:src2lo 3:src2hi
-         mask_t1 = _mm256_and_si256(mask_t1, v255);
-         mask_t2 = _mm256_and_si256(mask_t2, v255);
+         // preparing mask: two halves of 16 pixels
+         __m128i lo0, hi0, lo1, hi1;
+         mask_411_sse2<MemoryMode::SSE2_UNALIGNED>(pMask + i * 4, lo0, hi0);
+         mask_411_sse2<MemoryMode::SSE2_UNALIGNED>(pMask + i * 4 + 64, lo1, hi1);
+         auto mask_t1 = _mm256_set_m128i(lo1, lo0);
+         auto mask_t2 = _mm256_set_m128i(hi1, hi0);
 
          auto result = merge_avx2_core<mem_mode>(pDst + i, pSrc1 + i, mask_t1, mask_t2, v128, zero, maxMaskFF);
 

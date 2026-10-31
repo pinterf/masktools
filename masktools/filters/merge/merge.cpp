@@ -232,7 +232,7 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Merge 
          const int nMask = (
            ((pMask[x * 4 + 0] + pMask[x * 4 + 1] + 1) >> 1) +
            ((pMask[x * 4 + 2] + pMask[x * 4 + 3] + 1) >> 1)
-           + 1) >> 2; // 411: averaging from four pixels of full size mask
+           + 1) >> 1; // 411: averaging from four pixels of full size mask
          if (nMask == 255)
            pDst[x] = pSrc1[x];
          else if (nMask != 0)
