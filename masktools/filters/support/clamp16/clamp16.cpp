@@ -1,5 +1,5 @@
 #include "../clamp/clamp.h"
-#include "../../../common/16bit.h"
+#include "../../../common/common.h"
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Support  { namespace Clamp {
 
@@ -12,30 +12,6 @@ static uint16_t MT_FORCEINLINE clamp16_core_c(uint16_t dst, uint16_t upperLimit,
       return static_cast<uint16_t>(result < lowerLimit - undershoot ? lowerLimit - undershoot : result);
 }
 
-void clamp16_stacked_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pUpLimit, ptrdiff_t nUpLimitPitch, const uint8_t *pLowLimit, ptrdiff_t nLowLimitPitch, int nWidth, int nHeight, int nOrigHeight, int nOvershoot, int nUndershoot)
-{
-   auto pDstLsb = pDst + nDstPitch * nOrigHeight / 2;
-   auto pUpLimitLsb = pUpLimit + nUpLimitPitch * nOrigHeight / 2;
-   auto pLowLimitLsb = pLowLimit + nLowLimitPitch * nOrigHeight / 2;
-
-   for (int y = 0; y < nHeight / 2; y++) {
-       for (int x = 0; x < nWidth; x++) {
-           uint16_t dst = read_word_stacked(pDst, pDstLsb, x);
-           uint16_t upperLimit = read_word_stacked(pUpLimit, pUpLimitLsb, x);
-           uint16_t lowerLimit = read_word_stacked(pLowLimit, pLowLimitLsb, x);
-
-           uint16_t result = clamp16_core_c<16>(dst, upperLimit, lowerLimit, nOvershoot, nUndershoot);
-
-           write_word_stacked(pDst, pDstLsb, x, result);
-       }
-       pDst += nDstPitch;
-       pDstLsb += nDstPitch;
-       pUpLimit += nUpLimitPitch;
-       pUpLimitLsb += nUpLimitPitch;
-       pLowLimit += nLowLimitPitch;
-       pLowLimitLsb += nLowLimitPitch;
-   }
-}
 
 template<int bits_per_pixel>
 void clamp16_native_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pUpLimit, ptrdiff_t nUpLimitPitch, const uint8_t *pLowLimit, ptrdiff_t nLowLimitPitch, int nWidth, int nHeight, int nOrigHeight, int nOvershoot, int nUndershoot)

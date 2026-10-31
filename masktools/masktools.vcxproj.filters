@@ -539,9 +539,6 @@
     <ClInclude Include="..\common\utils\utils.h">
       <Filter>common (shared)\utils</Filter>
     </ClInclude>
-    <ClInclude Include="common\16bit.h">
-      <Filter>common</Filter>
-    </ClInclude>
     <ClInclude Include="common\base\filter.h">
       <Filter>common\base</Filter>
     </ClInclude>
@@ -692,9 +689,6 @@
     <ClInclude Include="filters\merge\merge.h">
       <Filter>filters\merge</Filter>
     </ClInclude>
-    <ClInclude Include="filters\merge\merge16.h">
-      <Filter>filters\merge</Filter>
-    </ClInclude>
     <ClInclude Include="filters\merge\merge16_c.h">
       <Filter>filters\merge</Filter>
     </ClInclude>
@@ -738,9 +732,6 @@
       <Filter>filters\morphologic\inpand</Filter>
     </ClInclude>
     <ClInclude Include="filters\morphologic\morphologic.h">
-      <Filter>filters\morphologic</Filter>
-    </ClInclude>
-    <ClInclude Include="filters\morphologic\morphologic16.h">
       <Filter>filters\morphologic</Filter>
     </ClInclude>
     <ClInclude Include="filters\support\adddiff16\adddiff16_sse.h">

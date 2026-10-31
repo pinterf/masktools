@@ -33,8 +33,6 @@ DEFINE_PROCESSOR(255_t);
 /* 16 bits */
 
 #define DEFINE_PROCESSOR(name) \
-extern Processor16 *binarize_##name##_stacked_16_c; \
-extern Processor16 *binarize_##name##_stacked_16_sse2; \
 extern Processor16 *binarize_##name##_native_10_c; \
 extern Processor16 *binarize_##name##_native_10_sse2; \
 extern Processor16 *binarize_##name##_native_12_c; \

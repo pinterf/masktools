@@ -40,9 +40,7 @@ DEFINE_NINE(max);
 
 /* 16 bit */
 #define DEFINE_PROCESSOR(name) \
-   extern Processor16 *name##_stacked_c; \
    extern Processor16 *name##_native_c; \
-   extern Processor16 *name##_stacked_sse2; \
    extern Processor16 *name##_native_sse2; \
    extern Processor16 *name##_native_avx2;
 

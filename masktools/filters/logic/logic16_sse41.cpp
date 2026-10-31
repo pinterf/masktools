@@ -34,8 +34,6 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Logic 
     Processor16 *add14##mode##add14_##layout##_sse2 = &logic16_##layout##_t_sse2<mode##_t_sse2<add16_sse2<14>, add16_sse2<14>>, mode##_t<add16_c<14>, add16_c<14>>>; \
     Processor16 *add16##mode##add16_##layout##_sse2 = &logic16_##layout##_t_sse2<mode##_t_sse2<add16_sse2<16>, add16_sse2<16>>, mode##_t<add16_c<16>, add16_c<16>>>;
 
-DEFINE_SILLY_SSE2_VERSIONS(min, stacked)
-DEFINE_SILLY_SSE2_VERSIONS(max, stacked)
 DEFINE_SILLY_SSE2_VERSIONS(min, native)
 DEFINE_SILLY_SSE2_VERSIONS(max, native)
 #undef DEFINE_SILLY_SSE2_VERSIONS

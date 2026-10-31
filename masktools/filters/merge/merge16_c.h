@@ -35,109 +35,15 @@ MT_FORCEINLINE static uint16_t merge16_core_c(uint16_t dst, uint16_t src, uint16
     }
 }
 
-/* Stacked */
-
-MT_FORCEINLINE static uint16_t get_value_stacked_c(const uint8_t *pMsb, const uint8_t *pLsb, int x) {
-    return (uint16_t(pMsb[x]) << 8) + pLsb[x];
-}
-
-MT_FORCEINLINE static uint16_t get_mask_420_stacked_c(const uint8_t *pMsb, const uint8_t *pLsb, ptrdiff_t pitch, int x) {
-    x = x*2;
-    return ((int((get_value_stacked_c(pMsb, pLsb, x)) + get_value_stacked_c(pMsb + pitch, pLsb + pitch, x) + 1) >> 1) +
-        ((int(get_value_stacked_c(pMsb, pLsb, x+1)) + get_value_stacked_c(pMsb + pitch, pLsb + pitch, x+1) + 1) >> 1) + 1) >> 1;
-}
-
-MT_FORCEINLINE static uint16_t get_mask_420_mpeg2_stacked_c(const uint8_t *pMsb, const uint8_t *pLsb, ptrdiff_t pitch, int x, int &right) {
-  x = x * 2;
-  const int left = right;
-  const int mid = (get_value_stacked_c(pMsb, pLsb, x)) + get_value_stacked_c(pMsb + pitch, pLsb + pitch, x);
-  right = get_value_stacked_c(pMsb, pLsb, x + 1) + get_value_stacked_c(pMsb + pitch, pLsb + pitch, x + 1);
-  return (uint16_t)((left + 2 * mid + right + 4) >> 3);
-}
-
-MT_FORCEINLINE static uint16_t get_mask_422_stacked_c(const uint8_t *pMsb, const uint8_t *pLsb, int x) {
-  x = x * 2;
-  return int((get_value_stacked_c(pMsb, pLsb, x)) + get_value_stacked_c(pMsb, pLsb, x + 1) + 1) >> 1;
-}
-
-MT_FORCEINLINE static uint16_t get_mask_422_mpeg2_stacked_c(const uint8_t *pMsb, const uint8_t *pLsb, int x, int &right) {
-  x = x * 2;
-  const int left = right;
-  const int mid = (get_value_stacked_c(pMsb, pLsb, x));
-  right = get_value_stacked_c(pMsb, pLsb, x + 1);
-  return (uint16_t)((left + 2 * mid + right + 2) >> 2);
-}
 
 
-template<MaskMode mode, bool allow_leftminus1>
-void internal_merge16_t_stacked_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
-                 const uint8_t *pMask, ptrdiff_t nMaskPitch, int nWidth, int nHeight, int nOrigHeight)
-{
-    auto pDstLsb = pDst + nDstPitch * nOrigHeight / 2;
-    auto pSrc1Lsb = pSrc1 + nSrc1Pitch * nOrigHeight / 2;
-    auto pMaskLsb = pMask + nMaskPitch * nOrigHeight / (mode == MASK420 || mode == MASK420_MPEG2 ? 1 : 2); // though mpeg2 not supported for stacked
 
-    for ( int y = 0; y < nHeight / 2; ++y )
-    {
-        int right;
-        if (mode == MASK420_MPEG2)
-          right = allow_leftminus1 ?
-          get_value_stacked_c(pMask, pMaskLsb, -1) + get_value_stacked_c(pMask + nMaskPitch, pMaskLsb + nMaskPitch, -1) :
-          get_value_stacked_c(pMask, pMaskLsb, 0) + get_value_stacked_c(pMask + nMaskPitch, pMaskLsb + nMaskPitch, 0);
-        else if (mode == MASK422_MPEG2)
-          right = allow_leftminus1 ?
-          get_value_stacked_c(pMask, pMaskLsb, -1) :
-          get_value_stacked_c(pMask, pMaskLsb, 0);
 
-        for ( int x = 0; x < nWidth; ++x ) {
-            uint16_t dst = get_value_stacked_c(pDst, pDstLsb, x);
-            uint16_t src = get_value_stacked_c(pSrc1, pSrc1Lsb, x);
-            uint16_t mask;
 
-            if (mode == MASK420)
-              mask = get_mask_420_stacked_c(pMask, pMaskLsb, nMaskPitch, x);
-            else if (mode == MASK420_MPEG2)
-              mask = get_mask_420_mpeg2_stacked_c(pMask, pMaskLsb, nMaskPitch, x, right);
-            else if (mode == MASK422)
-              mask = get_mask_422_stacked_c(pMask, pMaskLsb, x);
-            else if (mode == MASK422_MPEG2)
-              mask = get_mask_422_mpeg2_stacked_c(pMask, pMaskLsb, x, right);
-            else
-              mask = get_value_stacked_c(pMask, pMaskLsb, x);
 
-            uint16_t output = merge16_core_c<16>(dst, src, mask);
 
-            pDst[x] = output >> 8;
-            pDstLsb[x] = output & 0xFF;
-        }
-        pDst += nDstPitch;
-        pDstLsb += nDstPitch;
-        pSrc1 += nSrc1Pitch;
-        pSrc1Lsb += nSrc1Pitch;
 
-        if (mode == MASK420 || mode == MASK420_MPEG2) {
-            pMask += nMaskPitch * 2;
-            pMaskLsb += nMaskPitch * 2;
-        } else {
-            pMask += nMaskPitch;
-            pMaskLsb += nMaskPitch;
-        }
-    }
-}
 
-template<MaskMode mode>
-void merge16_t_stacked_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
-  const uint8_t *pMask, ptrdiff_t nMaskPitch, int nWidth, int nHeight, int nOrigHeight)
-{
-  internal_merge16_t_stacked_c<mode, false>(pDst, nDstPitch, pSrc1, nSrc1Pitch, pMask, nMaskPitch, nWidth, nHeight, nOrigHeight);
-}
-
-template<MaskMode mode>
-void merge16_t_stacked_allow_leftminus1_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
-  const uint8_t *pMask, ptrdiff_t nMaskPitch, int nWidth, int nHeight, int nOrigHeight)
-{
-  internal_merge16_t_stacked_c<mode, true>(pDst, nDstPitch, pSrc1, nSrc1Pitch, pMask, nMaskPitch, nWidth, nHeight, nOrigHeight);
-}
 
 /* Native */
 

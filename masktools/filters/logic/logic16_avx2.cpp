@@ -3,7 +3,7 @@
 #ifdef INTEL_INTRINSICS
 
 #include "../../common/simd_avx2.h"
-#include "../../common/16bit.h"
+#include "../../common/common.h"
 
 using namespace Filtering;
 

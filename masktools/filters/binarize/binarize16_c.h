@@ -4,7 +4,7 @@
 // binarize16: C ops, also for the right edge of the SIMD versions. Private header of the filter.
 
 #include "binarize.h"
-#include "../../common/16bit.h"
+#include "../../common/common.h"
 
 using namespace Filtering;
 
@@ -61,21 +61,6 @@ MAKE_TEMPLATES(14)
 MAKE_TEMPLATES(16)
 #undef MAKE_TEMPLATES
 
-template <Operator op>
-void binarize_stacked_t(uint8_t *pDst, ptrdiff_t nDstPitch, uint16_t nThreshold, int nWidth, int nHeight, int nOrigHeight)
-{
-    auto pLsb = pDst + nDstPitch * nOrigHeight / 2;
-
-    for ( int y = 0; y < nHeight / 2; y++ )
-    {
-        for ( int x = 0; x < nWidth; x++ ) {
-            uint16_t result = op(read_word_stacked(pDst, pLsb, x), nThreshold);
-            write_word_stacked(pDst, pLsb, x, result);
-        }
-        pDst += nDstPitch;
-        pLsb += nDstPitch;
-    }
-}
 
 template <Operator op>
 void binarize_native_t(uint8_t *pDst, ptrdiff_t nDstPitch, uint16_t nThreshold, int nWidth, int nHeight, int)

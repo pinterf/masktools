@@ -378,22 +378,7 @@ namespace {
     return _mm_and_ps(_mm_sub_ps(a, b), absmask);
   }
 
-  static MT_FORCEINLINE __m128i read_word_stacked_simd(const uint8_t* pMsb, const uint8_t* pLsb, int x) {
-    auto msb = _mm_loadl_epi64(reinterpret_cast<const __m128i*>(pMsb + x));
-    auto lsb = _mm_loadl_epi64(reinterpret_cast<const __m128i*>(pLsb + x));
-    return _mm_unpacklo_epi8(lsb, msb);
-  }
 
-  static MT_FORCEINLINE void write_word_stacked_simd(uint8_t* pMsb, uint8_t* pLsb, int x, const __m128i& value, const __m128i& ff, const __m128i& zero) {
-    auto result_lsb = _mm_and_si128(value, ff);
-    auto result_msb = _mm_srli_epi16(value, 8);
-
-    result_lsb = _mm_packus_epi16(result_lsb, zero);
-    result_msb = _mm_packus_epi16(result_msb, zero);
-
-    _mm_storel_epi64(reinterpret_cast<__m128i*>(pMsb + x), result_msb);
-    _mm_storel_epi64(reinterpret_cast<__m128i*>(pLsb + x), result_lsb);
-  }
 #pragma warning(default: 4556)
 } // namespace
 

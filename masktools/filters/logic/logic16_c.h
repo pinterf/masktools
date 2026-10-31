@@ -4,7 +4,7 @@
 // logic16: C ops, also for the right edge of the SIMD versions. Private header of the filter.
 
 #include "logic.h"
-#include "../../common/16bit.h"
+#include "../../common/common.h"
 
 using namespace Filtering;
 
@@ -35,27 +35,6 @@ static MT_FORCEINLINE uint16_t max_t(uint16_t a, uint16_t b, uint16_t th1, uint1
     return max<uint16_t>(opa(a, th1), opb(b, th2)); 
 }
 
-template <decltype(and16_c) op>
-static void logic16_stacked_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight, int nOrigHeight, uint16_t nThresholdDestination, uint16_t nThresholdSource)
-{
-    auto pDstLsb = pDst + nDstPitch * nOrigHeight / 2;
-    auto pSrcLsb = pSrc + nSrcPitch * nOrigHeight / 2;
-
-    for (int y = 0; y < nHeight / 2; y++) {
-        for (int x = 0; x < nWidth; x++) {
-            uint16_t dst = read_word_stacked(pDst, pDstLsb, x);
-            uint16_t src = read_word_stacked(pSrc, pSrcLsb, x);
-
-            uint16_t avg = op(dst, src, nThresholdDestination, nThresholdSource);
-
-            write_word_stacked(pDst, pDstLsb, x, avg);
-        }
-        pDst += nDstPitch;
-        pDstLsb += nDstPitch;
-        pSrc += nSrcPitch;
-        pSrcLsb += nSrcPitch;
-    }
-}
 
 template <decltype(and16_c) op>
 static void logic16_native_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight, int nOrigHeight, uint16_t nThresholdDestination, uint16_t nThresholdSource)

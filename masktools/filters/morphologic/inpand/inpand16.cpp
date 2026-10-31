@@ -74,29 +74,9 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Morpho
         uint16_t finalize() const { return static_cast<uint16_t>(nMin > 65535 ? nValue : (nValue - nMin > nMaxDeviation ? nValue - nMaxDeviation : nMin)); }
     };
 
-StackedProcessor *inpand_square_stacked_c = &MorphologicProcessor<uint8_t>::generic_16_c<
-    process_line_morpho_stacked_c<Border::Left, minimumThresholded<::minimum_square>>,
-    process_line_morpho_stacked_c<Border::None, minimumThresholded<::minimum_square>>,
-    process_line_morpho_stacked_c<Border::Right, minimumThresholded<::minimum_square>>
-    >;
 
-StackedProcessor *inpand_horizontal_stacked_c = &MorphologicProcessor<uint8_t>::generic_16_c<
-    process_line_morpho_stacked_c<Border::Left, minimumThresholded<::minimum_horizontal>>,
-    process_line_morpho_stacked_c<Border::None, minimumThresholded<::minimum_horizontal>>,
-    process_line_morpho_stacked_c<Border::Right, minimumThresholded<::minimum_horizontal>>
-    >;
 
-StackedProcessor *inpand_vertical_stacked_c = &MorphologicProcessor<uint8_t>::generic_16_c<
-    process_line_morpho_stacked_c<Border::Left, minimumThresholded<::minimum_vertical>>,
-    process_line_morpho_stacked_c<Border::None, minimumThresholded<::minimum_vertical>>,
-    process_line_morpho_stacked_c<Border::Right, minimumThresholded<::minimum_vertical>>
-    >;
 
-StackedProcessor *inpand_both_stacked_c = &MorphologicProcessor<uint8_t>::generic_16_c<
-    process_line_morpho_stacked_c<Border::Left, minimumThresholded<::minimum_both>>,
-    process_line_morpho_stacked_c<Border::None, minimumThresholded<::minimum_both>>,
-    process_line_morpho_stacked_c<Border::Right, minimumThresholded<::minimum_both>>
-    >;
 
 Processor16 *inpand_square_16_c = &MorphologicProcessor<uint16_t>::generic_16_c<
     process_line_morpho_16_c<Border::Left, minimumThresholded<::minimum_square>>,
@@ -122,7 +102,6 @@ Processor16 *inpand_both_16_c = &MorphologicProcessor<uint16_t>::generic_16_c<
     process_line_morpho_16_c<Border::Right, minimumThresholded<::minimum_both>>
     >;
 
-StackedProcessor *inpand_custom_stacked_c = &generic_custom_stacked_c<NewValue16>;
 Processor16 *inpand_custom_16_c = &generic_custom_16_c<NewValue16>;
 
 } } } } }

@@ -20,11 +20,6 @@ static inline uint16_t meanMaxThresholded(uint16_t a1, uint16_t a2, uint16_t a3,
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Morphologic { namespace Inflate {
 
-StackedProcessor *inflate_stacked_c = &MorphologicProcessor<uint8_t>::generic_16_c<
-    process_line_morpho_stacked_c<Border::Left, meanMaxThresholded>,
-    process_line_morpho_stacked_c<Border::None, meanMaxThresholded>,
-    process_line_morpho_stacked_c<Border::Right, meanMaxThresholded>
->;
 
 Processor16 *inflate_16_c = &MorphologicProcessor<uint16_t>::generic_16_c<
     process_line_morpho_16_c<Border::Left, meanMaxThresholded>,

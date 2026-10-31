@@ -10,7 +10,6 @@ extern Processor *inflate_sse2;
 extern Processor *inflate_asse2;
 
 /* 16 bit */
-extern StackedProcessor *inflate_stacked_c;
 extern Processor16 *inflate_16_c;
 
 extern Processor16 *inflate_sse4_16;

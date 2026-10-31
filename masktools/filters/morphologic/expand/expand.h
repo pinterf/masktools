@@ -25,11 +25,6 @@ extern Processor *expand_both_asse2;
 extern Processor *expand_custom_c;
 
 /* 16 bit */
-extern StackedProcessor *expand_square_stacked_c;
-extern StackedProcessor *expand_horizontal_stacked_c;
-extern StackedProcessor *expand_vertical_stacked_c;
-extern StackedProcessor *expand_both_stacked_c;
-extern StackedProcessor *expand_custom_stacked_c;
 
 extern Processor16 *expand_square_16_c;
 extern Processor16 *expand_horizontal_16_c;

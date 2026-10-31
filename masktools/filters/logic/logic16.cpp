@@ -3,10 +3,6 @@
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Logic {
 
-Processor16 *and16_stacked_c      = &logic16_stacked_t<and16_c>;
-Processor16 *or16_stacked_c       = &logic16_stacked_t<or16_c>;
-Processor16 *andn16_stacked_c     = &logic16_stacked_t<andn16_c>;
-Processor16 *xor16_stacked_c      = &logic16_stacked_t<xor16_c>;
 
 Processor16 *and16_native_c  = &logic16_native_t<and16_c>;
 Processor16 *or16_native_c   = &logic16_native_t<or16_c>;
@@ -39,9 +35,7 @@ Processor16 *xor16_native_c  = &logic16_native_t<xor16_c>;
     Processor16 *add14##mode##add14_##layout##_c = &logic16_##layout##_t<mode##_t<add16_c<14>, add16_c<14>>>; \
     Processor16 *add16##mode##add16_##layout##_c = &logic16_##layout##_t<mode##_t<add16_c<16>, add16_c<16>>>;
 
-DEFINE_SILLY_C_MODE(min, stacked)
 DEFINE_SILLY_C_MODE(min, native)
-DEFINE_SILLY_C_MODE(max, stacked)
 DEFINE_SILLY_C_MODE(max, native)
 #undef DEFINE_SILLY_C_MODE
 

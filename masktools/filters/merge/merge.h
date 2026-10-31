@@ -58,28 +58,9 @@ extern Processor *merge_luma_411_avx2;
 
 /* 16 bit */
 
-extern Processor16 *merge16_c_stacked;
-extern Processor16 *merge16_luma_420_c_stacked;
-extern Processor16 *merge16_luma_420_mpeg2_c_stacked;
-extern Processor16 *merge16_luma_422_c_stacked;
-extern Processor16 *merge16_luma_422_mpeg2_c_stacked;
 
-extern Processor16 *merge16_sse2_stacked;
-extern Processor16 *merge16_sse4_1_stacked;
 
-extern Processor16 *merge16_luma_420_sse2_stacked;
-extern Processor16 *merge16_luma_420_ssse3_stacked;
-extern Processor16 *merge16_luma_420_sse4_1_stacked;
-extern Processor16 *merge16_luma_420_mpeg2_sse2_stacked;
-extern Processor16 *merge16_luma_420_mpeg2_ssse3_stacked;
-extern Processor16 *merge16_luma_420_mpeg2_sse4_1_stacked;
 
-extern Processor16 *merge16_luma_422_sse2_stacked;
-extern Processor16 *merge16_luma_422_ssse3_stacked;
-extern Processor16 *merge16_luma_422_sse4_1_stacked;
-extern Processor16 *merge16_luma_422_mpeg2_sse2_stacked;
-extern Processor16 *merge16_luma_422_mpeg2_ssse3_stacked;
-extern Processor16 *merge16_luma_422_mpeg2_sse4_1_stacked;
 
 
 #define MAKE_16BIT_EXTERNS(bits_per_pixel) \

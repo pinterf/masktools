@@ -15,9 +15,6 @@ extern Processor *clamp_asse2;
 
 /* 16 bit */
 
-Processor16 clamp16_stacked_c;
-extern Processor16 *clamp16_stacked_sse2;
-extern Processor16 *clamp16_stacked_sse4_1;
 
 extern Processor16 *clamp16_native_10_c;
 extern Processor16 *clamp16_native_12_c;

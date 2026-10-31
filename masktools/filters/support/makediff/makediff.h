@@ -16,8 +16,6 @@ extern Processor *makediff_asse2;
 
 /* 16 bit */
 
-Processor16 makediff16_stacked_c;
-Processor16 makediff16_stacked_sse2;
 
 extern Processor16 *makediff16_native_10_c;
 extern Processor16 *makediff16_native_12_c;

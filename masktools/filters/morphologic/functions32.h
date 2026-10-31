@@ -3,7 +3,7 @@
 
 #include "../../../common/utils/utils.h"
 #include "../../common/common.h"
-#include "../../common/16bit.h"
+#include "../../common/common.h"
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Morphologic {
 // Anonymous namespace: this header is included from files built with different per file compiler flags.

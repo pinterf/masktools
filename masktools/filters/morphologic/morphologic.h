@@ -7,7 +7,6 @@
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Morphologic {
 
 typedef void (Processor)(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight);
-typedef void (StackedProcessor)(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, int nOrigHeight);
 typedef void (Processor16)(uint16_t *pDst, ptrdiff_t nDstPitch, const uint16_t *pSrc, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, int nOrigHeight);
 typedef void (Processor32)(float *pDst, ptrdiff_t nDstPitch, const float *pSrc, ptrdiff_t nSrcPitch, float nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight);
 
@@ -26,7 +25,6 @@ class MorphologicFilter : public MaskTools::Filter
 protected:
 
     ProcessorList<Processor> processors;
-    ProcessorList<StackedProcessor> stackedProcessors;
     ProcessorList<Processor16> processors16;
     ProcessorList<Processor32> processors32;
 

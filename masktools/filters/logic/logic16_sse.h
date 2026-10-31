@@ -4,7 +4,7 @@
 // logic16: x86 kernels, instantiated in logic16_sse2.cpp, logic16_sse41.cpp
 
 #include "../../common/simd.h"
-#include "../../common/16bit.h"
+#include "../../common/common.h"
 #include "logic16_c.h"
 
 namespace {
@@ -47,38 +47,6 @@ static MT_FORCEINLINE __m128i max_t_sse2(const __m128i &a, const __m128i &b, con
     return _mm_max_epu16(opa(a, th1), opb(b, th2)); // !!max_epu16: SSE4
 }
 
-template<decltype(and16_sse2) op, decltype(and16_c) op_c>
-    void logic16_stacked_t_sse2(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight, int nOrigHeight, uint16_t nThresholdDestination, uint16_t nThresholdSource)
-{
-    int wMod8 = (nWidth / 8) * 8;
-    auto pDst2 = pDst;
-    auto pSrc2 = pSrc;
-    auto pDstLsb = pDst + nDstPitch * nOrigHeight / 2;
-    auto pSrcLsb = pSrc + nSrcPitch * nOrigHeight / 2;
-
-    auto tDest = _mm_set1_epi16(nThresholdDestination);
-    auto tSource = _mm_set1_epi16(nThresholdSource);
-    auto ff = _mm_set1_epi16(0x00FF);
-    auto zero = _mm_setzero_si128();
-
-    for ( int j = 0; j < nHeight / 2; ++j ) {
-        for ( int i = 0; i < wMod8; i+=8 ) {
-            auto dst = read_word_stacked_simd(pDst, pDstLsb, i);
-            auto src = read_word_stacked_simd(pSrc, pSrcLsb, i);
-
-            auto result = op(dst, src, tDest, tSource);
-
-            write_word_stacked_simd(pDst, pDstLsb, i, result, ff, zero);
-        }
-        pDst += nDstPitch;
-        pDstLsb += nDstPitch;
-        pSrc += nSrcPitch;
-        pSrcLsb += nSrcPitch;
-    }
-    if (nWidth > wMod8) {
-        logic16_stacked_t<op_c>(pDst2 + wMod8, nDstPitch, pSrc2 + wMod8, nSrcPitch, nWidth - wMod8, nHeight, nOrigHeight, nThresholdDestination, nThresholdSource);
-    }
-}
 
 template<decltype(and16_sse2) op, decltype(and16_c) op_c>
 void logic16_native_t_sse2(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight, int nOrigHeight, uint16_t nThresholdDestination, uint16_t nThresholdSource)

@@ -3,7 +3,7 @@
 #ifdef INTEL_INTRINSICS
 
 #include "../../common/simd.h"
-#include "../../common/16bit.h"
+#include "../../common/common.h"
 #include "binarize16_c.h"
 
 namespace {
@@ -98,34 +98,6 @@ static inline __m128i binarize_255_t_sse2_op(__m128i x, __m128i t, __m128i halfr
 }
 
 #pragma warning(disable: 4309)
-template<int bits_per_pixel, decltype(binarize_upper_sse2_op<16>) op, decltype(binarize_upper<16>) op_c>
-void binarize_sse2_stacked_t(uint8_t *pDst, ptrdiff_t nDstPitch, uint16_t nThreshold, int nWidth, int nHeight, int nOrigHeight)
-{
-    int wMod8 = (nWidth / 8) * 8;
-    auto pDst2 = pDst;
-    auto pDstLsb = pDst + nDstPitch * nOrigHeight / 2;
-
-    auto t = _mm_set1_epi16(uint16_t(nThreshold));
-    auto halfrange = _mm_add_epi16(t, _mm_set1_epi16(0x8000)); // shift for signed int cmp
-    auto ff = _mm_set1_epi16(0x00FF);
-    auto zero = _mm_setzero_si128();
-    auto max = _mm_set1_epi16(uint16_t((1 << bits_per_pixel) - 1));
-
-    for ( int j = 0; j < nHeight / 2; ++j ) {
-        for ( int i = 0; i < wMod8; i+=8 ) {
-            auto src =  read_word_stacked_simd(pDst, pDstLsb, i);
-            auto result = op(src, t, halfrange, max);
-
-            write_word_stacked_simd(pDst, pDstLsb, i, result, ff, zero);
-        }
-        pDst += nDstPitch;
-                pDstLsb += nDstPitch;
-    }
-
-    if (nWidth > wMod8) {
-        binarize_stacked_t<op_c>(pDst2 + wMod8, nDstPitch, nThreshold, nWidth - wMod8, nHeight, nOrigHeight);
-    }
-}
 
 template<int bits_per_pixel, decltype(binarize_upper_sse2_op<16>) op, decltype(binarize_upper<16>) op_c> // 16 or whatever for decltype
 void binarize_sse2_native_t(uint8_t *pDst, ptrdiff_t nDstPitch, uint16_t nThreshold, int nWidth, int nHeight, int nOrigHeight)
@@ -170,7 +142,6 @@ Processor16 *binarize_t_255_##layout##_##bits_per_pixel##_sse2 = &binarize_sse2_
 Processor16 *binarize_255_x_##layout##_##bits_per_pixel##_sse2 = &binarize_sse2_##layout##_t< bits_per_pixel,binarize_255_x_sse2_op< bits_per_pixel >, binarize_255_x< bits_per_pixel >>; \
 Processor16 *binarize_255_t_##layout##_##bits_per_pixel##_sse2 = &binarize_sse2_##layout##_t< bits_per_pixel,binarize_255_t_sse2_op< bits_per_pixel >, binarize_255_t< bits_per_pixel >>;
 
-DEFINE_PROCESSORS(stacked,16)
 DEFINE_PROCESSORS(native,10)
 DEFINE_PROCESSORS(native,12)
 DEFINE_PROCESSORS(native,14)

@@ -10,7 +10,6 @@ extern Processor *deflate_sse2;
 extern Processor *deflate_asse2;
 
 /* 16 bit */
-extern StackedProcessor *deflate_stacked_c;
 extern Processor16 *deflate_16_c;
 
 extern Processor16 *deflate_sse4_16;

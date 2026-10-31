@@ -57,21 +57,6 @@ static void realtime16_t_c(uint8_t* dstp, ptrdiff_t dst_pitch, int width, int he
   }
 }
 
-static void lut16_t_stacked_c(uint8_t* pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight, const uint16_t* lut, int nOrigHeightForStacked)
-{
-  auto pLsb = pDst + nDstPitch * nOrigHeightForStacked / 2;
-
-  for (int y = 0; y < nHeight / 2; y++)
-  {
-    for (int x = 0; x < nWidth; x++) {
-      uint16_t value = lut[(pDst[x] << 8) + pLsb[x]];
-      pDst[x] = value >> 8;
-      pLsb[x] = value & 0xFF;
-    }
-    pDst += nDstPitch;
-    pLsb += nDstPitch;
-  }
-}
 
 template void realtime16_t_c<10>(uint8_t* dstp, ptrdiff_t dst_pitch, int width, int height, Parser::Context& ctx);
 template void realtime16_t_c<12>(uint8_t* dstp, ptrdiff_t dst_pitch, int width, int height, Parser::Context& ctx);
@@ -92,7 +77,6 @@ namespace Filtering {
           Processor16* lut12_c = &lut16_t_c<12>;
           Processor16* lut14_c = &lut16_t_c<14>;
           Processor16* lut16_c = &lut16_t_c<16>;
-          Processor16* lut16_stacked_c = &lut16_t_stacked_c;
 
 
           ProcessorCtx* realtime10_c = &realtime16_t_c<10>;

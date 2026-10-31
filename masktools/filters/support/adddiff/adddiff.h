@@ -15,8 +15,6 @@ extern Processor *adddiff_asse2;
 
 /* 16 bit */
 
-Processor16 adddiff16_stacked_c;
-Processor16 adddiff16_stacked_sse2;
 
 extern Processor16 *adddiff16_native_10_c;
 extern Processor16 *adddiff16_native_12_c;

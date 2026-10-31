@@ -74,29 +74,9 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Morpho
         uint16_t finalize() const { return static_cast<uint16_t>(nMax < 0 ? nValue : (nMax - nValue > nMaxDeviation ? nValue + nMaxDeviation : nMax)); }
     };
 
-StackedProcessor *expand_square_stacked_c = &MorphologicProcessor<uint8_t>::generic_16_c<
-    process_line_morpho_stacked_c<Border::Left, maximumThresholded<::maximum_square>>,
-    process_line_morpho_stacked_c<Border::None, maximumThresholded<::maximum_square>>,
-    process_line_morpho_stacked_c<Border::Right, maximumThresholded<::maximum_square>>
-    >;
 
-StackedProcessor *expand_horizontal_stacked_c = &MorphologicProcessor<uint8_t>::generic_16_c<
-    process_line_morpho_stacked_c<Border::Left, maximumThresholded<::maximum_horizontal>>,
-    process_line_morpho_stacked_c<Border::None, maximumThresholded<::maximum_horizontal>>,
-    process_line_morpho_stacked_c<Border::Right, maximumThresholded<::maximum_horizontal>>
-    >;
 
-StackedProcessor *expand_vertical_stacked_c = &MorphologicProcessor<uint8_t>::generic_16_c<
-    process_line_morpho_stacked_c<Border::Left, maximumThresholded<::maximum_vertical>>,
-    process_line_morpho_stacked_c<Border::None, maximumThresholded<::maximum_vertical>>,
-    process_line_morpho_stacked_c<Border::Right, maximumThresholded<::maximum_vertical>>
-    >;
 
-StackedProcessor *expand_both_stacked_c = &MorphologicProcessor<uint8_t>::generic_16_c<
-    process_line_morpho_stacked_c<Border::Left, maximumThresholded<::maximum_both>>,
-    process_line_morpho_stacked_c<Border::None, maximumThresholded<::maximum_both>>,
-    process_line_morpho_stacked_c<Border::Right, maximumThresholded<::maximum_both>>
-    >;
 
 Processor16 *expand_square_16_c = &MorphologicProcessor<uint16_t>::generic_16_c<
     process_line_morpho_16_c<Border::Left, maximumThresholded<::maximum_square>>,
@@ -122,7 +102,6 @@ Processor16 *expand_both_16_c = &MorphologicProcessor<uint16_t>::generic_16_c<
     process_line_morpho_16_c<Border::Right, maximumThresholded<::maximum_both>>
     >;
 
-StackedProcessor *expand_custom_stacked_c       = &generic_custom_stacked_c<NewValue16>;
 Processor16 *expand_custom_16_c   = &generic_custom_16_c<NewValue16>;
 
 } } } } }

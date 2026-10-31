@@ -305,7 +305,6 @@
     <ClInclude Include="..\common\parser\symbol.h" />
     <ClInclude Include="..\common\plane\plane.h" />
     <ClInclude Include="..\common\utils\utils.h" />
-    <ClInclude Include="common\16bit.h" />
     <ClInclude Include="common\base\filter.h" />
     <ClInclude Include="common\base\stacked.h" />
     <ClInclude Include="common\clip\inputconfig.h" />
@@ -356,7 +355,6 @@
     <ClInclude Include="filters\mask\motion\motionmask32_c.h" />
     <ClInclude Include="filters\mask\motion\motionmask_c.h" />
     <ClInclude Include="filters\merge\merge.h" />
-    <ClInclude Include="filters\merge\merge16.h" />
     <ClInclude Include="filters\merge\merge16_c.h" />
     <ClInclude Include="filters\merge\merge16_sse.h" />
     <ClInclude Include="filters\merge\merge_sse.h" />
@@ -372,7 +370,6 @@
     <ClInclude Include="filters\morphologic\inflate\inflate.h" />
     <ClInclude Include="filters\morphologic\inpand\inpand.h" />
     <ClInclude Include="filters\morphologic\morphologic.h" />
-    <ClInclude Include="filters\morphologic\morphologic16.h" />
     <ClInclude Include="filters\support\adddiff16\adddiff16_sse.h" />
     <ClInclude Include="filters\support\adddiff\adddiff.h" />
     <ClInclude Include="filters\support\average\average.h" />

@@ -1,5 +1,5 @@
 #include "../makediff/makediff.h"
-#include "../../../common/16bit.h"
+#include "../../../common/common.h"
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Support  { namespace MakeDiff {
 
@@ -11,26 +11,6 @@ static MT_FORCEINLINE uint16_t makediff16_core_c(uint16_t dst, uint16_t src) {
 }
 
 
-void makediff16_stacked_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight, int nOrigHeight)
-{
-    auto pDstLsb = pDst + nDstPitch * nOrigHeight / 2;
-    auto pSrcLsb = pSrc + nSrcPitch * nOrigHeight / 2;
-
-    for (int y = 0; y < nHeight / 2; y++) {
-        for (int x = 0; x < nWidth; x++) {
-            uint16_t dst = read_word_stacked(pDst, pDstLsb, x);
-            uint16_t src = read_word_stacked(pSrc, pSrcLsb, x);
-
-            uint16_t result = makediff16_core_c<16>(dst, src);
-
-            write_word_stacked(pDst, pDstLsb, x, result);
-        }
-        pDst += nDstPitch;
-        pDstLsb += nDstPitch;
-        pSrc += nSrcPitch;
-        pSrcLsb += nSrcPitch;
-    }
-}
 
 template<int bits_per_pixel>
 void makediff16_native_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight, int )

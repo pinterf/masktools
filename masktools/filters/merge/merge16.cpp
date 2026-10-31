@@ -4,12 +4,6 @@
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Merge {
 
-/* Stacked, always 16 bit */
-Processor16 *merge16_c_stacked = &merge16_t_stacked_c<MASK444>;
-Processor16 *merge16_luma_420_c_stacked = &merge16_t_stacked_c<MASK420>;
-Processor16 *merge16_luma_420_mpeg2_c_stacked = &merge16_t_stacked_c<MASK420_MPEG2>;
-Processor16 *merge16_luma_422_c_stacked = &merge16_t_stacked_c<MASK422>;
-Processor16 *merge16_luma_422_mpeg2_c_stacked = &merge16_t_stacked_c<MASK422_MPEG2>;
 
 #define MAKE_TEMPLATES(bits_per_pixel) \
  \

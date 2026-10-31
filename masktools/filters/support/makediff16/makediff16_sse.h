@@ -5,7 +5,7 @@
 
 #include "../makediff/makediff.h"
 #include "../../../common/simd.h"
-#include "../../../common/16bit.h"
+#include "../../../common/common.h"
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Support  { namespace MakeDiff {
 

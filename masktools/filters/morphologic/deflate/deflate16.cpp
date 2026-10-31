@@ -20,11 +20,6 @@ static MT_FORCEINLINE uint16_t meanMinThresholded(uint16_t a1, uint16_t a2, uint
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Morphologic { namespace Deflate {
 
-StackedProcessor *deflate_stacked_c = &MorphologicProcessor<uint8_t>::generic_16_c<
-    process_line_morpho_stacked_c<Border::Left, meanMinThresholded>,
-    process_line_morpho_stacked_c<Border::None, meanMinThresholded>,
-    process_line_morpho_stacked_c<Border::Right, meanMinThresholded>
->;
 
 Processor16 *deflate_16_c = &MorphologicProcessor<uint16_t>::generic_16_c<
     process_line_morpho_16_c<Border::Left, meanMinThresholded>,

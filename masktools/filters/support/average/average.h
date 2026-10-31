@@ -15,8 +15,6 @@ extern Processor *average_sse2;
 extern Processor *average_asse2;
 
 /* 16 bits */
-Processor16 average16_stacked_c;
-Processor16 average16_stacked_sse2;
 
 Processor16 average16_native_c;
 Processor16 average16_native_sse2;

@@ -18,7 +18,6 @@ Processor16 *binarize_255_x_##layout##_##bits_per_pixel##_c = &binarize_##layout
 Processor16 *binarize_255_t_##layout##_##bits_per_pixel##_c = &binarize_##layout##_t<binarize_255_t< bits_per_pixel >>; \
  \
 
-DEFINE_PROCESSORS(stacked,16)
 DEFINE_PROCESSORS(native,10)
 DEFINE_PROCESSORS(native,12)
 DEFINE_PROCESSORS(native,14)

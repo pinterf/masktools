@@ -3,7 +3,7 @@
 
 #include "../../../common/utils/utils.h"
 #include "../../common/common.h"
-#include "../../common/16bit.h"
+#include "../../common/common.h"
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Morphologic {
 // Anonymous namespace: this header is included from files built with different per file compiler flags.
@@ -19,31 +19,6 @@ enum Directions {
 };
 
 //height should be already divised by 2
-template<Border borderMode, Operator16 op>
-void process_line_morpho_stacked_c(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, int maxDeviation, int width, int height, ptrdiff_t srcPitch, ptrdiff_t dstPitch, int nOrigHeight) {
-    UNUSED(height);
-    uint8_t *pDstLsb = pDst + nOrigHeight * dstPitch / 2;
-    const uint8_t *pSrcpLsb = pSrcp + nOrigHeight * srcPitch / 2;
-    const uint8_t *pSrcLsb = pSrc + nOrigHeight * srcPitch / 2;
-    const uint8_t *pSrcnLsb = pSrcn + nOrigHeight * srcPitch / 2;
-    const int leftOffset = borderMode == Border::Left ? 0 : 1;
-    const int rightOffset = borderMode == Border::Right ? 0 : 1;
-
-    for (int x = 0; x < width; ++x) {
-        uint16_t output = op(read_word_stacked(pSrcp, pSrcpLsb, x-leftOffset), 
-            read_word_stacked(pSrcp, pSrcpLsb, x), 
-            read_word_stacked(pSrcp, pSrcpLsb, x+rightOffset), 
-            read_word_stacked(pSrc, pSrcLsb, x-leftOffset), 
-            read_word_stacked(pSrc, pSrcLsb, x), 
-            read_word_stacked(pSrc, pSrcLsb, x+rightOffset), 
-            read_word_stacked(pSrcn, pSrcnLsb, x-leftOffset), 
-            read_word_stacked(pSrcn, pSrcnLsb, x), 
-            read_word_stacked(pSrcn, pSrcnLsb, x+rightOffset), 
-            maxDeviation);
-        
-        write_word_stacked(pDst, pDstLsb, x, output);
-    }
-}
 
 template<Border borderMode, Operator16 op>
 void process_line_morpho_16_c(uint16_t *pDst, const uint16_t *pSrcp, const uint16_t *pSrc, const uint16_t *pSrcn, int maxDeviation, int width, int height, ptrdiff_t srcPitch, ptrdiff_t dstPitch, int nOrigHeight) {
@@ -140,32 +115,6 @@ static MT_FORCEINLINE uint16_t inpand_c_horizontal_core_16(uint16_t left, uint16
 }
 //-----------------------------------------------------------------
 
-template<class T>
-void generic_custom_stacked_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, int nOrigHeight)
-{
-    uint8_t *pDstLsb = pDst + nOrigHeight * nDstPitch / 2;
-    const uint8_t *pSrcLsb = pSrc + nOrigHeight * nDstPitch / 2;
-
-    for ( int j = 0; j < nHeight; j++ )
-    {
-        for ( int i = 0; i < nWidth; i++ )
-        {
-            T new_value(read_word_stacked(pSrc, pSrcLsb, i), nMaxDeviation);
-            for ( int k = 0; k < nCoordinates; k+=2 )
-            {
-                if ( pCoordinates[k] + i >= 0 && pCoordinates[k] + i < nWidth &&
-                    pCoordinates[k+1] + j >= 0 && pCoordinates[k+1] + j < nHeight ) {
-                  new_value.add(read_word_stacked(pSrc, pSrcLsb, i + pCoordinates[k] + pCoordinates[k+1] * static_cast<int>(nSrcPitch)));
-                }
-            }
-            write_word_stacked(pDst, pDstLsb, i, new_value.finalize());
-        }
-        pSrc += nSrcPitch;
-        pSrcLsb += nSrcPitch;
-        pDst += nDstPitch;
-        pDstLsb += nDstPitch;
-    }
-}
 
 template<class T>
 void generic_custom_16_c(uint16_t *pDst, ptrdiff_t nDstPitch, const uint16_t *pSrc, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, int nOrigHeight)

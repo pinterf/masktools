@@ -26,7 +26,6 @@ extern Processor16* lut10_c;
 extern Processor16* lut12_c;
 extern Processor16* lut14_c;
 extern Processor16* lut16_c;
-extern Processor16* lut16_stacked_c;
 
 ProcessorCtx realtime8_c;
 extern ProcessorCtx *realtime10_c;
