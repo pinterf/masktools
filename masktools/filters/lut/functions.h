@@ -106,10 +106,10 @@ static inline int ModeToInt(const String &mode)
 
 class Nonizer {
 
-   Double *pdCoefficients;
+   double *pdCoefficients;
    int nCoefficients;
-   Double dTotalCoefficients;
-   Double dSum;
+   double dTotalCoefficients;
+   double dSum;
    int nPosition;
 
 public:
@@ -117,7 +117,7 @@ public:
    {
       auto coefficients = Parser::getDefaultParser().parse(mode, Parser::SYMBOL_SEPARATORS_COORD).getExpression();
       nCoefficients = coefficients.size();
-      pdCoefficients = new Double[nCoefficients];
+      pdCoefficients = new double[nCoefficients];
       int i = 0;
 
       dTotalCoefficients = 0;
@@ -143,14 +143,14 @@ public:
       if (nPosition < nCoefficients)
          dSum += pdCoefficients[nPosition++] * nValue;
    }
-   Byte finalize() const
+   uint8_t finalize() const
    {
-      return clip<Byte, Int64>(convert<Int64, Double>(dSum / dTotalCoefficients));
+      return clip<uint8_t, int64_t>(convert<int64_t, double>(dSum / dTotalCoefficients));
    }
 
    void reset_w() { reset(); }
-   void add_w(int nValue, float nWeight) { add(clip<Byte, Float>(nValue*nWeight)); }
-   Byte finalize_w() const { return finalize(); }
+   void add_w(int nValue, float nWeight) { add(clip<uint8_t, float>(nValue*nWeight)); }
+   uint8_t finalize_w() const { return finalize(); }
 
 };
 
@@ -163,11 +163,11 @@ public:
    Minimizer(const String &mode) { UNUSED(mode); }
    void reset() { nMin = 255; }
    void add(int nValue) { nMin = min<int>( nMin, nValue ); }
-   Byte finalize() const { return static_cast<Byte>(nMin); }
+   uint8_t finalize() const { return static_cast<uint8_t>(nMin); }
 
    void reset_w() { reset(); }
-   void add_w(int nValue, float nWeight) { add(clip<Byte, Float>(nValue*nWeight)); }
-   Byte finalize_w() const { return finalize(); }
+   void add_w(int nValue, float nWeight) { add(clip<uint8_t, float>(nValue*nWeight)); }
+   uint8_t finalize_w() const { return finalize(); }
 
 };
 
@@ -182,7 +182,7 @@ public:
    void reset() { memset( elements, 0, sizeof( elements ) ); nSize = 0; }
    void reset(int nValue) { reset(); add( nValue ); }
    void add(int nValue) { elements[nValue]++; nSize++; }
-   Byte finalize() const
+   uint8_t finalize() const
    {
       int nCount = 0;
       int nIdx = -1;
@@ -191,23 +191,23 @@ public:
          nCount += elements[++nIdx];
 
       if ( nSize & 1 ) /* nSize odd -> median belong to the middle class */
-         return static_cast<Byte>(nIdx);
+         return static_cast<uint8_t>(nIdx);
       else
       {
          if ( nCount >= nLowHalf + 1 ) /* nSize even, but middle class owns both median elements */
-            return static_cast<Byte>(nIdx);
+            return static_cast<uint8_t>(nIdx);
          else /* nSize even, middle class owns only one element, it's the lowest, so we search for the next one */
          {
             int nSndIdx = nIdx;
             while ( !elements[++nSndIdx] ) {}
-            return static_cast<Byte>((nIdx + nSndIdx + 1) >> 1); /* and we return the average */
+            return static_cast<uint8_t>((nIdx + nSndIdx + 1) >> 1); /* and we return the average */
          }
       }
    }
 
    void reset_w() { reset(); }
-   void add_w(int nValue, float nWeight) { add(clip<Byte, Float>(nValue*nWeight)); }
-   Byte finalize_w() const { return finalize(); }
+   void add_w(int nValue, float nWeight) { add(clip<uint8_t, float>(nValue*nWeight)); }
+   uint8_t finalize_w() const { return finalize(); }
 
 };
 
@@ -223,7 +223,7 @@ public:
    void reset() { nSize = 0; memset( elements, 0, sizeof( elements ) ); memset( elements2, 0, sizeof( elements2 ) ); }
    void add(int nValue) { elements[nValue]++; elements2[nValue>>n]++; nSize++; }
 
-   Byte finalize() const
+   uint8_t finalize() const
    {
       int nCount = 0;
       int nIdx = -1;
@@ -240,23 +240,23 @@ public:
          nCount += elements[++nIdx]; /* high resolution search */
 
       if ( nSize & 1 ) /* nSize odd -> median belong to the middle class */
-         return static_cast<Byte>(nIdx);
+         return static_cast<uint8_t>(nIdx);
       else
       {
          if ( nCount >= nLowHalf + 1 ) /* nSize even, but middle class owns both median elements */
-            return static_cast<Byte>(nIdx);
+            return static_cast<uint8_t>(nIdx);
          else /* nSize even, middle class owns only one element, it's the lowest, so we search for the next one */
          {
             int nSndIdx = nIdx;
             while ( !elements[++nSndIdx] ) {}
-            return static_cast<Byte>((nIdx + nSndIdx + 1) >> 1); /* and we return the average */
+            return static_cast<uint8_t>((nIdx + nSndIdx + 1) >> 1); /* and we return the average */
          }
       }
    }
 
    void reset_w() { reset(); }
-   void add_w(int nValue, float nWeight) { add(clip<Byte, Float>(nValue*nWeight)); }
-   Byte finalize_w() const { return finalize(); }
+   void add_w(int nValue, float nWeight) { add(clip<uint8_t, float>(nValue*nWeight)); }
+   uint8_t finalize_w() const { return finalize(); }
 
 };
 
@@ -269,11 +269,11 @@ public:
    Maximizer(const String &mode) { UNUSED(mode); }
    void reset() { nMax = 0; }
    void add(int nValue) { nMax = max<int>( nMax, nValue ); }
-   Byte finalize() const { return static_cast<Byte>(nMax); }
+   uint8_t finalize() const { return static_cast<uint8_t>(nMax); }
 
    void reset_w() { reset(); }
-   void add_w(int nValue, float nWeight) { add(clip<Byte, Float>(nValue*nWeight)); }
-   Byte finalize_w() const { return finalize(); }
+   void add_w(int nValue, float nWeight) { add(clip<uint8_t, float>(nValue*nWeight)); }
+   uint8_t finalize_w() const { return finalize(); }
 
 };
 
@@ -286,11 +286,11 @@ public:
    Rangizer(const String &mode) { UNUSED(mode); }
    void reset() { nMin = 255; nMax = 0; }
    void add(int nValue) { nMin = min<int>( nMin, nValue ); nMax = max<int>( nMax, nValue ); }
-   Byte finalize() const { return static_cast<Byte>(nMax - nMin); }
+   uint8_t finalize() const { return static_cast<uint8_t>(nMax - nMin); }
 
    void reset_w() { reset(); }
-   void add_w(int nValue, float nWeight) { add(clip<Byte,Float>(nValue*nWeight)); }
-   Byte finalize_w() const { return finalize(); }
+   void add_w(int nValue, float nWeight) { add(clip<uint8_t,float>(nValue*nWeight)); }
+   uint8_t finalize_w() const { return finalize(); }
 
 };
 
@@ -313,18 +313,18 @@ public:
    // 3840 x 2180 = 8371200, just below limit
    // 4096 x 2180 = 8929280 pixels, over limit!
    // unsigned int32 is OK, but is not enough for 8K videos
-   Byte finalize() const { return static_cast<Byte>(rounded_division<T>( nSum, nCount )); }
+   uint8_t finalize() const { return static_cast<uint8_t>(rounded_division<T>( nSum, nCount )); }
 
    void reset_w() { fSum = 0.0; fWeightSum = 0.0f; }
    void add_w(int nValue, float nWeight) { fSum += nValue*nWeight; fWeightSum += nWeight; }
-   Byte finalize_w() const { return clip<Byte, Float>((Float)(fSum / fWeightSum)); }
+   uint8_t finalize_w() const { return clip<uint8_t, float>((float)(fSum / fWeightSum)); }
 };
 
 template<typename T>
 class Deviater
 {
    T nSum, nCount;
-   Int64 nSum2;
+   int64_t nSum2;
    // for weight mode:
    double fSum, fSum2;
    float fWeightSum;
@@ -335,12 +335,12 @@ public:
    void reset() { nSum = 0; nSum2 = 0; nCount = 0; }
    void reset(int nValue) { nSum = nValue; nSum2 = nValue * nValue; nCount = 1; }
    void add(int nValue) { nSum += nValue; nSum2 += nValue * nValue; nCount++; }
-   Byte finalize() const { return clip<Byte, Double>(sqrt((Double(nSum2) * nCount - Double(nSum) * Double(nSum)) / (Double(nCount) * nCount))); }
+   uint8_t finalize() const { return clip<uint8_t, double>(sqrt((double(nSum2) * nCount - double(nSum) * double(nSum)) / (double(nCount) * nCount))); }
 
    void reset_w() { fSum = 0.0; fSum2 = 0.0; fWeightSum = 0.0f; }
    void reset_w(int nValue, float nWeight) { fSum = nValue*nWeight; fSum2 = fSum * fSum; fWeightSum = nWeight; }
    void add_w(int nValue, float nWeight) { fSum += nValue*nWeight; fSum += nValue*nValue*nWeight*nWeight; fWeightSum += nWeight; }
-   Byte finalize_w() const { return clip<Byte, Double>(sqrt((Double(fSum2) * fWeightSum - Double(fSum) * Double(fSum)) / (Double(fWeightSum) * fWeightSum))); }
+   uint8_t finalize_w() const { return clip<uint8_t, double>(sqrt((double(fSum2) * fWeightSum - double(fSum) * double(fSum)) / (double(fWeightSum) * fWeightSum))); }
 
 };
 
@@ -350,10 +350,10 @@ public:
 template<int bits_per_pixel>
 class Nonizer16 {
 
-  Double *pdCoefficients;
+  double *pdCoefficients;
   int nCoefficients;
-  Double dTotalCoefficients;
-  Double dSum;
+  double dTotalCoefficients;
+  double dSum;
   int nPosition;
 
 public:
@@ -361,7 +361,7 @@ public:
   {
     auto coefficients = Parser::getDefaultParser().parse(mode, Parser::SYMBOL_SEPARATORS_COORD).getExpression();
     nCoefficients = coefficients.size();
-    pdCoefficients = new Double[nCoefficients];
+    pdCoefficients = new double[nCoefficients];
     int i = 0;
 
     dTotalCoefficients = 0;
@@ -387,14 +387,14 @@ public:
     if (nPosition < nCoefficients)
       dSum += pdCoefficients[nPosition++] * nValue;
   }
-  Word finalize() const
+  uint16_t finalize() const
   {
-    return clip<Word, Int64>(convert<Int64, Double>(dSum / dTotalCoefficients));
+    return clip<uint16_t, int64_t>(convert<int64_t, double>(dSum / dTotalCoefficients));
   }
 
   void reset_w() { reset(); }
-  void add_w(int nValue, float nWeight) { add(clip<Word, Float>(nValue*nWeight)); }
-  Word finalize_w() const { return finalize(); }
+  void add_w(int nValue, float nWeight) { add(clip<uint16_t, float>(nValue*nWeight)); }
+  uint16_t finalize_w() const { return finalize(); }
 
 };
 
@@ -408,11 +408,11 @@ public:
   Minimizer16(const String &mode) { UNUSED(mode); }
   void reset() { nMin = (1 << bits_per_pixel) - 1; }
   void add(int nValue) { nMin = min<int>(nMin, nValue); }
-  Word finalize() const { return static_cast<Word>(nMin); }
+  uint16_t finalize() const { return static_cast<uint16_t>(nMin); }
 
   void reset_w() { reset(); }
-  void add_w(int nValue, float nWeight) { add(clip<Word, Float>(nValue*nWeight)); }
-  Word finalize_w() const { return finalize(); }
+  void add_w(int nValue, float nWeight) { add(clip<uint16_t, float>(nValue*nWeight)); }
+  uint16_t finalize_w() const { return finalize(); }
 
 };
 
@@ -428,7 +428,7 @@ public:
   void reset() { memset(elements, 0, sizeof(elements)); nSize = 0; }
   void reset(int nValue) { reset(); add(nValue); }
   void add(int nValue) { elements[nValue]++; nSize++; }
-  Word finalize() const
+  uint16_t finalize() const
   {
     int nCount = 0;
     int nIdx = -1;
@@ -437,23 +437,23 @@ public:
       nCount += elements[++nIdx];
 
     if (nSize & 1) /* nSize odd -> median belong to the middle class */
-      return static_cast<Word>(nIdx);
+      return static_cast<uint16_t>(nIdx);
     else
     {
       if (nCount >= nLowHalf + 1) /* nSize even, but middle class owns both median elements */
-        return static_cast<Word>(nIdx);
+        return static_cast<uint16_t>(nIdx);
       else /* nSize even, middle class owns only one element, it's the lowest, so we search for the next one */
       {
         int nSndIdx = nIdx;
         while (!elements[++nSndIdx]) {}
-        return static_cast<Word>((nIdx + nSndIdx + 1) >> 1); /* and we return the average */
+        return static_cast<uint16_t>((nIdx + nSndIdx + 1) >> 1); /* and we return the average */
       }
     }
   }
 
   void reset_w() { reset(); }
-  void add_w(int nValue, float nWeight) { add(clip<Word, Float>(nValue*nWeight)); }
-  Word finalize_w() const { return finalize(); }
+  void add_w(int nValue, float nWeight) { add(clip<uint16_t, float>(nValue*nWeight)); }
+  uint16_t finalize_w() const { return finalize(); }
 
 };
 
@@ -470,7 +470,7 @@ public:
   void reset() { nSize = 0; memset(elements, 0, sizeof(elements)); memset(elements2, 0, sizeof(elements2)); }
   void add(int nValue) { elements[nValue]++; elements2[nValue >> n]++; nSize++; }
 
-  Word finalize() const
+  uint16_t finalize() const
   {
     int nCount = 0;
     int nIdx = -1;
@@ -487,23 +487,23 @@ public:
       nCount += elements[++nIdx]; /* high resolution search */
 
     if (nSize & 1) /* nSize odd -> median belong to the middle class */
-      return static_cast<Word>(nIdx);
+      return static_cast<uint16_t>(nIdx);
     else
     {
       if (nCount >= nLowHalf + 1) /* nSize even, but middle class owns both median elements */
-        return static_cast<Word>(nIdx);
+        return static_cast<uint16_t>(nIdx);
       else /* nSize even, middle class owns only one element, it's the lowest, so we search for the next one */
       {
         int nSndIdx = nIdx;
         while (!elements[++nSndIdx]) {}
-        return static_cast<Word>((nIdx + nSndIdx + 1) >> 1); /* and we return the average */
+        return static_cast<uint16_t>((nIdx + nSndIdx + 1) >> 1); /* and we return the average */
       }
     }
   }
 
   void reset_w() { reset(); }
-  void add_w(int nValue, float nWeight) { add(clip<Word, Float>(nValue*nWeight)); }
-  Word finalize_w() const { return finalize(); }
+  void add_w(int nValue, float nWeight) { add(clip<uint16_t, float>(nValue*nWeight)); }
+  uint16_t finalize_w() const { return finalize(); }
 
 };
 
@@ -517,11 +517,11 @@ public:
   Maximizer16(const String &mode) { UNUSED(mode); }
   void reset() { nMax = 0; }
   void add(int nValue) { nMax = max<int>(nMax, nValue); }
-  Word finalize() const { return static_cast<Word>(nMax); }
+  uint16_t finalize() const { return static_cast<uint16_t>(nMax); }
 
   void reset_w() { reset(); }
-  void add_w(int nValue, float nWeight) { add(clip<Word, Float>(nValue*nWeight)); }
-  Word finalize_w() const { return finalize(); }
+  void add_w(int nValue, float nWeight) { add(clip<uint16_t, float>(nValue*nWeight)); }
+  uint16_t finalize_w() const { return finalize(); }
 
 };
 
@@ -535,11 +535,11 @@ public:
   Rangizer16(const String &mode) { UNUSED(mode); }
   void reset() { nMin = (1 << bits_per_pixel) - 1; nMax = 0; }
   void add(int nValue) { nMin = min<int>(nMin, nValue); nMax = max<int>(nMax, nValue); }
-  Word finalize() const { return static_cast<Word>(nMax - nMin); }
+  uint16_t finalize() const { return static_cast<uint16_t>(nMax - nMin); }
 
   void reset_w() { reset(); }
-  void add_w(int nValue, float nWeight) { add(clip<Word, Float>(nValue*nWeight)); }
-  Word finalize_w() const { return finalize(); }
+  void add_w(int nValue, float nWeight) { add(clip<uint16_t, float>(nValue*nWeight)); }
+  uint16_t finalize_w() const { return finalize(); }
 
 };
 
@@ -559,19 +559,19 @@ public:
   Averager16(const String &mode) { UNUSED(mode); }
   void reset() { nSum = 0; nCount = 0; }
   void add(int nValue) { nSum += nValue; nCount++; }
-  Word finalize() const { return static_cast<Word>(rounded_division<int64_t>(nSum, nCount)); }
+  uint16_t finalize() const { return static_cast<uint16_t>(rounded_division<int64_t>(nSum, nCount)); }
 
   void reset_w() { fSum = 0.0; fWeightSum = 0.0f; }
   void add_w(int nValue, float nWeight) { fSum += nValue*nWeight; fWeightSum += nWeight; }
-  Word finalize_w() const { return clip<Word, Int64>(convert<Int64, Double>(fSum / fWeightSum)); }
+  uint16_t finalize_w() const { return clip<uint16_t, int64_t>(convert<int64_t, double>(fSum / fWeightSum)); }
 
 };
 
 class Deviater16
 {
-  Int64 nSum;
+  int64_t nSum;
   int nCount;
-  Int64 nSum2;
+  int64_t nSum2;
   // for weight mode:
   double fSum, fSum2;
   float fWeightSum;
@@ -582,12 +582,12 @@ public:
   void reset() { nSum = 0; nSum2 = 0; nCount = 0; }
   void reset(int nValue) { nSum = nValue; nSum2 = nValue * nValue; nCount = 1; }
   void add(int nValue) { nSum += nValue; nSum2 += nValue * nValue; nCount++; }
-  Word finalize() const { return convert<Word, Double>(sqrt((Double(nSum2) * nCount - Double(nSum) * Double(nSum)) / (Double(nCount) * nCount))); }
+  uint16_t finalize() const { return convert<uint16_t, double>(sqrt((double(nSum2) * nCount - double(nSum) * double(nSum)) / (double(nCount) * nCount))); }
   
   void reset_w() { fSum = 0.0; fSum2 = 0.0; fWeightSum = 0.0f; }
   void reset_w(int nValue, float nWeight) { fSum = nValue*nWeight; fSum2 = fSum * fSum; fWeightSum = nWeight; }
   void add_w(int nValue, float nWeight) { fSum += nValue*nWeight; fSum += nValue*nValue*nWeight*nWeight; fWeightSum += nWeight; }
-  Word finalize_w() const { return clip<Word, Double>(sqrt((Double(fSum2) * fWeightSum - Double(fSum) * Double(fSum)) / (Double(fWeightSum) * fWeightSum))); }
+  uint16_t finalize_w() const { return clip<uint16_t, double>(sqrt((double(fSum2) * fWeightSum - double(fSum) * double(fSum)) / (double(fWeightSum) * fWeightSum))); }
 
 };
 
@@ -596,10 +596,10 @@ public:
 /**********/
 class Nonizer32 {
 
-  Double *pdCoefficients;
+  double *pdCoefficients;
   int nCoefficients;
-  Double dTotalCoefficients;
-  Double dSum;
+  double dTotalCoefficients;
+  double dSum;
   int nPosition;
 
 public:
@@ -607,7 +607,7 @@ public:
   {
     auto coefficients = Parser::getDefaultParser().parse(mode, Parser::SYMBOL_SEPARATORS_COORD).getExpression();
     nCoefficients = coefficients.size();
-    pdCoefficients = new Double[nCoefficients];
+    pdCoefficients = new double[nCoefficients];
     int i = 0;
 
     dTotalCoefficients = 0;
@@ -622,42 +622,42 @@ public:
   {
     delete[] pdCoefficients;
   }
-  void reset(Float nValue = 1.0)
+  void reset(float nValue = 1.0)
   {
     UNUSED(nValue);
     dSum = 0;
     nPosition = 0;
   }
-  void add(Float nValue)
+  void add(float nValue)
   {
     if (nPosition < nCoefficients)
       dSum += pdCoefficients[nPosition++] * nValue;
   }
-  Float finalize() const
+  float finalize() const
   {
-    return (Float)(dSum / dTotalCoefficients);
+    return (float)(dSum / dTotalCoefficients);
   }
 
   void reset_w() { reset(); }
-  void add_w(Float nValue, float nWeight) { add(nValue*nWeight); }
-  Float finalize_w() const { return finalize(); }
+  void add_w(float nValue, float nWeight) { add(nValue*nWeight); }
+  float finalize_w() const { return finalize(); }
 
 };
 
 class Minimizer32 {
 
-  Float nMin;
+  float nMin;
 
 public:
 
   Minimizer32(const String &mode) { UNUSED(mode); }
   void reset() { nMin = 1.0f; }
-  void add(Float nValue) { nMin = min<Float>(nMin, nValue); }
-  Float finalize() const { return nMin; }
+  void add(float nValue) { nMin = min<float>(nMin, nValue); }
+  float finalize() const { return nMin; }
 
   void reset_w() { reset(); }
-  void add_w(Float nValue, float nWeight) { add(nValue*nWeight); }
-  Float finalize_w() const { return finalize(); }
+  void add_w(float nValue, float nWeight) { add(nValue*nWeight); }
+  float finalize_w() const { return finalize(); }
 
 };
 
@@ -671,9 +671,9 @@ public:
 
   Medianizer32(const String &mode) { UNUSED(mode); }
   void reset() { memset(elements, 0, sizeof(elements)); nSize = 0; }
-  void reset(Float nValue) { reset(); add(nValue); }
-  void add(Float nValue) { elements[nValue <= 0.0f ? 0 : (nValue>=1.0f ? 65535 : Word(nValue * 65535))]++; nSize++; }
-  Float finalize() const
+  void reset(float nValue) { reset(); add(nValue); }
+  void add(float nValue) { elements[nValue <= 0.0f ? 0 : (nValue>=1.0f ? 65535 : uint16_t(nValue * 65535))]++; nSize++; }
+  float finalize() const
   {
     int nCount = 0;
     int nIdx = -1;
@@ -698,7 +698,7 @@ public:
 
   void reset_w() { reset(); }
   void add_w(float nValue, float nWeight) { add(nValue*nWeight); }
-  Float finalize_w() const { return finalize(); }
+  float finalize_w() const { return finalize(); }
 
 };
 
@@ -713,9 +713,9 @@ class MedianizerBetter32
 public:
   MedianizerBetter32(const String &mode) { UNUSED(mode); }
   void reset() { nSize = 0; memset(elements, 0, sizeof(elements)); memset(elements2, 0, sizeof(elements2)); }
-  void add(Float nValue) { int nValueNew = nValue < 0.0f ? 0 : (nValue >= 1.0f ? 65535 : Word(nValue * 65535));  elements[nValueNew]++; elements2[nValueNew >> n]++; nSize++; }
+  void add(float nValue) { int nValueNew = nValue < 0.0f ? 0 : (nValue >= 1.0f ? 65535 : uint16_t(nValue * 65535));  elements[nValueNew]++; elements2[nValueNew >> n]++; nSize++; }
 
-  Float finalize() const
+  float finalize() const
   {
     int nCount = 0;
     int nIdx = -1;
@@ -748,40 +748,40 @@ public:
 
   void reset_w() { reset(); }
   void add_w(float nValue, float nWeight) { add(nValue*nWeight); }
-  Float finalize_w() const { return finalize(); }
+  float finalize_w() const { return finalize(); }
 };
 
 class Maximizer32 {
 
-  Float nMax;
+  float nMax;
 
 public:
 
   Maximizer32(const String &mode) { UNUSED(mode); }
   void reset() { nMax = 0; }
-  void add(Float nValue) { nMax = max<Float>(nMax, nValue); }
-  Float finalize() const { return nMax; }
+  void add(float nValue) { nMax = max<float>(nMax, nValue); }
+  float finalize() const { return nMax; }
 
   void reset_w() { reset(); }
-  void add_w(Float nValue, float nWeight) { add(nValue*nWeight); }
-  Float finalize_w() const { return finalize(); }
+  void add_w(float nValue, float nWeight) { add(nValue*nWeight); }
+  float finalize_w() const { return finalize(); }
 
 };
 
 class Rangizer32 {
 
-  Float nMin, nMax;
+  float nMin, nMax;
 
 public:
 
   Rangizer32(const String &mode) { UNUSED(mode); }
   void reset() { nMin = 1.0f; nMax = 0.0f; }
-  void add(Float nValue) { nMin = min<Float>(nMin, nValue); nMax = max<Float>(nMax, nValue); }
-  Float finalize() const { return nMax - nMin; }
+  void add(float nValue) { nMin = min<float>(nMin, nValue); nMax = max<float>(nMax, nValue); }
+  float finalize() const { return nMax - nMin; }
 
   void reset_w() { reset(); }
-  void add_w(Float nValue, float nWeight) { add(nValue*nWeight); }
-  Float finalize_w() const { return finalize(); }
+  void add_w(float nValue, float nWeight) { add(nValue*nWeight); }
+  float finalize_w() const { return finalize(); }
 
 };
 
@@ -800,20 +800,20 @@ public:
 
   Averager32(const String &mode) { UNUSED(mode); }
   void reset() { nSum = 0.0f; nCount = 0; }
-  void add(Float nValue) { nSum = nSum + nValue; nCount++; }
-  Float finalize() const { return (Float)(nSum / nCount); }
+  void add(float nValue) { nSum = nSum + nValue; nCount++; }
+  float finalize() const { return (float)(nSum / nCount); }
 
   void reset_w() { fSum = 0.0; fWeightSum = 0.0f; }
   void add_w(float nValue, float nWeight) { fSum += nValue*nWeight; fWeightSum += nWeight; }
-  Float finalize_w() const { return Float(fSum / fWeightSum); }
+  float finalize_w() const { return float(fSum / fWeightSum); }
 
 };
 
 class Deviater32
 {
-  Float nSum;
+  float nSum;
   int nCount;
-  Float nSum2;
+  float nSum2;
   // for weight mode:
   double fSum, fSum2;
   float fWeightSum;
@@ -822,14 +822,14 @@ public:
 
   Deviater32(const String &mode) { UNUSED(mode); }
   void reset() { nSum = 0; nSum2 = 0; nCount = 0; }
-  void reset(Float nValue) { nSum = nValue; nSum2 = nValue * nValue; nCount = 1; }
-  void add(Float nValue) { nSum += nValue; nSum2 += nValue * nValue; nCount++; }
-  Float finalize() const { return (Float)(sqrt((Double(nSum2) * nCount - Double(nSum) * Double(nSum)) / (Double(nCount) * nCount))); }
+  void reset(float nValue) { nSum = nValue; nSum2 = nValue * nValue; nCount = 1; }
+  void add(float nValue) { nSum += nValue; nSum2 += nValue * nValue; nCount++; }
+  float finalize() const { return (float)(sqrt((double(nSum2) * nCount - double(nSum) * double(nSum)) / (double(nCount) * nCount))); }
 
   void reset_w() { fSum = 0.0; fSum2 = 0.0; fWeightSum = 0.0f; }
   void reset_w(float nValue, float nWeight) { fSum = nValue*nWeight; fSum2 = fSum * fSum; fWeightSum = nWeight; }
-  void add_w(Float nValue, float nWeight) { fSum += nValue*nWeight; fSum += nValue*nValue*nWeight*nWeight; fWeightSum += nWeight; }
-  Float finalize_w() const { return (Float)(sqrt((Double(fSum2) * fWeightSum - Double(fSum) * Double(fSum)) / (Double(fWeightSum) * fWeightSum))); }
+  void add_w(float nValue, float nWeight) { fSum += nValue*nWeight; fSum += nValue*nValue*nWeight*nWeight; fWeightSum += nWeight; }
+  float finalize_w() const { return (float)(sqrt((double(fSum2) * fWeightSum - double(fSum) * double(fSum)) / (double(fWeightSum) * fWeightSum))); }
 
 };
 

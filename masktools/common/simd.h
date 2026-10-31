@@ -132,7 +132,7 @@ namespace Filtering {
 #pragma warning(disable: 4309)
 
   template<Border border_mode, MemoryMode mem_mode>
-  static MT_FORCEINLINE __m128i load_one_to_left(const Byte* ptr) {
+  static MT_FORCEINLINE __m128i load_one_to_left(const uint8_t* ptr) {
     if constexpr (border_mode == Border::Left) {
       auto mask_left = _mm_setr_epi8(0xFF, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00);
       auto val = simd_load_si128<mem_mode>(ptr);
@@ -144,7 +144,7 @@ namespace Filtering {
   }
 
   template<Border border_mode, MemoryMode mem_mode>
-  static MT_FORCEINLINE __m128i load_one_to_right(const Byte* ptr) {
+  static MT_FORCEINLINE __m128i load_one_to_right(const uint8_t* ptr) {
     if constexpr (border_mode == Border::Right) {
       auto mask_right = _mm_setr_epi8(00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 0xFF);
       auto val = simd_load_si128<mem_mode>(ptr);
@@ -157,7 +157,7 @@ namespace Filtering {
 
 
   template<Border border_mode, MemoryMode mem_mode>
-  static MT_FORCEINLINE __m128i load16_one_to_left(const Byte* ptr) {
+  static MT_FORCEINLINE __m128i load16_one_to_left(const uint8_t* ptr) {
     if constexpr (border_mode == Border::Left) {
       auto mask_left = _mm_setr_epi8(0xFF, 0xFF, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00);
       auto val = simd_load_si128<mem_mode>(ptr);
@@ -169,7 +169,7 @@ namespace Filtering {
   }
 
   template<Border border_mode, MemoryMode mem_mode>
-  static MT_FORCEINLINE __m128i load16_one_to_right(const Byte* ptr) {
+  static MT_FORCEINLINE __m128i load16_one_to_right(const uint8_t* ptr) {
     if constexpr (border_mode == Border::Right) {
       auto mask_right = _mm_setr_epi8(00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 0xFF, 0xFF);
       auto val = simd_load_si128<mem_mode>(ptr);
@@ -183,7 +183,7 @@ namespace Filtering {
 
 
   template<Border border_mode, MemoryMode mem_mode>
-  static MT_FORCEINLINE __m128 load32_one_to_left(const Byte* ptr) {
+  static MT_FORCEINLINE __m128 load32_one_to_left(const uint8_t* ptr) {
     if constexpr (border_mode == Border::Left) {
       auto mask_left = _mm_setr_epi8(0xFF, 0xFF, 0xFF, 0xFF, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00);
       auto val = simd_load_si128<mem_mode>(ptr);
@@ -195,7 +195,7 @@ namespace Filtering {
   }
 
   template<Border border_mode, MemoryMode mem_mode>
-  static MT_FORCEINLINE __m128 load32_one_to_right(const Byte* ptr) {
+  static MT_FORCEINLINE __m128 load32_one_to_right(const uint8_t* ptr) {
     if constexpr (border_mode == Border::Right) {
       auto mask_right = _mm_setr_epi8(00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 0xFF, 0xFF, 0xFF, 0xFF);
       auto val = simd_load_si128<mem_mode>(ptr);
@@ -384,13 +384,13 @@ namespace Filtering {
     return _mm_and_ps(_mm_sub_ps(a, b), absmask);
   }
 
-  static MT_FORCEINLINE __m128i read_word_stacked_simd(const Byte* pMsb, const Byte* pLsb, int x) {
+  static MT_FORCEINLINE __m128i read_word_stacked_simd(const uint8_t* pMsb, const uint8_t* pLsb, int x) {
     auto msb = _mm_loadl_epi64(reinterpret_cast<const __m128i*>(pMsb + x));
     auto lsb = _mm_loadl_epi64(reinterpret_cast<const __m128i*>(pLsb + x));
     return _mm_unpacklo_epi8(lsb, msb);
   }
 
-  static MT_FORCEINLINE void write_word_stacked_simd(Byte* pMsb, Byte* pLsb, int x, const __m128i& value, const __m128i& ff, const __m128i& zero) {
+  static MT_FORCEINLINE void write_word_stacked_simd(uint8_t* pMsb, uint8_t* pLsb, int x, const __m128i& value, const __m128i& ff, const __m128i& zero) {
     auto result_lsb = _mm_and_si128(value, ff);
     auto result_msb = _mm_srli_epi16(value, 8);
 

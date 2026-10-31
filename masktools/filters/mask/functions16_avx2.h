@@ -6,16 +6,16 @@
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Mask {
 
-typedef Word (Operator)(Word, Word, Word, Word, Word, Word, Word, Word, Word, const Short matrix[10], int nLowThreshold, int nHighThreshold);
-typedef void (ProcessLineAvx2)(Byte *pDst, const Byte *pSrcp, const Byte *pSrc, const Byte *pSrcn, const Short matrix[10], const __m256i &lowThresh, const __m256i &highThresh, int width);
+typedef uint16_t (Operator)(uint16_t, uint16_t, uint16_t, uint16_t, uint16_t, uint16_t, uint16_t, uint16_t, uint16_t, const int16_t matrix[10], int nLowThreshold, int nHighThreshold);
+typedef void (ProcessLineAvx2)(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m256i &lowThresh, const __m256i &highThresh, int width);
 
 template<Operator op, class T>
-void generic16_avx2_c(Word *pDst, ptrdiff_t nDstPitch, const Word *pSrc, ptrdiff_t nSrcPitch, T &thresholds, const Short matrix[10], int nWidth, int nHeight)
+void generic16_avx2_c(uint16_t *pDst, ptrdiff_t nDstPitch, const uint16_t *pSrc, ptrdiff_t nSrcPitch, T &thresholds, const int16_t matrix[10], int nWidth, int nHeight)
 {
   nDstPitch /= sizeof(uint16_t);
   nSrcPitch /= sizeof(uint16_t);
-  const Word *pSrcp = pSrc - nSrcPitch;
-  const Word *pSrcn = pSrc + nSrcPitch;
+  const uint16_t *pSrcp = pSrc - nSrcPitch;
+  const uint16_t *pSrcn = pSrc + nSrcPitch;
 
    /* top-left */
    pDst[0] = op(pSrc[0], pSrc[0], pSrc[1], pSrc[0], pSrc[0], pSrc[1], pSrcn[0], pSrcn[0], pSrcn[1], matrix, thresholds.min(0), thresholds.max(0));
@@ -67,21 +67,21 @@ void generic16_avx2_c(Word *pDst, ptrdiff_t nDstPitch, const Word *pSrc, ptrdiff
 
 // todo bitdepth template
 template<int bits_per_pixel, ProcessLineAvx2 process_line_left, ProcessLineAvx2 process_line, ProcessLineAvx2 process_line_right>
-void generic16_avx2(Word *pDst0, ptrdiff_t nDstPitch, const Word *pSrc0, ptrdiff_t nSrcPitch, const Short matrix[10], int nLowThreshold, int nHighThreshold, int nWidth, int nHeight) {
-    Byte *pDst = reinterpret_cast<Byte *>(pDst0);
-    const Byte *pSrc = reinterpret_cast<const Byte *>(pSrc0);
+void generic16_avx2(uint16_t *pDst0, ptrdiff_t nDstPitch, const uint16_t *pSrc0, ptrdiff_t nSrcPitch, const int16_t matrix[10], int nLowThreshold, int nHighThreshold, int nWidth, int nHeight) {
+    uint8_t *pDst = reinterpret_cast<uint8_t *>(pDst0);
+    const uint8_t *pSrc = reinterpret_cast<const uint8_t *>(pSrc0);
 
     nWidth *= sizeof(uint16_t); // byte size for sse
 
-    const Byte *pSrcp = pSrc - nSrcPitch;
-    const Byte *pSrcn = pSrc + nSrcPitch;
+    const uint8_t *pSrcp = pSrc - nSrcPitch;
+    const uint8_t *pSrcn = pSrc + nSrcPitch;
 
 #pragma warning(disable: 4309)
     auto vHalf = _mm256_set1_epi16(1 << (bits_per_pixel - 1));
 #pragma warning(default: 4309)
-    auto low_thr_v = _mm256_set1_epi16(Word(nLowThreshold)); // for faster sse2 signed comparison
+    auto low_thr_v = _mm256_set1_epi16(uint16_t(nLowThreshold)); // for faster sse2 signed comparison
     low_thr_v = _mm256_sub_epi16(low_thr_v, vHalf);
-    auto high_thr_v = _mm256_set1_epi16(Word(nHighThreshold));
+    auto high_thr_v = _mm256_set1_epi16(uint16_t(nHighThreshold));
     high_thr_v = _mm256_sub_epi16(high_thr_v, vHalf);
 
     int avx2_width = (nWidth - sizeof(uint16_t) - 32) / 32 * 32 + 32;

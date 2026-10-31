@@ -6,32 +6,32 @@ using namespace Filtering;
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Mask { namespace Edge {
 
-inline Byte convolution(Byte a11, Byte a21, Byte a31, Byte a12, Byte a22, Byte a32, Byte a13, Byte a23, Byte a33, const Short matrix[10], int nLowThreshold, int nHighThreshold)
+inline uint8_t convolution(uint8_t a11, uint8_t a21, uint8_t a31, uint8_t a12, uint8_t a22, uint8_t a32, uint8_t a13, uint8_t a23, uint8_t a33, const int16_t matrix[10], int nLowThreshold, int nHighThreshold)
 {
-   return threshold<Byte, int>(abs((a11 * matrix[0] + a21 * matrix[1] + a31 * matrix[2] + 
+   return threshold<uint8_t, int>(abs((a11 * matrix[0] + a21 * matrix[1] + a31 * matrix[2] + 
                                     a12 * matrix[3] + a22 * matrix[4] + a32 * matrix[5] +
                                     a13 * matrix[6] + a23 * matrix[7] + a33 * matrix[8]) / matrix[9]), nLowThreshold, nHighThreshold);
 }
 
-inline Byte sobel(Byte a11, Byte a21, Byte a31, Byte a12, Byte a22, Byte a32, Byte a13, Byte a23, Byte a33, const Short matrix[10], int nLowThreshold, int nHighThreshold)
+inline uint8_t sobel(uint8_t a11, uint8_t a21, uint8_t a31, uint8_t a12, uint8_t a22, uint8_t a32, uint8_t a13, uint8_t a23, uint8_t a33, const int16_t matrix[10], int nLowThreshold, int nHighThreshold)
 {
    UNUSED(a11); UNUSED(a13); UNUSED(a22); UNUSED(a31); UNUSED(a33); UNUSED(matrix); 
-   return threshold<Byte, int>(abs( (int)a32 + a23 - a12 - a21 ) >> 1, nLowThreshold, nHighThreshold);
+   return threshold<uint8_t, int>(abs( (int)a32 + a23 - a12 - a21 ) >> 1, nLowThreshold, nHighThreshold);
 }
 
-inline Byte roberts(Byte a11, Byte a21, Byte a31, Byte a12, Byte a22, Byte a32, Byte a13, Byte a23, Byte a33, const Short matrix[10], int nLowThreshold, int nHighThreshold)
+inline uint8_t roberts(uint8_t a11, uint8_t a21, uint8_t a31, uint8_t a12, uint8_t a22, uint8_t a32, uint8_t a13, uint8_t a23, uint8_t a33, const int16_t matrix[10], int nLowThreshold, int nHighThreshold)
 {
    UNUSED(a11); UNUSED(a12); UNUSED(a13); UNUSED(a21); UNUSED(a31); UNUSED(a33); UNUSED(matrix); 
-   return threshold<Byte, int>(abs( ((int)a22 << 1) - a32 - a23 ) >> 1, nLowThreshold, nHighThreshold);
+   return threshold<uint8_t, int>(abs( ((int)a22 << 1) - a32 - a23 ) >> 1, nLowThreshold, nHighThreshold);
 }
 
-inline Byte laplace(Byte a11, Byte a21, Byte a31, Byte a12, Byte a22, Byte a32, Byte a13, Byte a23, Byte a33, const Short matrix[10], int nLowThreshold, int nHighThreshold)
+inline uint8_t laplace(uint8_t a11, uint8_t a21, uint8_t a31, uint8_t a12, uint8_t a22, uint8_t a32, uint8_t a13, uint8_t a23, uint8_t a33, const int16_t matrix[10], int nLowThreshold, int nHighThreshold)
 {
    UNUSED(matrix); 
-   return threshold<Byte, int>(abs( ((int)a22 << 3) - a32 - a23 - a11 - a21 - a31 - a12 - a13 - a33 ) >> 3, nLowThreshold, nHighThreshold);
+   return threshold<uint8_t, int>(abs( ((int)a22 << 3) - a32 - a23 - a11 - a21 - a31 - a12 - a13 - a33 ) >> 3, nLowThreshold, nHighThreshold);
 }
 
-inline Byte morpho(Byte a11, Byte a21, Byte a31, Byte a12, Byte a22, Byte a32, Byte a13, Byte a23, Byte a33, const Short matrix[10], int nLowThreshold, int nHighThreshold)
+inline uint8_t morpho(uint8_t a11, uint8_t a21, uint8_t a31, uint8_t a12, uint8_t a22, uint8_t a32, uint8_t a13, uint8_t a23, uint8_t a33, const int16_t matrix[10], int nLowThreshold, int nHighThreshold)
 {
    int nMin = a11, nMax = a11;
 
@@ -54,19 +54,19 @@ inline Byte morpho(Byte a11, Byte a21, Byte a31, Byte a12, Byte a22, Byte a32, B
    nMin = min<int>( nMin, a33 );
    nMax = max<int>( nMax, a33 );
 
-   return threshold<Byte, int>( nMax - nMin, nLowThreshold, nHighThreshold );
+   return threshold<uint8_t, int>( nMax - nMin, nLowThreshold, nHighThreshold );
 }
 
-inline Byte cartoon(Byte a11, Byte a21, Byte a31, Byte a12, Byte a22, Byte a32, Byte a13, Byte a23, Byte a33, const Short matrix[10], int nLowThreshold, int nHighThreshold)
+inline uint8_t cartoon(uint8_t a11, uint8_t a21, uint8_t a31, uint8_t a12, uint8_t a22, uint8_t a32, uint8_t a13, uint8_t a23, uint8_t a33, const int16_t matrix[10], int nLowThreshold, int nHighThreshold)
 {
    int val = ((int)a21 << 1) - a22 - a31;
 
    UNUSED(a11); UNUSED(a12); UNUSED(a13); UNUSED(a23); UNUSED(a32); UNUSED(a33); UNUSED(matrix); 
 
-   return val > 0 ? 0 : threshold<Byte, int>( -val, nLowThreshold, nHighThreshold );
+   return val > 0 ? 0 : threshold<uint8_t, int>( -val, nLowThreshold, nHighThreshold );
 }
 
-inline Byte prewitt(Byte a11, Byte a21, Byte a31, Byte a12, Byte a22, Byte a32, Byte a13, Byte a23, Byte a33, const Short matrix[10], int nLowThreshold, int nHighThreshold)
+inline uint8_t prewitt(uint8_t a11, uint8_t a21, uint8_t a31, uint8_t a12, uint8_t a22, uint8_t a32, uint8_t a13, uint8_t a23, uint8_t a33, const int16_t matrix[10], int nLowThreshold, int nHighThreshold)
 {
    const int p90 = a11 + a21 + a31 - a13 - a23 - a33;
    const int p180 = a11 + a12 + a13 - a31 - a32 - a33;
@@ -79,10 +79,10 @@ inline Byte prewitt(Byte a11, Byte a21, Byte a31, Byte a12, Byte a22, Byte a32, 
 
    UNUSED(a22); UNUSED(matrix); 
 
-   return threshold<Byte, int>( maxv, nLowThreshold, nHighThreshold );
+   return threshold<uint8_t, int>( maxv, nLowThreshold, nHighThreshold );
 }
 
-inline Byte half_prewitt(Byte a11, Byte a21, Byte a31, Byte a12, Byte a22, Byte a32, Byte a13, Byte a23, Byte a33, const Short matrix[10], int nLowThreshold, int nHighThreshold)
+inline uint8_t half_prewitt(uint8_t a11, uint8_t a21, uint8_t a31, uint8_t a12, uint8_t a22, uint8_t a32, uint8_t a13, uint8_t a23, uint8_t a33, const int16_t matrix[10], int nLowThreshold, int nHighThreshold)
 {
    const int p90 = a11 + 2 * a21 + a31 - a13 - 2 * a23 - a33;
    const int p180 = a11 + 2 * a12 + a13 - a31 - 2 * a32 - a33;
@@ -90,13 +90,13 @@ inline Byte half_prewitt(Byte a11, Byte a21, Byte a31, Byte a12, Byte a22, Byte 
 
    UNUSED(a22); UNUSED(matrix);
    
-   return threshold<Byte, int>( maxv, nLowThreshold, nHighThreshold );
+   return threshold<uint8_t, int>( maxv, nLowThreshold, nHighThreshold );
 }
 
 class Thresholds {
-   Byte nMinThreshold, nMaxThreshold;
+   uint8_t nMinThreshold, nMaxThreshold;
 public:
-   Thresholds(Byte nMinThreshold, Byte nMaxThreshold) :
+   Thresholds(uint8_t nMinThreshold, uint8_t nMaxThreshold) :
    nMinThreshold(nMinThreshold), nMaxThreshold(nMaxThreshold)
    {
    }
@@ -104,14 +104,14 @@ public:
    int minpitch() const { return 0; }
    int maxpitch() const { return 0; }
    void nextRow() { }
-   Byte min(int x) const { UNUSED(x); return nMinThreshold; }
-   Byte max(int x) const { UNUSED(x); return nMaxThreshold; }
+   uint8_t min(int x) const { UNUSED(x); return nMinThreshold; }
+   uint8_t max(int x) const { UNUSED(x); return nMaxThreshold; }
 };
 
 template<Filters::Mask::Operator op>
-void mask_t(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdiff_t nSrcPitch, const Short matrix[10], int nLowThreshold, int nHighThreshold, int nWidth, int nHeight)
+void mask_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, const int16_t matrix[10], int nLowThreshold, int nHighThreshold, int nWidth, int nHeight)
 {
-   Thresholds thresholds(static_cast<Byte>(nLowThreshold), static_cast<Byte>(nHighThreshold));
+   Thresholds thresholds(static_cast<uint8_t>(nLowThreshold), static_cast<uint8_t>(nHighThreshold));
 
    Filters::Mask::generic_c<op, Thresholds>(pDst, nDstPitch, pSrc, nSrcPitch, thresholds, matrix, nWidth, nHeight);
 }
@@ -144,9 +144,9 @@ static MT_FORCEINLINE __m128i simd_abs_diff_epu16(__m128i a, __m128i b) {
 }
 
 template<CpuFlags flags, Border borderMode, MemoryMode mem_mode>
-static MT_FORCEINLINE void process_line_convolution_sse2(Byte *pDst, const Byte *pSrcp, const Byte *pSrc, const Byte *pSrcn, const Short matrix[10], const __m128i &lowThresh, const __m128i &highThresh, int width) {
+static MT_FORCEINLINE void process_line_convolution_sse2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m128i &lowThresh, const __m128i &highThresh, int width) {
     UNUSED(pSrcp);
-    auto v128 = _mm_set1_epi8(Byte(0x80));
+    auto v128 = _mm_set1_epi8(uint8_t(0x80));
     auto zero = _mm_setzero_si128();
     auto coef0 = _mm_set1_epi16(matrix[0]);
     auto coef1 = _mm_set1_epi16(matrix[1]);
@@ -240,9 +240,9 @@ static MT_FORCEINLINE void process_line_convolution_sse2(Byte *pDst, const Byte 
 }
 
 template<CpuFlags flags, Border borderMode, MemoryMode mem_mode>
-static MT_FORCEINLINE void process_line_sobel_sse2(Byte *pDst, const Byte *pSrcp, const Byte *pSrc, const Byte *pSrcn, const Short matrix[10], const __m128i &lowThresh, const __m128i &highThresh, int width) {
+static MT_FORCEINLINE void process_line_sobel_sse2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m128i &lowThresh, const __m128i &highThresh, int width) {
     UNUSED(matrix);
-    auto v128 = _mm_set1_epi8(Byte(0x80));
+    auto v128 = _mm_set1_epi8(uint8_t(0x80));
     auto zero = _mm_setzero_si128();
 
     for (int x = 0; x < width; x+=16) {
@@ -285,10 +285,10 @@ static MT_FORCEINLINE void process_line_sobel_sse2(Byte *pDst, const Byte *pSrcp
 }
 
 template<CpuFlags flags, Border borderMode, MemoryMode mem_mode>
-static MT_FORCEINLINE void process_line_roberts_sse2(Byte *pDst, const Byte *pSrcp, const Byte *pSrc, const Byte *pSrcn, const Short matrix[10], const __m128i &lowThresh, const __m128i &highThresh, int width) {
+static MT_FORCEINLINE void process_line_roberts_sse2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m128i &lowThresh, const __m128i &highThresh, int width) {
     UNUSED(pSrcp);
     UNUSED(matrix);
-    auto v128 = _mm_set1_epi8(Byte(0x80));
+    auto v128 = _mm_set1_epi8(uint8_t(0x80));
     auto zero = _mm_setzero_si128();
 
     for (int x = 0; x < width; x+=16) {
@@ -326,10 +326,10 @@ static MT_FORCEINLINE void process_line_roberts_sse2(Byte *pDst, const Byte *pSr
 }
 
 template<CpuFlags flags, Border borderMode, MemoryMode mem_mode>
-static MT_FORCEINLINE void process_line_laplace_sse2(Byte *pDst, const Byte *pSrcp, const Byte *pSrc, const Byte *pSrcn, const Short matrix[10], const __m128i &lowThresh, const __m128i &highThresh, int width) {
+static MT_FORCEINLINE void process_line_laplace_sse2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m128i &lowThresh, const __m128i &highThresh, int width) {
     UNUSED(pSrcp);
     UNUSED(matrix);
-    auto v128 = _mm_set1_epi8(Byte(0x80));
+    auto v128 = _mm_set1_epi8(uint8_t(0x80));
     auto zero = _mm_setzero_si128();
 
     for (int x = 0; x < width; x+=16) {
@@ -405,9 +405,9 @@ static MT_FORCEINLINE void process_line_laplace_sse2(Byte *pDst, const Byte *pSr
 }
 
 template<CpuFlags flags, Border borderMode, MemoryMode mem_mode>
-static MT_FORCEINLINE void process_line_morpho_sse2(Byte *pDst, const Byte *pSrcp, const Byte *pSrc, const Byte *pSrcn, const Short matrix[10], const __m128i &lowThresh, const __m128i &highThresh, int width) {
+static MT_FORCEINLINE void process_line_morpho_sse2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m128i &lowThresh, const __m128i &highThresh, int width) {
     UNUSED(matrix);
-    auto v128 = _mm_set1_epi8(Byte(0x80));
+    auto v128 = _mm_set1_epi8(uint8_t(0x80));
 
     for (int x = 0; x < width; x+=16) {
         auto up_left = load_one_to_left<borderMode, mem_mode>(pSrcp+x);
@@ -448,9 +448,9 @@ static MT_FORCEINLINE void process_line_morpho_sse2(Byte *pDst, const Byte *pSrc
 }
 
 template<CpuFlags flags, Border borderMode, MemoryMode mem_mode>
-static MT_FORCEINLINE void process_line_cartoon_sse2(Byte *pDst, const Byte *pSrcp, const Byte *pSrc, const Byte *pSrcn, const Short matrix[10], const __m128i &lowThresh, const __m128i &highThresh, int width) {
+static MT_FORCEINLINE void process_line_cartoon_sse2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m128i &lowThresh, const __m128i &highThresh, int width) {
     UNUSED(matrix); UNUSED(pSrcn);
-    auto v128 = _mm_set1_epi8(Byte(0x80));
+    auto v128 = _mm_set1_epi8(uint8_t(0x80));
     auto zero = _mm_setzero_si128();
 
     for (int x = 0; x < width; x+=16) {
@@ -484,9 +484,9 @@ static MT_FORCEINLINE void process_line_cartoon_sse2(Byte *pDst, const Byte *pSr
 }
 
 template<CpuFlags flags, Border borderMode, MemoryMode mem_mode>
-static MT_FORCEINLINE void process_line_prewitt_sse2(Byte *pDst, const Byte *pSrcp, const Byte *pSrc, const Byte *pSrcn, const Short matrix[10], const __m128i &lowThresh, const __m128i &highThresh, int width) {
+static MT_FORCEINLINE void process_line_prewitt_sse2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m128i &lowThresh, const __m128i &highThresh, int width) {
     UNUSED(matrix);
-    auto v128 = _mm_set1_epi8(Byte(0x80));
+    auto v128 = _mm_set1_epi8(uint8_t(0x80));
     auto zero = _mm_setzero_si128();
 
     for (int x = 0; x < width; x+=16) {
@@ -572,9 +572,9 @@ static MT_FORCEINLINE void process_line_prewitt_sse2(Byte *pDst, const Byte *pSr
 }
 
 template<CpuFlags flags, Border borderMode, MemoryMode mem_mode>
-static MT_FORCEINLINE void process_line_half_prewitt_sse2(Byte *pDst, const Byte *pSrcp, const Byte *pSrc, const Byte *pSrcn, const Short matrix[10], const __m128i &lowThresh, const __m128i &highThresh, int width) {
+static MT_FORCEINLINE void process_line_half_prewitt_sse2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m128i &lowThresh, const __m128i &highThresh, int width) {
     UNUSED(matrix);
-    auto v128 = _mm_set1_epi8(Byte(0x80));
+    auto v128 = _mm_set1_epi8(uint8_t(0x80));
     auto zero = _mm_setzero_si128();
 
     for (int x = 0; x < width; x+=16) {

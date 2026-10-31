@@ -14,7 +14,7 @@ enum MaskMode {
 };
 
 template<int bits_per_pixel>
-MT_FORCEINLINE static Word merge16_core_avx2_c(Word dst, Word src, Word mask) {
+MT_FORCEINLINE static uint16_t merge16_core_avx2_c(uint16_t dst, uint16_t src, uint16_t mask) {
     if (mask == 0) {
         return dst;
     } else if (mask == ((1 << bits_per_pixel) - 1)) {
@@ -120,41 +120,41 @@ MT_FORCEINLINE static __m256i merge_core_simd(const __m256i &dst, const __m256i 
 
 /* Native */
 
-MT_FORCEINLINE static Word get_mask_420_c(const Byte *ptr, ptrdiff_t pitch, int x) {
+MT_FORCEINLINE static uint16_t get_mask_420_c(const uint8_t *ptr, ptrdiff_t pitch, int x) {
     x = x*2;
 
-    return (((reinterpret_cast<const Word*>(ptr)[x] + reinterpret_cast<const Word*>(ptr+pitch)[x] + 1) >> 1) + 
-        ((reinterpret_cast<const Word*>(ptr)[x+1] +  reinterpret_cast<const Word*>(ptr+pitch)[x+1] + 1) >> 1) + 1) >> 1;
+    return (((reinterpret_cast<const uint16_t*>(ptr)[x] + reinterpret_cast<const uint16_t*>(ptr+pitch)[x] + 1) >> 1) + 
+        ((reinterpret_cast<const uint16_t*>(ptr)[x+1] +  reinterpret_cast<const uint16_t*>(ptr+pitch)[x+1] + 1) >> 1) + 1) >> 1;
 }
 
-MT_FORCEINLINE static Word get_mask_422_c(const Byte *ptr, int x) {
+MT_FORCEINLINE static uint16_t get_mask_422_c(const uint8_t *ptr, int x) {
   x = x * 2;
 
-  return (reinterpret_cast<const Word*>(ptr)[x] + reinterpret_cast<const Word*>(ptr)[x + 1] + 1) >> 1;
+  return (reinterpret_cast<const uint16_t*>(ptr)[x] + reinterpret_cast<const uint16_t*>(ptr)[x + 1] + 1) >> 1;
 }
 
 template<MaskMode mode, int bits_per_pixel>
-static void merge16_t_c(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc1, ptrdiff_t nSrc1Pitch,
-                         const Byte *pMask, ptrdiff_t nMaskPitch, int nWidth, int nHeight, int /*nOrigHeight*/)
+static void merge16_t_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
+                         const uint8_t *pMask, ptrdiff_t nMaskPitch, int nWidth, int nHeight, int /*nOrigHeight*/)
 {
     for ( int y = 0; y < nHeight; ++y )
     {
         for ( int x = 0; x < nWidth; ++x ) { 
-            Word dst = reinterpret_cast<const Word*>(pDst)[x];
-            Word src = reinterpret_cast<const Word*>(pSrc1)[x];
-            Word mask;
+            uint16_t dst = reinterpret_cast<const uint16_t*>(pDst)[x];
+            uint16_t src = reinterpret_cast<const uint16_t*>(pSrc1)[x];
+            uint16_t mask;
 
             if (mode == MASK420) {
                 mask = get_mask_420_c(pMask, nMaskPitch, x);
             } else if(mode == MASK422)
                 mask = get_mask_422_c(pMask, x);
             else {
-                mask = reinterpret_cast<const Word*>(pMask)[x];
+                mask = reinterpret_cast<const uint16_t*>(pMask)[x];
             }
 
-            Word output = merge16_core_avx2_c<bits_per_pixel>(dst, src, mask);
+            uint16_t output = merge16_core_avx2_c<bits_per_pixel>(dst, src, mask);
 
-            reinterpret_cast<Word*>(pDst)[x] = output;
+            reinterpret_cast<uint16_t*>(pDst)[x] = output;
         }
         pDst += nDstPitch;
         pSrc1 += nSrc1Pitch;
@@ -168,7 +168,7 @@ static void merge16_t_c(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc1, ptrd
 }
 
 
-MT_FORCEINLINE static __m256i get_mask_420_simd(const Byte *ptr, ptrdiff_t pitch, int x) {
+MT_FORCEINLINE static __m256i get_mask_420_simd(const uint8_t *ptr, ptrdiff_t pitch, int x) {
     x = x*2;
 
     auto row1_lo = simd256_load_si256<MemoryMode::SSE2_UNALIGNED>(reinterpret_cast<const __m256i*>(ptr+x));
@@ -179,7 +179,7 @@ MT_FORCEINLINE static __m256i get_mask_420_simd(const Byte *ptr, ptrdiff_t pitch
     return get_single_mask_value_420(row1_lo, row1_hi, row2_lo, row2_hi);
 }
 
-MT_FORCEINLINE static __m256i get_mask_422_simd(const Byte *ptr, int x) {
+MT_FORCEINLINE static __m256i get_mask_422_simd(const uint8_t *ptr, int x) {
   x = x * 2;
 
   auto row1_lo = simd256_load_si256<MemoryMode::SSE2_UNALIGNED>(reinterpret_cast<const __m256i*>(ptr + x));
@@ -189,8 +189,8 @@ MT_FORCEINLINE static __m256i get_mask_422_simd(const Byte *ptr, int x) {
 }
 
 template <MaskMode mode, Processor16 merge_c, int bits_per_pixel>
-static void merge16_t_simd(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc1, ptrdiff_t nSrc1Pitch,
-                            const Byte *pMask, ptrdiff_t nMaskPitch, int nWidth, int nHeight, int nOrigHeight)
+static void merge16_t_simd(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
+                            const uint8_t *pMask, ptrdiff_t nMaskPitch, int nWidth, int nHeight, int nOrigHeight)
 {
     nWidth *= 2; // really rowsize: width * sizeof(uint16), see also division at C trailer
 
@@ -246,12 +246,12 @@ static void merge16_t_simd(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc1, p
 // 4:1:1 is only in 8 bits
 // no MPEG2 option here in 16bit AVX2
 #define MAKE_TEMPLATES(bits_per_pixel) \
-template void merge16_t_c<MASK444, bits_per_pixel>(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc1, ptrdiff_t nSrc1Pitch, const Byte *pMask, ptrdiff_t nMaskPitch, int nWidth, int nHeight, int nOrigHeight); \
-template void merge16_t_c<MASK420, bits_per_pixel>(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc1, ptrdiff_t nSrc1Pitch, const Byte *pMask, ptrdiff_t nMaskPitch, int nWidth, int nHeight, int nOrigHeight); \
-template void merge16_t_c<MASK422, bits_per_pixel>(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc1, ptrdiff_t nSrc1Pitch, const Byte *pMask, ptrdiff_t nMaskPitch, int nWidth, int nHeight, int nOrigHeight); \
-template void merge16_t_simd<MASK444, merge16_t_c<MASK444, bits_per_pixel>, bits_per_pixel>(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc1, ptrdiff_t nSrc1Pitch, const Byte *pMask, ptrdiff_t nMaskPitch, int nWidth, int nHeight, int nOrigHeight); \
-template void merge16_t_simd<MASK420, merge16_t_c<MASK420, bits_per_pixel>, bits_per_pixel>(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc1, ptrdiff_t nSrc1Pitch, const Byte *pMask, ptrdiff_t nMaskPitch, int nWidth, int nHeight, int nOrigHeight); \
-template void merge16_t_simd<MASK422, merge16_t_c<MASK422, bits_per_pixel>, bits_per_pixel>(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc1, ptrdiff_t nSrc1Pitch, const Byte *pMask, ptrdiff_t nMaskPitch, int nWidth, int nHeight, int nOrigHeight); \
+template void merge16_t_c<MASK444, bits_per_pixel>(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch, const uint8_t *pMask, ptrdiff_t nMaskPitch, int nWidth, int nHeight, int nOrigHeight); \
+template void merge16_t_c<MASK420, bits_per_pixel>(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch, const uint8_t *pMask, ptrdiff_t nMaskPitch, int nWidth, int nHeight, int nOrigHeight); \
+template void merge16_t_c<MASK422, bits_per_pixel>(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch, const uint8_t *pMask, ptrdiff_t nMaskPitch, int nWidth, int nHeight, int nOrigHeight); \
+template void merge16_t_simd<MASK444, merge16_t_c<MASK444, bits_per_pixel>, bits_per_pixel>(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch, const uint8_t *pMask, ptrdiff_t nMaskPitch, int nWidth, int nHeight, int nOrigHeight); \
+template void merge16_t_simd<MASK420, merge16_t_c<MASK420, bits_per_pixel>, bits_per_pixel>(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch, const uint8_t *pMask, ptrdiff_t nMaskPitch, int nWidth, int nHeight, int nOrigHeight); \
+template void merge16_t_simd<MASK422, merge16_t_c<MASK422, bits_per_pixel>, bits_per_pixel>(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch, const uint8_t *pMask, ptrdiff_t nMaskPitch, int nWidth, int nHeight, int nOrigHeight); \
 
 MAKE_TEMPLATES(10)
 MAKE_TEMPLATES(12)

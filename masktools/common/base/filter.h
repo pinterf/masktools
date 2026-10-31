@@ -34,7 +34,7 @@ protected:
 
     bool has_avs_expr_support;
 
-   virtual void process(int n, const Plane<Byte> &dst, int nPlane, const Frame<const Byte> frames[4], const Constraint constraints[4]) = 0;
+   virtual void process(int n, const Plane<uint8_t> &dst, int nPlane, const Frame<const uint8_t> frames[4], const Constraint constraints[4]) = 0;
    virtual InputConfiguration &input_configuration() const = 0;
 
    static Signature &add_defaults(Signature &signature)
@@ -411,7 +411,7 @@ public:
         }
     }
 
-    void process_plane(int n, const Plane<Byte> &output_plane, int nPlane, const Constraint constraints[4], const Frame<const Byte> frames[4])
+    void process_plane(int n, const Plane<uint8_t> &output_plane, int nPlane, const Constraint constraints[4], const Frame<const uint8_t> frames[4])
     {
         bool isStacked = parameters["stacked"].is_defined() && parameters["stacked"].toBool();
 
@@ -490,25 +490,25 @@ public:
             case 1:
               if (isStacked) {
                 // in two parts, there may be sub-window
-                Word val = static_cast<Word>(operators[nPlane].value());
+                uint16_t val = static_cast<uint16_t>(operators[nPlane].value());
                 // msb
                 Functions::memset_plane(output_plane.data(), output_plane.pitch(),
                   output_plane.width(), output_plane.height()/2,
-                  static_cast<Byte>(val >> 8));
+                  static_cast<uint8_t>(val >> 8));
                 // lsb
                 Functions::memset_plane(output_plane.data() + output_plane.pitch() * output_plane.origheight() / 2, output_plane.pitch(),
                   output_plane.width(), output_plane.height() / 2,
-                  static_cast<Byte>(val & 0xFF));
+                  static_cast<uint8_t>(val & 0xFF));
               } else {
                 Functions::memset_plane(output_plane.data(), output_plane.pitch(),
                   output_plane.width(), output_plane.height(), // memset needs real width
-                  static_cast<Byte>(operators[nPlane].value()));
+                  static_cast<uint8_t>(operators[nPlane].value()));
               }
               break;
             case 2: // 16 bit
               Functions::memset_plane_16(output_plane.data(), output_plane.pitch(),
                 output_plane.width(), output_plane.height(),
-                static_cast<Word>(operators[nPlane].value()));
+                static_cast<uint16_t>(operators[nPlane].value()));
               break;
             case 4: // 32 bit/float
               Functions::memset_plane_32(output_plane.data(), output_plane.pitch(),
@@ -525,11 +525,11 @@ public:
         }
     }
 
-    virtual Frame<Byte> get_frame(int n, const Frame<Byte> &output_frame, bool need_copy_frame_properties, PVideoFrame &dst, IScriptEnvironment *env)
+    virtual Frame<uint8_t> get_frame(int n, const Frame<uint8_t> &output_frame, bool need_copy_frame_properties, PVideoFrame &dst, IScriptEnvironment *env)
     {
-      Frame<Byte> output = output_frame.offset(nXOffset, nYOffset, nCoreWidth, nCoreHeight);
+      Frame<uint8_t> output = output_frame.offset(nXOffset, nYOffset, nCoreWidth, nCoreHeight);
 
-      Frame<const Byte> frames[4];
+      Frame<const uint8_t> frames[4];
       Constraint constraints[4];
 
       int clipcount = int(input_configuration().size());

@@ -5,9 +5,9 @@ using namespace Filtering;
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Blur {
 
-inline Float convolution_all_32_c(Float a11, Float a21, Float a31, Float a12, Float a22, Float a32, Float a13, Float a23, Float a33, const Float matrix[10], Float nLowThreshold, Float nHighThreshold)
+inline float convolution_all_32_c(float a11, float a21, float a31, float a12, float a22, float a32, float a13, float a23, float a33, const float matrix[10], float nLowThreshold, float nHighThreshold)
 {
-   Float nSum = a22 * matrix[4];
+   float nSum = a22 * matrix[4];
 
    UNUSED(nHighThreshold);
 
@@ -23,10 +23,10 @@ inline Float convolution_all_32_c(Float a11, Float a21, Float a31, Float a12, Fl
    return (nSum + matrix[9] / 2)/ matrix[9]; // no clipping
 }
 
-inline Float convolution_below_32_c(Float a11, Float a21, Float a31, Float a12, Float a22, Float a32, Float a13, Float a23, Float a33, const Float matrix[10], Float nLowThreshold, Float nHighThreshold)
+inline float convolution_below_32_c(float a11, float a21, float a31, float a12, float a22, float a32, float a13, float a23, float a33, const float matrix[10], float nLowThreshold, float nHighThreshold)
 {
-   Float nSum = a22 * matrix[4];
-   Float nSumCoeff = matrix[4];
+   float nSum = a22 * matrix[4];
+   float nSumCoeff = matrix[4];
 
    UNUSED(nHighThreshold);
 
@@ -44,23 +44,23 @@ inline Float convolution_below_32_c(Float a11, Float a21, Float a31, Float a12, 
 }
 
 class Thresholds {
-   const Float *pThreshold;
+   const float *pThreshold;
    ptrdiff_t nPitch;
 public:
-   Thresholds(const Float *pThreshold, ptrdiff_t nPitch) :
-   pThreshold(pThreshold), nPitch(nPitch / sizeof(Float))
+   Thresholds(const float *pThreshold, ptrdiff_t nPitch) :
+   pThreshold(pThreshold), nPitch(nPitch / sizeof(float))
    {
    }
 
    ptrdiff_t minpitch() const { return nPitch; }
    ptrdiff_t maxpitch() const { return nPitch; }
    void nextRow() { pThreshold += nPitch; }
-   Float min(int x) const { return pThreshold[x]; }
-   Float max(int x) const { return pThreshold[x]; }
+   float min(int x) const { return pThreshold[x]; }
+   float max(int x) const { return pThreshold[x]; }
 };
 
 template<Filters::Mask::Operator op>
-void mask32_t(Float *pDst, ptrdiff_t nDstPitch, const Float *pSrc, ptrdiff_t nSrcPitch, const Float *pMask, ptrdiff_t nMaskPitch, const Float matrix[10], int nWidth, int nHeight)
+void mask32_t(float *pDst, ptrdiff_t nDstPitch, const float *pSrc, ptrdiff_t nSrcPitch, const float *pMask, ptrdiff_t nMaskPitch, const float matrix[10], int nWidth, int nHeight)
 {
    Thresholds thresholds(pMask, nMaskPitch);
    Filters::Mask::generic32_c<op, Thresholds>(pDst, nDstPitch, pSrc, nSrcPitch, thresholds, matrix, nWidth, nHeight);

@@ -4,7 +4,7 @@
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Mask { namespace Motion {
 
-  static uint64_t sad_c_op(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight)
+  static uint64_t sad_c_op(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight)
   {
     uint64_t nSad = 0;
     for (int y = 0; y < nHeight; y++)
@@ -19,12 +19,12 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Mask {
     return nSad;
   }
 
-  static void mask_c_op(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdiff_t nSrcPitch, int nLowThreshold, int nHighThreshold, int nWidth, int nHeight)
+  static void mask_c_op(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nLowThreshold, int nHighThreshold, int nWidth, int nHeight)
   {
     for (int y = 0; y < nHeight; y++)
     {
       for (int x = 0; x < nWidth; x++)
-        pDst[x] = threshold<Byte, int>(abs<int>(pDst[x] - pSrc[x]), nLowThreshold, nHighThreshold);
+        pDst[x] = threshold<uint8_t, int>(abs<int>(pDst[x] - pSrc[x]), nLowThreshold, nHighThreshold);
       pDst += nDstPitch;
       pSrc += nSrcPitch;
     }
@@ -32,7 +32,7 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Mask {
 
 
   template <MemoryMode mem_mode>
-  static uint64_t sad_sse2_op(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight)
+  static uint64_t sad_sse2_op(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight)
   {
     uint64_t sad = 0; // avoid overflow
     int wMod16 = (nWidth / 16) * 16;
@@ -63,15 +63,15 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Mask {
   }
 
   template <MemoryMode mem_mode>
-  static void mask_sse2_op(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdiff_t nSrcPitch, int nLowThreshold, int nHighThreshold, int nWidth, int nHeight)
+  static void mask_sse2_op(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nLowThreshold, int nHighThreshold, int nWidth, int nHeight)
   {
     int wMod16 = (nWidth / 16) * 16;
     auto pDst2 = pDst;
     auto pSrc2 = pSrc;
 
     auto v128 = _mm_set1_epi32(0x80808080);
-    auto lowThresh = _mm_set1_epi8(Byte(nLowThreshold));
-    auto highThresh = _mm_set1_epi8(Byte(nHighThreshold));
+    auto lowThresh = _mm_set1_epi8(uint8_t(nLowThreshold));
+    auto highThresh = _mm_set1_epi8(uint8_t(nHighThreshold));
     lowThresh = _mm_sub_epi8(lowThresh, v128);
     highThresh = _mm_sub_epi8(highThresh, v128);
 
@@ -99,12 +99,12 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Mask {
 
 
 template <decltype(sad_c_op) sad, decltype(mask_c_op) mask>
-bool mask_t(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdiff_t nSrcPitch, int nLowThreshold, int nHighThreshold, int nMotionThreshold, int nSceneChange, int nSceneChangeValue, int nWidth, int nHeight)
+bool mask_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nLowThreshold, int nHighThreshold, int nMotionThreshold, int nSceneChange, int nSceneChangeValue, int nWidth, int nHeight)
 {
     bool scenechange = nSceneChange >= 2 ? nSceneChange == 3 : sad(pDst, nDstPitch, pSrc, nSrcPitch, nWidth, nHeight) > (uint64_t)(nMotionThreshold * nWidth * nHeight);
 
     if (scenechange) {
-        Functions::memset_plane(pDst, nDstPitch, nWidth, nHeight, static_cast<Byte>(nSceneChangeValue));
+        Functions::memset_plane(pDst, nDstPitch, nWidth, nHeight, static_cast<uint8_t>(nSceneChangeValue));
     } else {
         mask(pDst, nDstPitch, pSrc, nSrcPitch, nLowThreshold, nHighThreshold, nWidth, nHeight);
     }

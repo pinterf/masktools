@@ -5,9 +5,9 @@
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Mask { namespace Edge {
 
-typedef void(Processor)(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdiff_t nSrcPitch, const Short matrix[10], int nLowThreshold, int nHighThreshold, int nWidth, int nHeight);
-typedef void(Processor16)(Word *pDst, ptrdiff_t nDstPitch, const Word *pSrc, ptrdiff_t nSrcPitch, const Short matrix[10], int nLowThreshold, int nHighThreshold, int nWidth, int nHeight);
-typedef void(Processor32)(Float *pDst, ptrdiff_t nDstPitch, const Float *pSrc, ptrdiff_t nSrcPitch, const Float matrix[10], Float nLowThreshold, Float nHighThreshold, int nWidth, int nHeight);
+typedef void(Processor)(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, const int16_t matrix[10], int nLowThreshold, int nHighThreshold, int nWidth, int nHeight);
+typedef void(Processor16)(uint16_t *pDst, ptrdiff_t nDstPitch, const uint16_t *pSrc, ptrdiff_t nSrcPitch, const int16_t matrix[10], int nLowThreshold, int nHighThreshold, int nWidth, int nHeight);
+typedef void(Processor32)(float *pDst, ptrdiff_t nDstPitch, const float *pSrc, ptrdiff_t nSrcPitch, const float matrix[10], float nLowThreshold, float nHighThreshold, int nWidth, int nHeight);
 
 extern Processor *convolution_c;
 extern Processor *convolution_sse2;
@@ -112,8 +112,8 @@ class EdgeMask : public MaskTools::Filter
    float nLowThresholds_f[4];
    float nHighThresholds_f[4];
 
-   Short matrix[10];
-   Float matrix_f[10];
+   int16_t matrix[10];
+   float matrix_f[10];
 
    ProcessorList<Processor> processors;
    ProcessorList<Processor16> processors16;
@@ -121,7 +121,7 @@ class EdgeMask : public MaskTools::Filter
 
 protected:
 
-    virtual void process(int n, const Plane<Byte> &dst, int nPlane, const Filtering::Frame<const Byte> frames[4], const Constraint constraints[4]) override
+    virtual void process(int n, const Plane<uint8_t> &dst, int nPlane, const Filtering::Frame<const uint8_t> frames[4], const Constraint constraints[4]) override
     {
         UNUSED(n);
         if (bit_depths[C] == 8) {
@@ -130,13 +130,13 @@ protected:
             matrix, nLowThresholds[nPlane], nHighThresholds[nPlane], dst.width(), dst.height());
         }
         else if(bit_depths[C] <= 16) {
-          processors16.best_processor(constraints[nPlane])((Word *)dst.data(), dst.pitch(),
-            (Word *)frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
+          processors16.best_processor(constraints[nPlane])((uint16_t *)dst.data(), dst.pitch(),
+            (uint16_t *)frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
             matrix, nLowThresholds[nPlane], nHighThresholds[nPlane], dst.width(), dst.height());
         }
         else { // float
-          processors32.best_processor(constraints[nPlane])((Float *)dst.data(), dst.pitch(),
-            (Float *)frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
+          processors32.best_processor(constraints[nPlane])((float *)dst.data(), dst.pitch(),
+            (float *)frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
             matrix_f, nLowThresholds_f[nPlane], nHighThresholds_f[nPlane], dst.width(), dst.height());
         }
     }
@@ -507,10 +507,10 @@ public:
          bool isAsmOk = true;
          if (isFloat) {
            memset(matrix_f, 0, sizeof(matrix_f));
-           Float nNegative = 0, nPositive = 0;
+           float nNegative = 0, nPositive = 0;
            for (int i = 0; i < 9; i++)
            {
-             Float coefficient;
+             float coefficient;
 
              if (!coeffs.size())
              {
@@ -519,17 +519,17 @@ public:
              }
 
              print(LOG_DEBUG, "%i\n", coeffs.size());
-             matrix_f[i] = coefficient = static_cast<Float>(coeffs.front().getValue(0, 0, 0));
+             matrix_f[i] = coefficient = static_cast<float>(coeffs.front().getValue(0, 0, 0));
 
              nNegative = nNegative + (coefficient < 0 ? -coefficient : 0);
              nPositive = nPositive + (coefficient > 0 ? +coefficient : 0);
              coeffs.pop_front();
            }
-           Float nSum = max<Float>(nNegative, nPositive);
+           float nSum = max<float>(nNegative, nPositive);
 
            // when there is a 10th value, it overwrites max(possum, negsum)
            if (coeffs.size())
-             nSum = static_cast<Float>(coeffs.front().getValue(0, 0, 0));
+             nSum = static_cast<float>(coeffs.front().getValue(0, 0, 0));
 
            /* disable asm if sum of coefficients indicates a risk of overflow */
 #if 0
@@ -545,13 +545,13 @@ public:
              if ((1 << i) >= nSum)
              {
                if (!coeffs.size())
-                 nSum = (Float)(1 << i);
+                 nSum = (float)(1 << i);
                break;
              }
            }
 #endif
 
-           matrix_f[9] = static_cast<Float>(nSum);
+           matrix_f[9] = static_cast<float>(nSum);
 
 #if 0
            // float: no integer division by shift
@@ -568,7 +568,7 @@ public:
            int nNegative = 0, nPositive = 0;
            for (int i = 0; i < 9; i++)
            {
-             Short coefficient;
+             int16_t coefficient;
 
              if (!coeffs.size())
              {
@@ -577,7 +577,7 @@ public:
              }
 
              print(LOG_DEBUG, "%i\n", coeffs.size());
-             matrix[i] = coefficient = static_cast<Short>(coeffs.front().getValue(0, 0, 0));
+             matrix[i] = coefficient = static_cast<int16_t>(coeffs.front().getValue(0, 0, 0));
 
              nNegative += coefficient < 0 ? -coefficient : 0;
              nPositive += coefficient > 0 ? +coefficient : 0;
@@ -586,7 +586,7 @@ public:
            int nSum = max<int>(nNegative, nPositive);
 
            if (coeffs.size())
-             nSum = static_cast<Short>(coeffs.front().getValue(0, 0, 0));
+             nSum = static_cast<int16_t>(coeffs.front().getValue(0, 0, 0));
 
            /* disable asm if sum of coefficients indicates a risk of overflow */
            if (nNegative > 128 || nPositive > 128)
@@ -607,7 +607,7 @@ public:
              }
            }
 
-           matrix[9] = static_cast<Short>(nSum);
+           matrix[9] = static_cast<int16_t>(nSum);
 
            if (i >= 15)
              error = "Too high divisor, please specify a divisor between 1 and 32767";

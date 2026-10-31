@@ -4,21 +4,21 @@
 
 using namespace Filtering;
 
-static inline Byte meanMax(Byte a1, Byte a2, Byte a3, Byte a4, Byte a5, Byte a6, Byte a7, Byte a8, Byte a9)
+static inline uint8_t meanMax(uint8_t a1, uint8_t a2, uint8_t a3, uint8_t a4, uint8_t a5, uint8_t a6, uint8_t a7, uint8_t a8, uint8_t a9)
 {
     int nSum = 0;
     nSum += a1 + a2 + a3 + a4 + a6 + a7 + a8 + a9;
     nSum >>= 3;
-    return static_cast<Byte>(nSum > a5 ? nSum : a5);
+    return static_cast<uint8_t>(nSum > a5 ? nSum : a5);
 }
 
-static inline Byte meanMaxThresholded(Byte a1, Byte a2, Byte a3, Byte a4, Byte a5, Byte a6, Byte a7, Byte a8, Byte a9, int nMaxDeviation)
+static inline uint8_t meanMaxThresholded(uint8_t a1, uint8_t a2, uint8_t a3, uint8_t a4, uint8_t a5, uint8_t a6, uint8_t a7, uint8_t a8, uint8_t a9, int nMaxDeviation)
 {
     int nMeanMax = meanMax(a1, a2, a3, a4, a5, a6, a7, a8, a9);
     if (nMeanMax - a5 > nMaxDeviation) {
         nMeanMax = a5 + nMaxDeviation;
     }
-    return static_cast<Byte>(nMeanMax);
+    return static_cast<uint8_t>(nMeanMax);
 }
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Morphologic { namespace Inflate {

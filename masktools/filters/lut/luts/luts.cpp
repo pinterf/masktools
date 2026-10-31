@@ -5,7 +5,7 @@ using namespace Filtering;
 
 //similar template to lutf
 template<bool realtime, class T>
-static void custom_c(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdiff_t nSrcPitch, const Byte *pLut, const Float *pLut_w, Parser::Context *ctx, Parser::Context *ctx_w, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, const String &mode)
+static void custom_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, const uint8_t *pLut, const float *pLut_w, Parser::Context *ctx, Parser::Context *ctx_w, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, const String &mode)
 {
    UNUSED(pLut_w);
    UNUSED(ctx_w);
@@ -44,7 +44,7 @@ static void custom_c(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdiff_
 }
 
 template<bool realtime, class T>
-static void custom_weight_c(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdiff_t nSrcPitch, const Byte *pLut, const Float *pLut_w, Parser::Context *ctx, Parser::Context *ctx_w, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, const String &mode)
+static void custom_weight_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, const uint8_t *pLut, const float *pLut_w, Parser::Context *ctx, Parser::Context *ctx_w, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, const String &mode)
 {
   T new_value(mode);
   for (int j = 0; j < nHeight; j++)
@@ -84,7 +84,7 @@ static void custom_weight_c(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, p
 }
 
 template<bool realtime, int bits_per_pixel, class T>
-static void custom16_c(Byte *pDst8, ptrdiff_t nDstPitch, const Byte *pSrc8, ptrdiff_t nSrcPitch, const Byte *pLut, const Float *pLut_w, Parser::Context *ctx, Parser::Context *ctx_w, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, const String &mode)
+static void custom16_c(uint8_t *pDst8, ptrdiff_t nDstPitch, const uint8_t *pSrc8, ptrdiff_t nSrcPitch, const uint8_t *pLut, const float *pLut_w, Parser::Context *ctx, Parser::Context *ctx_w, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, const String &mode)
 {
   UNUSED(pLut_w);
   UNUSED(ctx_w);
@@ -136,7 +136,7 @@ static void custom16_c(Byte *pDst8, ptrdiff_t nDstPitch, const Byte *pSrc8, ptrd
 
 //similar template to lutf
 template<bool realtime, int bits_per_pixel, class T>
-static void custom16_weight_c(Byte *pDst8, ptrdiff_t nDstPitch, const Byte *pSrc8, ptrdiff_t nSrcPitch, const Byte *pLut, const Float *pLut_w, Parser::Context *ctx, Parser::Context *ctx_w, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, const String &mode)
+static void custom16_weight_c(uint8_t *pDst8, ptrdiff_t nDstPitch, const uint8_t *pSrc8, ptrdiff_t nSrcPitch, const uint8_t *pLut, const float *pLut_w, Parser::Context *ctx, Parser::Context *ctx_w, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, const String &mode)
 {
   T new_value(mode);
 
@@ -188,7 +188,7 @@ static void custom16_weight_c(Byte *pDst8, ptrdiff_t nDstPitch, const Byte *pSrc
       if(bits_per_pixel == 16)
         pDst[i] = new_value.finalize_w();  // different from non-weight version
       else
-        pDst[i] = min(new_value.finalize_w(), (Word)max_pixel_value);
+        pDst[i] = min(new_value.finalize_w(), (uint16_t)max_pixel_value);
     }
     pSrc += nSrcPitch;
     pDst += nDstPitch;
@@ -198,7 +198,7 @@ static void custom16_weight_c(Byte *pDst8, ptrdiff_t nDstPitch, const Byte *pSrc
 
 //similar template to lutf
 template<class T>
-static void custom32_c(Byte *pDst8, ptrdiff_t nDstPitch, const Byte *pSrc8, ptrdiff_t nSrcPitch, const Byte *pLut, const Float *pLut_w, Parser::Context *ctx, Parser::Context *ctx_w, 
+static void custom32_c(uint8_t *pDst8, ptrdiff_t nDstPitch, const uint8_t *pSrc8, ptrdiff_t nSrcPitch, const uint8_t *pLut, const float *pLut_w, Parser::Context *ctx, Parser::Context *ctx_w, 
   const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, const String &mode, bool chroma)
 {
   UNUSED(pLut);
@@ -241,7 +241,7 @@ static void custom32_c(Byte *pDst8, ptrdiff_t nDstPitch, const Byte *pSrc8, ptrd
 }
 
 template<class T>
-static void custom32_weight_c(Byte *pDst8, ptrdiff_t nDstPitch, const Byte *pSrc8, ptrdiff_t nSrcPitch, const Byte *pLut, const Float *pLut_w, Parser::Context *ctx, Parser::Context *ctx_w, 
+static void custom32_weight_c(uint8_t *pDst8, ptrdiff_t nDstPitch, const uint8_t *pSrc8, ptrdiff_t nSrcPitch, const uint8_t *pLut, const float *pLut_w, Parser::Context *ctx, Parser::Context *ctx_w, 
   const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, const String &mode, bool chroma)
 {
   UNUSED(pLut);

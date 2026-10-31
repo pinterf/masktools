@@ -145,10 +145,10 @@ public:
 
       const bool need_copy_frame_properties = has_at_least_v8 && !_filter.is_in_place();
 
-      Frame<Byte> destination = dynamic_cast<Clip *>((Filtering::Clip *)_filter.get_childs()[0].get())->ConvertTo<Byte>(dst);
+      Frame<uint8_t> destination = dynamic_cast<Clip *>((Filtering::Clip *)_filter.get_childs()[0].get())->ConvertTo<uint8_t>(dst);
 
       // see in common/base/filter.h
-      // I have to pass dst as ref, this whole thing is very nice but was made so abstract that I'm unable to access dst from Frame<Byte>
+      // I have to pass dst as ref, this whole thing is very nice but was made so abstract that I'm unable to access dst from Frame<uint8_t>
       _filter.get_frame(n, destination, need_copy_frame_properties, dst, env);
 
       return dst;
@@ -160,7 +160,7 @@ public:
 
     static void create(IScriptEnvironment *env)
     {
-      // Float parameters are registered with an integer alternative as well: with only the float one, an older
+      // float parameters are registered with an integer alternative as well: with only the float one, an older
       // masktools2 (integer-only signature) loaded earlier would be the better match for integer arguments.
       // The integer one first, the order is important.
       String signature1 = SignatureToString(T::filter_signature(), true); // integer

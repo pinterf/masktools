@@ -8,8 +8,8 @@
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Lut { namespace Spatial {
 
-typedef void(Processor)(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdiff_t nSrcPitch, const Byte lut[65536], const Float lut_w[65536], Parser::Context *ctx, Parser::Context *ctx_w, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, const String &mode);
-typedef void(Processor32)(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdiff_t nSrcPitch, const Byte lut[65536], const Float lut_w[65536], Parser::Context *ctx, Parser::Context *ctx_w, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, const String &mode, bool chroma);
+typedef void(Processor)(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, const uint8_t lut[65536], const float lut_w[65536], Parser::Context *ctx, Parser::Context *ctx_w, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, const String &mode);
+typedef void(Processor32)(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, const uint8_t lut[65536], const float lut_w[65536], Parser::Context *ctx, Parser::Context *ctx_w, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, const String &mode, bool chroma);
 
 // lut 8-16
 extern Processor *processors_array[NUM_MODES];
@@ -62,23 +62,23 @@ class Luts : public MaskTools::Filter
    // re-use repeated luts, like in lutxyz
    struct Lut {
      bool used;
-     Byte *ptr;
+     uint8_t *ptr;
    };
 
    Lut luts[4+1];
 
    struct Lut_w {
      bool used;
-     Float *ptr;
+     float *ptr;
    };
 
    Lut_w luts_weight[4+1]; // max planes + 1
 
-   static Byte *calculateLut(const std::deque<Filtering::Parser::Symbol> &expr, int bits_per_pixel, String scale_inputs, int clamp_float) {
+   static uint8_t *calculateLut(const std::deque<Filtering::Parser::Symbol> &expr, int bits_per_pixel, String scale_inputs, int clamp_float) {
      Parser::Context ctx(expr, scale_inputs, clamp_float);
      int pixelsize = bits_per_pixel == 8 ? 1 : 2; // byte / uint16_t
      size_t buffer_size = ((size_t)1 << bits_per_pixel) * ((size_t)1 << bits_per_pixel) *pixelsize;
-     Byte *lut = new Byte[buffer_size];
+     uint8_t *lut = new uint8_t[buffer_size];
 
      const int size = 1 << bits_per_pixel;
 
@@ -91,23 +91,23 @@ class Luts : public MaskTools::Filter
      case 10:
        for (int x = 0; x < size; x++)
          for (int y = 0; y < size; y++)
-           reinterpret_cast<Word *>(lut)[(x << 10) + y] = ctx.compute_word_xy<10>(x, y);
+           reinterpret_cast<uint16_t *>(lut)[(x << 10) + y] = ctx.compute_word_xy<10>(x, y);
        break;
      case 12:
        for (int x = 0; x < size; x++)
          for (int y = 0; y < size; y++)
-           reinterpret_cast<Word *>(lut)[(x << 12) + y] = ctx.compute_word_xy<12>(x, y);
+           reinterpret_cast<uint16_t *>(lut)[(x << 12) + y] = ctx.compute_word_xy<12>(x, y);
        break;
      case 14:
        for (int x = 0; x < size; x++)
          for (int y = 0; y < size; y++)
-           reinterpret_cast<Word *>(lut)[(x << 14) + y] = ctx.compute_word_xy<14>(x, y);
+           reinterpret_cast<uint16_t *>(lut)[(x << 14) + y] = ctx.compute_word_xy<14>(x, y);
        break;
      case 16:
        // 64bit only
        for (int x = 0; x < 65536; x++)
          for (int y = 0; y < 65536; y++)
-           reinterpret_cast<Word *>(lut)[((size_t)x << 16) + y] = ctx.compute_word_xy<16>(x, y);
+           reinterpret_cast<uint16_t *>(lut)[((size_t)x << 16) + y] = ctx.compute_word_xy<16>(x, y);
        break;
      }
      return lut;
@@ -115,12 +115,12 @@ class Luts : public MaskTools::Filter
 
    // weight luts: float content
    template<int bits_per_pixel>
-   static Float *calculateLut_w(const std::deque<Filtering::Parser::Symbol> &expr, String scale_inputs, int clamp_float) {
+   static float *calculateLut_w(const std::deque<Filtering::Parser::Symbol> &expr, String scale_inputs, int clamp_float) {
      Parser::Context ctx(expr, scale_inputs, clamp_float);
      const int size = 1 << bits_per_pixel;
 
      size_t buffer_size = ((size_t)size) * ((size_t)size);
-     Float *lut = new Float[buffer_size];
+     float *lut = new float[buffer_size];
 
      for (int x = 0; x < size; x++)
        for (int y = 0; y < size; y++)
@@ -144,7 +144,7 @@ class Luts : public MaskTools::Filter
    }
 
 protected:
-    virtual void process(int n, const Plane<Byte> &dst, int nPlane, const Filtering::Frame<const Byte> frames[4], const Constraint constraints[4]) override
+    virtual void process(int n, const Plane<uint8_t> &dst, int nPlane, const Filtering::Frame<const uint8_t> frames[4], const Constraint constraints[4]) override
     {
         UNUSED(n);
         if (realtime) {

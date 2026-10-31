@@ -2,7 +2,7 @@
 
 using namespace Filtering;
 
-void Filtering::MaskTools::Filters::Lut::Single::lut_c(Byte * dstp, ptrdiff_t dst_pitch, int width, int height, const Byte * lut)
+void Filtering::MaskTools::Filters::Lut::Single::lut_c(uint8_t * dstp, ptrdiff_t dst_pitch, int width, int height, const uint8_t * lut)
 {
     for (int y = 0; y < height; y++)
     {
@@ -13,7 +13,7 @@ void Filtering::MaskTools::Filters::Lut::Single::lut_c(Byte * dstp, ptrdiff_t ds
     }
 }
 
-void Filtering::MaskTools::Filters::Lut::Single::realtime8_c(Byte *dstp, ptrdiff_t dst_pitch, int width, int height, Parser::Context &ctx)
+void Filtering::MaskTools::Filters::Lut::Single::realtime8_c(uint8_t *dstp, ptrdiff_t dst_pitch, int width, int height, Parser::Context &ctx)
 {
   for (int y = 0; y < height; y++)
   {
@@ -25,12 +25,12 @@ void Filtering::MaskTools::Filters::Lut::Single::realtime8_c(Byte *dstp, ptrdiff
 }
 
 
-void Filtering::MaskTools::Filters::Lut::Single::realtime32_c(Byte *dstp, ptrdiff_t dst_pitch, int width, int height, bool chroma, Parser::Context &ctx)
+void Filtering::MaskTools::Filters::Lut::Single::realtime32_c(uint8_t *dstp, ptrdiff_t dst_pitch, int width, int height, bool chroma, Parser::Context &ctx)
 {
   for (int y = 0; y < height; y++)
   {
     for (int x = 0; x < width; x++) {
-      reinterpret_cast<Float *>(dstp)[x] = ctx.compute_float_x(reinterpret_cast<Float *>(dstp)[x], chroma);
+      reinterpret_cast<float *>(dstp)[x] = ctx.compute_float_x(reinterpret_cast<float *>(dstp)[x], chroma);
     }
     dstp += dst_pitch;
   }

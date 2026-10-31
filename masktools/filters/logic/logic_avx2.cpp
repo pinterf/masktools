@@ -3,27 +3,27 @@
 
 using namespace Filtering;
 
-static MT_FORCEINLINE Byte add(Byte a, Byte b) { return clip<Byte, int>(a + (int)b); }
-static MT_FORCEINLINE Byte sub(Byte a, Byte b) { return clip<Byte, int>(a - (int)b); }
-static MT_FORCEINLINE Byte nop(Byte a, Byte b) { UNUSED(b); return a; }
+static MT_FORCEINLINE uint8_t add(uint8_t a, uint8_t b) { return clip<uint8_t, int>(a + (int)b); }
+static MT_FORCEINLINE uint8_t sub(uint8_t a, uint8_t b) { return clip<uint8_t, int>(a - (int)b); }
+static MT_FORCEINLINE uint8_t nop(uint8_t a, uint8_t b) { UNUSED(b); return a; }
 
-static MT_FORCEINLINE Byte _and(Byte a, Byte b, Byte th1, Byte th2) { UNUSED(th1); UNUSED(th2); return a & b; }
-static MT_FORCEINLINE Byte _or(Byte a, Byte b, Byte th1, Byte th2) { UNUSED(th1); UNUSED(th2); return a | b; }
-static MT_FORCEINLINE Byte andn(Byte a, Byte b, Byte th1, Byte th2) { UNUSED(th1); UNUSED(th2); return a & ~b; }
-static MT_FORCEINLINE Byte _xor(Byte a, Byte b, Byte th1, Byte th2) { UNUSED(th1); UNUSED(th2); return a ^ b; }
+static MT_FORCEINLINE uint8_t _and(uint8_t a, uint8_t b, uint8_t th1, uint8_t th2) { UNUSED(th1); UNUSED(th2); return a & b; }
+static MT_FORCEINLINE uint8_t _or(uint8_t a, uint8_t b, uint8_t th1, uint8_t th2) { UNUSED(th1); UNUSED(th2); return a | b; }
+static MT_FORCEINLINE uint8_t andn(uint8_t a, uint8_t b, uint8_t th1, uint8_t th2) { UNUSED(th1); UNUSED(th2); return a & ~b; }
+static MT_FORCEINLINE uint8_t _xor(uint8_t a, uint8_t b, uint8_t th1, uint8_t th2) { UNUSED(th1); UNUSED(th2); return a ^ b; }
 
 template <decltype(add) opa, decltype(add) opb>
-static MT_FORCEINLINE Byte min_t(Byte a, Byte b, Byte th1, Byte th2) { 
-    return min<Byte>(opa(a, th1), opb(b, th2)); 
+static MT_FORCEINLINE uint8_t min_t(uint8_t a, uint8_t b, uint8_t th1, uint8_t th2) { 
+    return min<uint8_t>(opa(a, th1), opb(b, th2)); 
 }
 
 template <decltype(add) opa, decltype(add) opb>
-static MT_FORCEINLINE Byte max_t(Byte a, Byte b, Byte th1, Byte th2) { 
-    return max<Byte>(opa(a, th1), opb(b, th2)); 
+static MT_FORCEINLINE uint8_t max_t(uint8_t a, uint8_t b, uint8_t th1, uint8_t th2) { 
+    return max<uint8_t>(opa(a, th1), opb(b, th2)); 
 }
 
 template <decltype(_and) op>
-static void logic_t(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight, Byte nThresholdDestination, Byte nThresholdSource)
+static void logic_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight, uint8_t nThresholdDestination, uint8_t nThresholdSource)
 {
    for ( int y = 0; y < nHeight; y++ )
    {
@@ -68,13 +68,13 @@ static MT_FORCEINLINE __m256i max_t_avx2(const __m256i &a, const __m256i &b, con
 
 
 template<MemoryMode mem_mode, decltype(and_avx2_op) op, decltype(_and) op_c>
-    static void logic_t_avx2(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight, Byte nThresholdDestination, Byte nThresholdSource)
+    static void logic_t_avx2(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight, uint8_t nThresholdDestination, uint8_t nThresholdSource)
 {
     int wMod32 = (nWidth / 32) * 32;
     auto pDst2 = pDst;
     auto pSrc2 = pSrc;
-    auto tDest = _mm256_set1_epi8(Byte(nThresholdDestination));
-    auto tSource = _mm256_set1_epi8(Byte(nThresholdSource));
+    auto tDest = _mm256_set1_epi8(uint8_t(nThresholdDestination));
+    auto tSource = _mm256_set1_epi8(uint8_t(nThresholdSource));
 
     for ( int j = 0; j < nHeight; ++j ) {
         for ( int i = 0; i < wMod32; i+=32 ) {

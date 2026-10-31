@@ -4,7 +4,7 @@
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Invert {
 
 template<int bits_per_pixel>
-void invert16_t_c(Byte *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight)
+void invert16_t_c(uint8_t *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight)
 {
   uint16_t max_pixel_value_mask = (1 << bits_per_pixel) - 1;
   for (int j = 0; j < nHeight; j++)
@@ -15,7 +15,7 @@ void invert16_t_c(Byte *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight)
   }
 }
 
-void invert_c(Byte *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight)
+void invert_c(uint8_t *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight)
 {
    for ( int j = 0; j < nHeight; j++ )
    {
@@ -25,17 +25,17 @@ void invert_c(Byte *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight)
    }
 }
 
-void invert32_c(Byte *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight)
+void invert32_c(uint8_t *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight)
 {
   for (int j = 0; j < nHeight; j++)
   {
     for (int i = 0; i < nWidth; i++)
-      reinterpret_cast<Float *>(pDst)[i] = 1.0f - reinterpret_cast<Float *>(pDst)[i];
+      reinterpret_cast<float *>(pDst)[i] = 1.0f - reinterpret_cast<float *>(pDst)[i];
     pDst += nDstPitch;
   }
 }
 
-void invert_sse2(Byte *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight)
+void invert_sse2(uint8_t *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight)
 {
     auto fff = _mm_set1_epi32(0xFFFFFFFF);
     for ( int j = 0; j < nHeight; j++ ) {
@@ -49,7 +49,7 @@ void invert_sse2(Byte *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight)
 }
 
 template<int bits_per_pixel>
-void invert16_t_sse2(Byte *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight)
+void invert16_t_sse2(uint8_t *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight)
 {
   nWidth *= 2; // really rowsize: width * sizeof(uint16)
 
@@ -67,7 +67,7 @@ void invert16_t_sse2(Byte *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight)
   }
 }
 
-void invert32_sse2(Byte *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight)
+void invert32_sse2(uint8_t *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight)
 {
   nWidth *= sizeof(float);
 
@@ -83,14 +83,14 @@ void invert32_sse2(Byte *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight)
 }
 
 
-template void invert16_t_c<10>(Byte *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight);
-template void invert16_t_c<12>(Byte *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight);
-template void invert16_t_c<14>(Byte *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight);
-template void invert16_t_c<16>(Byte *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight);
-template void invert16_t_sse2<10>(Byte *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight);
-template void invert16_t_sse2<12>(Byte *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight);
-template void invert16_t_sse2<14>(Byte *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight);
-template void invert16_t_sse2<16>(Byte *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight);
+template void invert16_t_c<10>(uint8_t *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight);
+template void invert16_t_c<12>(uint8_t *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight);
+template void invert16_t_c<14>(uint8_t *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight);
+template void invert16_t_c<16>(uint8_t *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight);
+template void invert16_t_sse2<10>(uint8_t *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight);
+template void invert16_t_sse2<12>(uint8_t *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight);
+template void invert16_t_sse2<14>(uint8_t *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight);
+template void invert16_t_sse2<16>(uint8_t *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight);
 
 
 Processor *invert10_c = &invert16_t_c<10>;

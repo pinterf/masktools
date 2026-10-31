@@ -4,22 +4,22 @@
 
 using namespace Filtering;
 
-static MT_FORCEINLINE Float meanMin(Float a1, Float a2, Float a3, Float a4, Float a5, Float a6, Float a7, Float a8, Float a9)
+static MT_FORCEINLINE float meanMin(float a1, float a2, float a3, float a4, float a5, float a6, float a7, float a8, float a9)
 {
-    Float nSum = (a1 + a2 + a3 + a4 + a6 + a7 + a8 + a9) / 8.0f;
+    float nSum = (a1 + a2 + a3 + a4 + a6 + a7 + a8 + a9) / 8.0f;
     return nSum < a5 ? nSum : a5;
 }
 
-static MT_FORCEINLINE Float meanMinThresholded(Float a1, Float a2, Float a3, Float a4, Float a5, Float a6, Float a7, Float a8, Float a9, Float nMaxDeviation)
+static MT_FORCEINLINE float meanMinThresholded(float a1, float a2, float a3, float a4, float a5, float a6, float a7, float a8, float a9, float nMaxDeviation)
 {
-    Float nMeanMin = meanMin(a1, a2, a3, a4, a5, a6, a7, a8, a9);
+    float nMeanMin = meanMin(a1, a2, a3, a4, a5, a6, a7, a8, a9);
     if ( a5 - nMeanMin > nMaxDeviation ) nMeanMin = a5 - nMaxDeviation;
     return nMeanMin;
 }
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Morphologic { namespace Deflate {
 
-Processor32 *deflate32_c = &MorphologicProcessor<Float>::generic_32_c<
+Processor32 *deflate32_c = &MorphologicProcessor<float>::generic_32_c<
     process_line_morpho_32_c<Border::Left, meanMinThresholded>,
     process_line_morpho_32_c<Border::None, meanMinThresholded>,
     process_line_morpho_32_c<Border::Right, meanMinThresholded>

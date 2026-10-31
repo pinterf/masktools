@@ -8,9 +8,9 @@
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Lut { namespace Frame {
 
-typedef void(Processor)(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdiff_t nSrcPitch, const Byte lut[65536], Parser::Context *ctx, int nWidth, int nHeight); // common lut/realtime, templatized
-typedef void(Processor16)(Word *pDst, ptrdiff_t nDstPitch, const Word *pSrc, ptrdiff_t nSrcPitch, const Word *lut, Parser::Context *ctx, int nWidth, int nHeight); // common lut/realtime, templatized
-typedef void(Processor32)(Float *pDst, ptrdiff_t nDstPitch, const Float *pSrc, ptrdiff_t nSrcPitch, Parser::Context *ctx, int nWidth, int nHeight, bool chroma); // realtime only
+typedef void(Processor)(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, const uint8_t lut[65536], Parser::Context *ctx, int nWidth, int nHeight); // common lut/realtime, templatized
+typedef void(Processor16)(uint16_t *pDst, ptrdiff_t nDstPitch, const uint16_t *pSrc, ptrdiff_t nSrcPitch, const uint16_t *lut, Parser::Context *ctx, int nWidth, int nHeight); // common lut/realtime, templatized
+typedef void(Processor32)(float *pDst, ptrdiff_t nDstPitch, const float *pSrc, ptrdiff_t nSrcPitch, Parser::Context *ctx, int nWidth, int nHeight, bool chroma); // realtime only
 
 extern Processor *processors_array[NUM_MODES];
 extern Processor *processorsCtx_array[NUM_MODES];
@@ -30,16 +30,16 @@ class Lutf : public MaskTools::Filter
   // re-use repeated luts, like in lutxyz
   struct Lut {
     bool used;
-    Byte *ptr;
+    uint8_t *ptr;
   };
 
   Lut luts[4+1]; // max plane count + 1
 
-  static Byte *calculateLut(const std::deque<Filtering::Parser::Symbol> &expr, int bits_per_pixel, String scale_inputs, int clamp_float, int& compute_error) {
+  static uint8_t *calculateLut(const std::deque<Filtering::Parser::Symbol> &expr, int bits_per_pixel, String scale_inputs, int clamp_float, int& compute_error) {
     Parser::Context ctx(expr, scale_inputs, clamp_float);
     int pixelsize = bits_per_pixel == 8 ? 1 : 2; // byte / uint16_t
     size_t buffer_size = ((size_t)1 << bits_per_pixel) * ((size_t)1 << bits_per_pixel) *pixelsize;
-    Byte *lut = new Byte[buffer_size];
+    uint8_t *lut = new uint8_t[buffer_size];
 
     switch (bits_per_pixel) {
     case 8:
@@ -50,23 +50,23 @@ class Lutf : public MaskTools::Filter
     case 10:
       for (int x = 0; x < 1024; x++)
         for (int y = 0; y < 1024; y++)
-          reinterpret_cast<Word *>(lut)[(x << 10) + y] = ctx.compute_word_xy<10>(x, y);
+          reinterpret_cast<uint16_t *>(lut)[(x << 10) + y] = ctx.compute_word_xy<10>(x, y);
       break;
     case 12:
       for (int x = 0; x < 4096; x++)
         for (int y = 0; y < 4096; y++)
-          reinterpret_cast<Word *>(lut)[(x << 12) + y] = ctx.compute_word_xy<12>(x, y);
+          reinterpret_cast<uint16_t *>(lut)[(x << 12) + y] = ctx.compute_word_xy<12>(x, y);
       break;
     case 14:
       for (int x = 0; x < 16384; x++)
         for (int y = 0; y < 16384; y++)
-          reinterpret_cast<Word *>(lut)[(x << 14) + y] = ctx.compute_word_xy<14>(x, y);
+          reinterpret_cast<uint16_t *>(lut)[(x << 14) + y] = ctx.compute_word_xy<14>(x, y);
       break;
     case 16:
       // 64bit only
       for (int x = 0; x < 65536; x++)
         for (int y = 0; y < 65536; y++)
-          reinterpret_cast<Word *>(lut)[((size_t)x << 16) + y] = ctx.compute_word_xy<16>(x, y);
+          reinterpret_cast<uint16_t *>(lut)[((size_t)x << 16) + y] = ctx.compute_word_xy<16>(x, y);
       break;
     }
 
@@ -89,7 +89,7 @@ class Lutf : public MaskTools::Filter
   int clamp_float_i;
 
 protected:
-    virtual void process(int n, const Plane<Byte> &dst, int nPlane, const Filtering::Frame<const Byte> frames[4], const Constraint constraints[4]) override
+    virtual void process(int n, const Plane<uint8_t> &dst, int nPlane, const Filtering::Frame<const uint8_t> frames[4], const Constraint constraints[4]) override
     {
         UNUSED(n);
         
@@ -101,13 +101,13 @@ protected:
               frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
               nullptr, &ctx, dst.width(), dst.height());
           else if (bits_per_pixel <= 16)
-            processors16.best_processor(constraints[nPlane])((Word *)dst.data(), dst.pitch(),
-              (Word *)frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
+            processors16.best_processor(constraints[nPlane])((uint16_t *)dst.data(), dst.pitch(),
+              (uint16_t *)frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
               nullptr, &ctx, dst.width(), dst.height());
           else {
             const bool chroma = ((nPlane == 1 || nPlane == 2) && !planes_isRGB[C]);
-            processors32.best_processor(constraints[nPlane])((Float *)dst.data(), dst.pitch(),
-              (Float *)frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
+            processors32.best_processor(constraints[nPlane])((float *)dst.data(), dst.pitch(),
+              (float *)frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
               &ctx, dst.width(), dst.height(), chroma);
           }
         }
@@ -118,9 +118,9 @@ protected:
               frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
               luts[nPlane].ptr, nullptr, dst.width(), dst.height());
           else if (bits_per_pixel <= 16)
-            processors16.best_processor(constraints[nPlane])((Word *)dst.data(), dst.pitch(),
-              (Word *)frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
-              (Word *)luts[nPlane].ptr, nullptr, dst.width(), dst.height());
+            processors16.best_processor(constraints[nPlane])((uint16_t *)dst.data(), dst.pitch(),
+              (uint16_t *)frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
+              (uint16_t *)luts[nPlane].ptr, nullptr, dst.width(), dst.height());
           // no 32 bit lut
         }
     }

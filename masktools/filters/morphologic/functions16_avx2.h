@@ -7,9 +7,9 @@
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Morphologic {
 
-typedef Word (Operator16)(Word, Word, Word, Word, Word, Word, Word, Word, Word, int); // last is nMaxDeviation
+typedef uint16_t (Operator16)(uint16_t, uint16_t, uint16_t, uint16_t, uint16_t, uint16_t, uint16_t, uint16_t, uint16_t, int); // last is nMaxDeviation
 typedef __m256i (Limit16)(__m256i source, __m256i sum, __m256i deviation);
-typedef void (ProcessLine16Avx2)(Byte *pDst, const Byte *pSrcp, const Byte *pSrc, const Byte *pSrcn, const __m256i &maxDeviation, int width);
+typedef void (ProcessLine16Avx2)(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const __m256i &maxDeviation, int width);
 
 enum Directions {
     Vertical = 1,
@@ -20,7 +20,7 @@ enum Directions {
 
 
 template<Border borderMode, Operator16 op>
-void process_line_morpho_16_avx2_c(Word *pDst, const Word *pSrcp, const Word *pSrc, const Word *pSrcn, int maxDeviation, int width, int height, ptrdiff_t srcPitch, ptrdiff_t dstPitch, int nOrigHeight) {
+void process_line_morpho_16_avx2_c(uint16_t *pDst, const uint16_t *pSrcp, const uint16_t *pSrc, const uint16_t *pSrcn, int maxDeviation, int width, int height, ptrdiff_t srcPitch, ptrdiff_t dstPitch, int nOrigHeight) {
     UNUSED(dstPitch); UNUSED(srcPitch); UNUSED(height); UNUSED(nOrigHeight);
 
     const int leftOffset = borderMode == Border::Left ? 0 : 1;
@@ -28,15 +28,15 @@ void process_line_morpho_16_avx2_c(Word *pDst, const Word *pSrcp, const Word *pS
 
     for (int x = 0; x < width; ++x) {
         pDst[x] = op(
-            reinterpret_cast<const Word*>(pSrcp)[x-leftOffset], 
-            reinterpret_cast<const Word*>(pSrcp)[x], 
-            reinterpret_cast<const Word*>(pSrcp)[x+rightOffset], 
-            reinterpret_cast<const Word*>(pSrc)[x-leftOffset], 
-            reinterpret_cast<const Word*>(pSrc)[x], 
-            reinterpret_cast<const Word*>(pSrc)[x+rightOffset], 
-            reinterpret_cast<const Word*>(pSrcn)[x-leftOffset], 
-            reinterpret_cast<const Word*>(pSrcn)[x], 
-            reinterpret_cast<const Word*>(pSrcn)[x+rightOffset], 
+            reinterpret_cast<const uint16_t*>(pSrcp)[x-leftOffset], 
+            reinterpret_cast<const uint16_t*>(pSrcp)[x], 
+            reinterpret_cast<const uint16_t*>(pSrcp)[x+rightOffset], 
+            reinterpret_cast<const uint16_t*>(pSrc)[x-leftOffset], 
+            reinterpret_cast<const uint16_t*>(pSrc)[x], 
+            reinterpret_cast<const uint16_t*>(pSrc)[x+rightOffset], 
+            reinterpret_cast<const uint16_t*>(pSrcn)[x-leftOffset], 
+            reinterpret_cast<const uint16_t*>(pSrcn)[x], 
+            reinterpret_cast<const uint16_t*>(pSrcn)[x+rightOffset], 
             maxDeviation);
     }
 }
@@ -111,7 +111,7 @@ static MT_FORCEINLINE __m256i limit_down_16_avx2(__m256i source, __m256i sum, __
 
 
 template<Border borderMode, Limit16 limit, MemoryMode mem_mode>
-static void process_line_xxflate_16_avx2(Byte *pDst, const Byte *pSrcp, const Byte *pSrc, const Byte *pSrcn, const __m256i &maxDeviation, int byte_width) {
+static void process_line_xxflate_16_avx2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const __m256i &maxDeviation, int byte_width) {
   auto zero = _mm256_setzero_si256();
   for (int x = 0; x < byte_width; x += 32) {
     auto up_left = load16_one_to_left_si256<borderMode, mem_mode>(pSrcp + x);
@@ -179,7 +179,7 @@ static void process_line_xxflate_16_avx2(Byte *pDst, const Byte *pSrcp, const By
 }
 
 template<Border borderMode, decltype(_mm256_max_epu16) op, Limit16 limit, MemoryMode mem_mode>
-static MT_FORCEINLINE void process_line_xxpand_both_16_avx2(Byte *pDst, const Byte *pSrcp, const Byte *pSrc, const Byte *pSrcn, const __m256i &maxDeviation, int byte_width) {
+static MT_FORCEINLINE void process_line_xxpand_both_16_avx2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const __m256i &maxDeviation, int byte_width) {
   for (int x = 0; x < byte_width; x += 32) {
     __m256i up_center = simd256_load_si256<mem_mode>(pSrcp + x);
     __m256i middle_center = simd256_load_si256<mem_mode>(pSrc + x);
@@ -198,7 +198,7 @@ static MT_FORCEINLINE void process_line_xxpand_both_16_avx2(Byte *pDst, const By
 /* Vertical mt_xxpand */
 
 template<decltype(_mm256_max_epu16) op, Limit16 limit, MemoryMode mem_mode>
-static MT_FORCEINLINE void process_line_xxpand_vertical_16_avx2(Byte *pDst, const Byte *pSrcp, const Byte *pSrc, const Byte *pSrcn, const __m256i &maxDeviation, int byte_width) {
+static MT_FORCEINLINE void process_line_xxpand_vertical_16_avx2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const __m256i &maxDeviation, int byte_width) {
   for (int x = 0; x < byte_width; x += 32) {
     auto up_center = simd256_load_si256<mem_mode>(pSrcp + x);
     auto down_center = simd256_load_si256<mem_mode>(pSrcn + x);
@@ -210,19 +210,19 @@ static MT_FORCEINLINE void process_line_xxpand_vertical_16_avx2(Byte *pDst, cons
 }
 
 template<decltype(_mm256_max_epu16) op, Limit16 limit, MemoryMode mem_mode>
-static void xxpand_avx2_vertical_16(Word *pDst16, ptrdiff_t nDstPitch, const Word *pSrc16, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, int nOrigHeight) {
+static void xxpand_avx2_vertical_16(uint16_t *pDst16, ptrdiff_t nDstPitch, const uint16_t *pSrc16, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, int nOrigHeight) {
   // back to byte level
   const BYTE* pSrc = reinterpret_cast<const BYTE *>(pSrc16);
   BYTE* pDst = reinterpret_cast<BYTE *>(pDst16);
   nSrcPitch *= sizeof(uint16_t);
   nDstPitch *= sizeof(uint16_t);
 
-  const Byte *pSrcp = pSrc - nSrcPitch;
-  const Byte *pSrcn = pSrc + nSrcPitch;
+  const uint8_t *pSrcp = pSrc - nSrcPitch;
+  const uint8_t *pSrcn = pSrc + nSrcPitch;
 
   UNUSED(nCoordinates); UNUSED(pCoordinates); UNUSED(nOrigHeight);
   int byte_width = nWidth * sizeof(uint16_t);
-  auto max_dev_v = _mm256_set1_epi16(Word(nMaxDeviation));
+  auto max_dev_v = _mm256_set1_epi16(uint16_t(nMaxDeviation));
   int mod32_width = byte_width / 32 * 32;
   bool not_mod32 = byte_width != mod32_width;
 
@@ -261,29 +261,29 @@ static void xxpand_avx2_vertical_16(Word *pDst16, ptrdiff_t nDstPitch, const Wor
 
 /* Horizontal mt_xxpand */
 
-static MT_FORCEINLINE Word expand_c_horizontal_core_16_avx2(Word left, Word center, Word right, Word max_dev) {
-  Word ma = left;
+static MT_FORCEINLINE uint16_t expand_c_horizontal_core_16_avx2(uint16_t left, uint16_t center, uint16_t right, uint16_t max_dev) {
+  uint16_t ma = left;
 
   if (center > ma) ma = center;
   if (right > ma) ma = right;
 
   if (ma - center > max_dev) ma = center + max_dev;
-  return static_cast<Word>(ma); // todo bits_per_pixel template????
+  return static_cast<uint16_t>(ma); // todo bits_per_pixel template????
 }
 
-static MT_FORCEINLINE Word inpand_c_horizontal_core_16_avx2(Word left, Word center, Word right, Word max_dev) {
-  Word mi = left;
+static MT_FORCEINLINE uint16_t inpand_c_horizontal_core_16_avx2(uint16_t left, uint16_t center, uint16_t right, uint16_t max_dev) {
+  uint16_t mi = left;
 
   if (center < mi) mi = center;
   if (right < mi) mi = right;
 
   if (center - mi > max_dev) mi = center - max_dev;
-  return static_cast<Word>(mi);
+  return static_cast<uint16_t>(mi);
 }
 
 //this implemented in a somewhat retarded way to allow pDst and pSrc be the same pointer (used in 3x3 expand)
 template<decltype(_mm256_max_epu16) op, Limit16 limit, MemoryMode mem_mode, decltype(expand_c_horizontal_core_16_avx2) c_core>
-static void xxpand_avx2_horizontal_16(Word *pDst16, ptrdiff_t nDstPitch, const Word *pSrc16, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, int nOrigHeight) {
+static void xxpand_avx2_horizontal_16(uint16_t *pDst16, ptrdiff_t nDstPitch, const uint16_t *pSrc16, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, int nOrigHeight) {
   // back to byte level
   const BYTE* pSrc = reinterpret_cast<const BYTE *>(pSrc16);
   BYTE* pDst = reinterpret_cast<BYTE *>(pDst16);
@@ -295,7 +295,7 @@ static void xxpand_avx2_horizontal_16(Word *pDst16, ptrdiff_t nDstPitch, const W
   int mod32_width = byte_width / 32 * 32;
   int sse_loop_limit = byte_width == mod32_width ? mod32_width - 32 : mod32_width;
 
-  Word max_dev = Word(nMaxDeviation);
+  uint16_t max_dev = uint16_t(nMaxDeviation);
   __m256i max_dev_v = _mm256_set1_epi16(max_dev);
   __m256i left_mask = _mm256_set_epi32(0, 0, 0, 0, 0, 0, 0, 0xFFFF);
 #pragma warning(disable: 4309)
@@ -340,11 +340,11 @@ static void xxpand_avx2_horizontal_16(Word *pDst16, ptrdiff_t nDstPitch, const W
       simd256_store_si256<mem_mode>(pDst + mod32_width - 32, result);
     }
     else { //some stuff left
-      Word l = _mm256_cvtsi256_si32(left) & 0xFFFF;
+      uint16_t l = _mm256_cvtsi256_si32(left) & 0xFFFF;
 
       int x;
       for (x = mod32_width / sizeof(uint16_t); x < nWidth - 1; ++x) {
-        Word temp = c_core(l, reinterpret_cast<const uint16_t *>(pSrc)[x], reinterpret_cast<const uint16_t *>(pSrc)[x + 1], max_dev);
+        uint16_t temp = c_core(l, reinterpret_cast<const uint16_t *>(pSrc)[x], reinterpret_cast<const uint16_t *>(pSrc)[x + 1], max_dev);
         l = reinterpret_cast<const uint16_t *>(pSrc)[x];
         reinterpret_cast<uint16_t *>(pDst)[x] = temp;
       }
@@ -358,25 +358,25 @@ static void xxpand_avx2_horizontal_16(Word *pDst16, ptrdiff_t nDstPitch, const W
 /* Square mt_xxpand */
 
 template<decltype(_mm256_max_epu16) op, Limit16 limit, MemoryMode mem_mode, decltype(expand_c_horizontal_core_16_avx2) c_core>
-static void xxpand_avx2_square_16(Word *pDst, ptrdiff_t nDstPitch, const Word *pSrc, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, int nOrigHeight) {
+static void xxpand_avx2_square_16(uint16_t *pDst, ptrdiff_t nDstPitch, const uint16_t *pSrc, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, int nOrigHeight) {
   xxpand_avx2_vertical_16<op, limit, mem_mode>(pDst, nDstPitch, pSrc, nSrcPitch, nMaxDeviation, pCoordinates, nCoordinates, nWidth, nHeight, nOrigHeight);
   xxpand_avx2_horizontal_16<op, limit, mem_mode, c_core>(pDst, nDstPitch, pDst, nDstPitch, nMaxDeviation, pCoordinates, nCoordinates, nWidth, nHeight, nOrigHeight);
 }
 
 
 template<ProcessLine16Avx2 process_line_left, ProcessLine16Avx2 process_line, ProcessLine16Avx2 process_line_right>
-static void generic_16_avx2(Word *pDst16, ptrdiff_t nDstPitch, const Word *pSrc16, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, int nOrigHeight) {
+static void generic_16_avx2(uint16_t *pDst16, ptrdiff_t nDstPitch, const uint16_t *pSrc16, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, int nOrigHeight) {
   // back to byte level
   const BYTE* pSrc = reinterpret_cast<const BYTE *>(pSrc16);
   BYTE* pDst = reinterpret_cast<BYTE *>(pDst16);
   nSrcPitch *= sizeof(uint16_t);
   nDstPitch *= sizeof(uint16_t);
 
-  const Byte *pSrcp = pSrc - nSrcPitch;
-  const Byte *pSrcn = pSrc + nSrcPitch;
+  const uint8_t *pSrcp = pSrc - nSrcPitch;
+  const uint8_t *pSrcn = pSrc + nSrcPitch;
 
   UNUSED(nCoordinates); UNUSED(pCoordinates); UNUSED(nOrigHeight);
-  auto max_dev_v = _mm256_set1_epi16(Word(nMaxDeviation));
+  auto max_dev_v = _mm256_set1_epi16(uint16_t(nMaxDeviation));
   int byte_width = nWidth * sizeof(uint16_t);
   int mod32_width = (byte_width - sizeof(uint16_t) - 32) / 32 * 32 + 32;
   /* top-left */
@@ -419,7 +419,7 @@ static void generic_16_avx2(Word *pDst16, ptrdiff_t nDstPitch, const Word *pSrc1
 
 
 template<class T>
-void generic_custom_16_avx2_c(Word *pDst, ptrdiff_t nDstPitch, const Word *pSrc, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, int nOrigHeight)
+void generic_custom_16_avx2_c(uint16_t *pDst, ptrdiff_t nDstPitch, const uint16_t *pSrc, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, int nOrigHeight)
 {
     UNUSED(nOrigHeight);
 

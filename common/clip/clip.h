@@ -34,8 +34,8 @@ public:
    int frame_count() const { return nFrames; }
    Colorspace colorspace() const { return C; }
 
-   // not used: virtual Frame<Byte> get_frame(int n, PVideoFrame &current_frame, IScriptEnvironment *env) = 0;
-   virtual Frame<const Byte> get_const_frame(int n, PVideoFrame &current_frame, IScriptEnvironment *env) = 0;
+   // not used: virtual Frame<uint8_t> get_frame(int n, PVideoFrame &current_frame, IScriptEnvironment *env) = 0;
+   virtual Frame<const uint8_t> get_const_frame(int n, PVideoFrame &current_frame, IScriptEnvironment *env) = 0;
    virtual ::PClip get_avs_clip() = 0;
 
 };

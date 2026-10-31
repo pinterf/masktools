@@ -83,7 +83,7 @@ template<Border border_mode, MemoryMode mem_mode>
 #if defined(GCC) || defined(CLANG)
 __attribute__((__target__("avx2")))
 #endif
-static MT_FORCEINLINE __m256i load_one_to_left_si256(const Byte *ptr) {
+static MT_FORCEINLINE __m256i load_one_to_left_si256(const uint8_t *ptr) {
   if constexpr (border_mode == Border::Left) {
     auto lo128 = load_one_to_left<border_mode, mem_mode>(ptr); // really left!
     auto hi128 = simd_load_si128<MemoryMode::SSE2_UNALIGNED>(ptr + 16 - 1);
@@ -98,7 +98,7 @@ template<Border border_mode, MemoryMode mem_mode>
 #if defined(GCC) || defined(CLANG)
 __attribute__((__target__("avx2")))
 #endif
-static MT_FORCEINLINE __m256i load_one_to_right_si256(const Byte *ptr) {
+static MT_FORCEINLINE __m256i load_one_to_right_si256(const uint8_t *ptr) {
   if constexpr (border_mode == Border::Right) {
     auto lo128 = simd_load_si128<MemoryMode::SSE2_UNALIGNED>(ptr + 1);
     auto hi128 = load_one_to_right<border_mode, mem_mode>(ptr + 16); // really right!
@@ -113,7 +113,7 @@ template<Border border_mode, MemoryMode mem_mode>
 #if defined(GCC) || defined(CLANG)
 __attribute__((__target__("avx2")))
 #endif
-static MT_FORCEINLINE __m256i load16_one_to_left_si256(const Byte* ptr) {
+static MT_FORCEINLINE __m256i load16_one_to_left_si256(const uint8_t* ptr) {
   if constexpr (border_mode == Border::Left) {
     auto lo128 = load16_one_to_left<border_mode, mem_mode>(ptr); // really left!
     auto hi128 = simd_load_si128<MemoryMode::SSE2_UNALIGNED>(ptr + 16 - 2);
@@ -128,7 +128,7 @@ template<Border border_mode, MemoryMode mem_mode>
 #if defined(GCC) || defined(CLANG)
 __attribute__((__target__("avx2")))
 #endif
-static MT_FORCEINLINE __m256i load16_one_to_right_si256(const Byte* ptr) {
+static MT_FORCEINLINE __m256i load16_one_to_right_si256(const uint8_t* ptr) {
   if constexpr (border_mode == Border::Right) {
     auto lo128 = simd_load_si128<MemoryMode::SSE2_UNALIGNED>(ptr + 2);
     auto hi128 = load16_one_to_right<border_mode, mem_mode>(ptr + 16); // really right!

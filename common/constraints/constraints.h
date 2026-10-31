@@ -35,7 +35,7 @@ typedef enum {
 
 } Modulo;
 
-Modulo toModulo(Int64 n);
+Modulo toModulo(int64_t n);
 
 typedef enum {
 
@@ -48,7 +48,7 @@ typedef enum {
 
 } Alignment;
 
-Alignment toAlignment(Int64 n);
+Alignment toAlignment(int64_t n);
 
 class Constraint {
 
@@ -62,12 +62,12 @@ public:
 
    Constraint();
    Constraint(CpuFlags flags, Modulo moduloX, Modulo moduloY, Alignment alignment, int nMinimumWidth = 16);
-   Constraint(CpuFlags flags, int nWidth, int nHeight, const Byte *pAddress, ptrdiff_t nPitch);
-   Constraint(CpuFlags flags, int nWidth, int nHeight, Int64 nAddress, ptrdiff_t nPitch);
-   Constraint(CpuFlags flags, const Plane<const Byte> &plane);
-   Constraint(CpuFlags flags, const Plane<Byte> &plane);
-   Constraint(const Constraint &constraint, const Plane<const Byte> &plane);
-   Constraint(const Constraint &constraint, const Plane<Byte> &plane);
+   Constraint(CpuFlags flags, int nWidth, int nHeight, const uint8_t *pAddress, ptrdiff_t nPitch);
+   Constraint(CpuFlags flags, int nWidth, int nHeight, int64_t nAddress, ptrdiff_t nPitch);
+   Constraint(CpuFlags flags, const Plane<const uint8_t> &plane);
+   Constraint(CpuFlags flags, const Plane<uint8_t> &plane);
+   Constraint(const Constraint &constraint, const Plane<const uint8_t> &plane);
+   Constraint(const Constraint &constraint, const Plane<uint8_t> &plane);
    bool respect(const Constraint &constraint) const;
    void print() const;
 };

@@ -2,7 +2,7 @@
 
 namespace Filtering {
 
-Modulo toModulo(Int64 n)
+Modulo toModulo(int64_t n)
 {
    if ( !(n & MODULO_32) )
       return MODULO_32;
@@ -20,7 +20,7 @@ Modulo toModulo(Int64 n)
 
 static Modulo operator &(Modulo m1, Modulo m2) { return toModulo( ~(static_cast<int>(m1) & static_cast<int>(m2)) ); }
 
-Alignment toAlignment(Int64 n)
+Alignment toAlignment(int64_t n)
 {
    if ( !(n & ALIGNMENT_32) )
       return ALIGNMENT_32;
@@ -43,23 +43,23 @@ Constraint::Constraint() : flags(CPU_NONE) { }
 Constraint::Constraint(CpuFlags flags, Modulo moduloX, Modulo moduloY, Alignment alignment, int nMinimumWidth) :
 flags(flags), moduloX(moduloX), moduloY(moduloY), alignment(alignment), nMinimumWidth(nMinimumWidth) { }
 
-Constraint::Constraint(CpuFlags flags, int nWidth, int nHeight, const Byte *pAddress, ptrdiff_t nPitch) :
-    flags(flags), moduloX(toModulo(nWidth)), moduloY(toModulo(nHeight)), alignment(toAlignment(Int64(pAddress) | nPitch)), nMinimumWidth(nWidth) { }
+Constraint::Constraint(CpuFlags flags, int nWidth, int nHeight, const uint8_t *pAddress, ptrdiff_t nPitch) :
+    flags(flags), moduloX(toModulo(nWidth)), moduloY(toModulo(nHeight)), alignment(toAlignment(int64_t(pAddress) | nPitch)), nMinimumWidth(nWidth) { }
 
-Constraint::Constraint(CpuFlags flags, int nWidth, int nHeight, Int64 nAddress, ptrdiff_t nPitch) :
+Constraint::Constraint(CpuFlags flags, int nWidth, int nHeight, int64_t nAddress, ptrdiff_t nPitch) :
 flags(flags), moduloX(toModulo(nWidth)), moduloY(toModulo(nHeight)), alignment(toAlignment(nAddress | nPitch)), nMinimumWidth(nWidth) { }
 
-Constraint::Constraint(CpuFlags flags, const Plane<const Byte> &plane) :
-flags(flags), moduloX(toModulo(plane.width())), moduloY(toModulo(plane.height())), alignment(toAlignment(Int64(static_cast<const Byte*>(plane.data())) | plane.pitch())), nMinimumWidth(plane.width()) {}
+Constraint::Constraint(CpuFlags flags, const Plane<const uint8_t> &plane) :
+flags(flags), moduloX(toModulo(plane.width())), moduloY(toModulo(plane.height())), alignment(toAlignment(int64_t(static_cast<const uint8_t*>(plane.data())) | plane.pitch())), nMinimumWidth(plane.width()) {}
 
-Constraint::Constraint(CpuFlags flags, const Plane<Byte> &plane) :
-flags(flags), moduloX(toModulo(plane.width())), moduloY(toModulo(plane.height())), alignment(toAlignment(Int64(static_cast<const Byte*>(plane.data())) | plane.pitch())), nMinimumWidth(plane.width()) {}
+Constraint::Constraint(CpuFlags flags, const Plane<uint8_t> &plane) :
+flags(flags), moduloX(toModulo(plane.width())), moduloY(toModulo(plane.height())), alignment(toAlignment(int64_t(static_cast<const uint8_t*>(plane.data())) | plane.pitch())), nMinimumWidth(plane.width()) {}
 
-Constraint::Constraint(const Constraint &constraint, const Plane<Byte> &plane) :
-flags(constraint.flags), moduloX(constraint.moduloX & toModulo(plane.width())), moduloY(constraint.moduloY & toModulo(plane.height())), alignment(constraint.alignment & toAlignment(Int64(static_cast<const Byte*>(plane.data())) | plane.pitch())), nMinimumWidth(plane.width()) {}
+Constraint::Constraint(const Constraint &constraint, const Plane<uint8_t> &plane) :
+flags(constraint.flags), moduloX(constraint.moduloX & toModulo(plane.width())), moduloY(constraint.moduloY & toModulo(plane.height())), alignment(constraint.alignment & toAlignment(int64_t(static_cast<const uint8_t*>(plane.data())) | plane.pitch())), nMinimumWidth(plane.width()) {}
 
-Constraint::Constraint(const Constraint &constraint, const Plane<const Byte> &plane) :
-flags(constraint.flags), moduloX(constraint.moduloX & toModulo(plane.width())), moduloY(constraint.moduloY & toModulo(plane.height())), alignment(constraint.alignment & toAlignment(Int64(static_cast<const Byte*>(plane.data())) | plane.pitch())), nMinimumWidth(plane.width()) {}
+Constraint::Constraint(const Constraint &constraint, const Plane<const uint8_t> &plane) :
+flags(constraint.flags), moduloX(constraint.moduloX & toModulo(plane.width())), moduloY(constraint.moduloY & toModulo(plane.height())), alignment(constraint.alignment & toAlignment(int64_t(static_cast<const uint8_t*>(plane.data())) | plane.pitch())), nMinimumWidth(plane.width()) {}
 
 bool Constraint::respect(const Constraint &constraint) const
 {

@@ -6,16 +6,16 @@
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Mask {
 
-typedef Float (Operator)(Float, Float, Float, Float, Float, Float, Float, Float, Float, const Float matrix[10], Float nLowThreshold, Float nHighThreshold);
-typedef void (ProcessLineSse2)(Byte *pDst, const Byte *pSrcp, const Byte *pSrc, const Byte *pSrcn, const Float matrix[10], const __m128 &lowThresh, const __m128 &highThresh, int width);
+typedef float (Operator)(float, float, float, float, float, float, float, float, float, const float matrix[10], float nLowThreshold, float nHighThreshold);
+typedef void (ProcessLineSse2)(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const float matrix[10], const __m128 &lowThresh, const __m128 &highThresh, int width);
 
 template<Operator op, class T>
-void generic32_c(Float *pDst, ptrdiff_t nDstPitch, const Float *pSrc, ptrdiff_t nSrcPitch, T &thresholds, const Float matrix[10], int nWidth, int nHeight)
+void generic32_c(float *pDst, ptrdiff_t nDstPitch, const float *pSrc, ptrdiff_t nSrcPitch, T &thresholds, const float matrix[10], int nWidth, int nHeight)
 {
   nDstPitch /= sizeof(float);
   nSrcPitch /= sizeof(float);
-  const Float *pSrcp = pSrc - nSrcPitch;
-  const Float *pSrcn = pSrc + nSrcPitch;
+  const float *pSrcp = pSrc - nSrcPitch;
+  const float *pSrcn = pSrc + nSrcPitch;
 
    /* top-left */
    pDst[0] = op(pSrc[0], pSrc[0], pSrc[1], pSrc[0], pSrc[0], pSrc[1], pSrcn[0], pSrcn[0], pSrcn[1], matrix, thresholds.min(0), thresholds.max(0));
@@ -66,14 +66,14 @@ void generic32_c(Float *pDst, ptrdiff_t nDstPitch, const Float *pSrc, ptrdiff_t 
 }
 
 template<ProcessLineSse2 process_line_left, ProcessLineSse2 process_line, ProcessLineSse2 process_line_right>
-static void generic32_sse2(Float *pDst0, ptrdiff_t nDstPitch, const Float *pSrc0, ptrdiff_t nSrcPitch, const Float matrix[10], float nLowThreshold, float nHighThreshold, int nWidth, int nHeight) {
-    Byte *pDst = reinterpret_cast<Byte *>(pDst0);
-    const Byte *pSrc = reinterpret_cast<const Byte *>(pSrc0);
+static void generic32_sse2(float *pDst0, ptrdiff_t nDstPitch, const float *pSrc0, ptrdiff_t nSrcPitch, const float matrix[10], float nLowThreshold, float nHighThreshold, int nWidth, int nHeight) {
+    uint8_t *pDst = reinterpret_cast<uint8_t *>(pDst0);
+    const uint8_t *pSrc = reinterpret_cast<const uint8_t *>(pSrc0);
 
     nWidth *= sizeof(float); // byte size for sse
   
-    const Byte *pSrcp = pSrc - nSrcPitch; // prev
-    const Byte *pSrcn = pSrc + nSrcPitch; // next
+    const uint8_t *pSrcp = pSrc - nSrcPitch; // prev
+    const uint8_t *pSrcn = pSrc + nSrcPitch; // next
     auto low_thr_v = _mm_set1_ps(nLowThreshold);
     auto high_thr_v = _mm_set1_ps(nHighThreshold);
 

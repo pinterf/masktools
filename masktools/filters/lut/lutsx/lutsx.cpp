@@ -4,7 +4,7 @@
 using namespace Filtering;
 
 template<class T, class U>
-static void custom_c(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc1, ptrdiff_t nSrc1Pitch, const Byte *pSrc2, ptrdiff_t nSrc2Pitch, const Byte *pLut, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, const String &mode1, const String &mode2)
+static void custom_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch, const uint8_t *pSrc2, ptrdiff_t nSrc2Pitch, const uint8_t *pLut, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, const String &mode1, const String &mode2)
 {
    T new_value1( mode1 );
    U new_value2( mode2 );
@@ -36,7 +36,7 @@ static void custom_c(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc1, ptrdiff
 }
 
 template<class T, class U>
-static void custom_realtime_8_c(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc1, ptrdiff_t nSrc1Pitch, const Byte *pSrc2, ptrdiff_t nSrc2Pitch, Parser::Context *ctx, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, const String &mode1, const String &mode2)
+static void custom_realtime_8_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch, const uint8_t *pSrc2, ptrdiff_t nSrc2Pitch, Parser::Context *ctx, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, const String &mode1, const String &mode2)
 {
   T new_value1(mode1);
   U new_value2(mode2);
@@ -69,7 +69,7 @@ static void custom_realtime_8_c(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSr
 
 
 template<bool realtime, int bits_per_pixel, class T, class U>
-static void custom_realtime_uint16_c(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc1, ptrdiff_t nSrc1Pitch, const Byte *pSrc2, ptrdiff_t nSrc2Pitch, Parser::Context *ctx, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, const String &mode1, const String &mode2)
+static void custom_realtime_uint16_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch, const uint8_t *pSrc2, ptrdiff_t nSrc2Pitch, Parser::Context *ctx, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, const String &mode1, const String &mode2)
 {
   T new_value1(mode1);
   U new_value2(mode2);
@@ -107,7 +107,7 @@ static void custom_realtime_uint16_c(Byte *pDst, ptrdiff_t nDstPitch, const Byte
 }
 
 template<class T, class U>
-static void custom_realtime_32_c(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc1, ptrdiff_t nSrc1Pitch, const Byte *pSrc2, ptrdiff_t nSrc2Pitch, Parser::Context *ctx, 
+static void custom_realtime_32_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch, const uint8_t *pSrc2, ptrdiff_t nSrc2Pitch, Parser::Context *ctx, 
   const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, const String &mode1, const String &mode2, bool chroma)
 {
   T new_value1(mode1);

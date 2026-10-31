@@ -5,8 +5,8 @@
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Mask { namespace Hysteresis {
 
-typedef void(Processor)(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc1, ptrdiff_t nSrc1Pitch,
-                        const Byte *pSrc2, ptrdiff_t nSrc2Pitch, Byte *pTemp, int nWidth, int nHeight);
+typedef void(Processor)(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
+                        const uint8_t *pSrc2, ptrdiff_t nSrc2Pitch, uint8_t *pTemp, int nWidth, int nHeight);
 
 extern Processor *hysteresis_8_c;
 extern Processor *hysteresis_10_c;
@@ -23,11 +23,11 @@ extern Processor* hysteresis_32_nocorner_c;
 
 class Hysteresis : public MaskTools::Filter
 {
-    Byte *stack;
+    uint8_t *stack;
     Processor *processor;
 
 protected:
-    virtual void process(int n, const Plane<Byte> &dst, int nPlane, const Filtering::Frame<const Byte> frames[4], const Constraint constraints[4]) override
+    virtual void process(int n, const Plane<uint8_t> &dst, int nPlane, const Filtering::Frame<const uint8_t> frames[4], const Constraint constraints[4]) override
     {
         UNUSED(n);
         UNUSED(constraints);
@@ -51,7 +51,7 @@ public:
       case 32: processor = corners ? hysteresis_32_c : hysteresis_8_nocorner_c; break;
       }
 
-      stack = reinterpret_cast<Byte*>(_aligned_malloc(nWidth*nHeight, 16));
+      stack = reinterpret_cast<uint8_t*>(_aligned_malloc(nWidth*nHeight, 16));
     }
 
     ~Hysteresis() {

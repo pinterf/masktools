@@ -6,12 +6,12 @@
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Merge {
 
 /* 8 bit */
-typedef void(Processor)(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc1, ptrdiff_t nSrc1Pitch,
-                        const Byte *pSrc2, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight);
-typedef void(Processor16)(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc1, ptrdiff_t nSrc1Pitch,
-  const Byte *pSrc2, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight, int nOrigHeight);
-typedef void(Processor32)(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc1, ptrdiff_t nSrc1Pitch,
-  const Byte *pSrc2, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight);
+typedef void(Processor)(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
+                        const uint8_t *pSrc2, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight);
+typedef void(Processor16)(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
+  const uint8_t *pSrc2, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight, int nOrigHeight);
+typedef void(Processor32)(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
+  const uint8_t *pSrc2, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight);
 
 Processor merge_c;
 Processor merge_luma_420_c;
@@ -154,7 +154,7 @@ class Merge : public MaskTools::Filter
 
 protected:
 
-  virtual void process(int n, const Plane<Byte> &dst, int nPlane, const Frame<const Byte> frames[4], const Constraint constraints[4]) override
+  virtual void process(int n, const Plane<uint8_t> &dst, int nPlane, const Frame<const uint8_t> frames[4], const Constraint constraints[4]) override
   {
     UNUSED(n);
     int bits_per_pixel = bit_depths[C];

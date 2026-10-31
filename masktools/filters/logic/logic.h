@@ -5,9 +5,9 @@
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Logic {
 
-typedef void(Processor)(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc1, ptrdiff_t nSrc1Pitch, int nWidth, int nHeight, Byte nThresholdDestination, Byte nThresholdSource);
-typedef void(Processor16)(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight, int nOrigHeight, Word nThresholdDestination, Word nThresholdSource);
-typedef void(Processor32)(Float *pDst, ptrdiff_t nDstPitch, const Float *pSrc1, ptrdiff_t nSrc1Pitch, int nWidth, int nHeight, Float nThresholdDestination, Float nThresholdSource);
+typedef void(Processor)(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch, int nWidth, int nHeight, uint8_t nThresholdDestination, uint8_t nThresholdSource);
+typedef void(Processor16)(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight, int nOrigHeight, uint16_t nThresholdDestination, uint16_t nThresholdSource);
+typedef void(Processor32)(float *pDst, ptrdiff_t nDstPitch, const float *pSrc1, ptrdiff_t nSrc1Pitch, int nWidth, int nHeight, float nThresholdDestination, float nThresholdSource);
 
 #define DEFINE_PROCESSOR(name) \
    extern Processor *name##_c; \
@@ -123,22 +123,22 @@ class Logic : public MaskTools::Filter
 
 protected:
 
-  virtual void process(int n, const Plane<Byte> &dst, int nPlane, const Frame<const Byte> frames[4], const Constraint constraints[4]) override
+  virtual void process(int n, const Plane<uint8_t> &dst, int nPlane, const Frame<const uint8_t> frames[4], const Constraint constraints[4]) override
   {
     UNUSED(n);
     if (bits_per_pixel == 8) {
       processors.best_processor(constraints[nPlane])(dst.data(), dst.pitch(),
         frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
-        dst.width(), dst.height(), (Byte)nThresholdDestination, (Byte)nThresholdSource);
+        dst.width(), dst.height(), (uint8_t)nThresholdDestination, (uint8_t)nThresholdSource);
     }
     else if (bits_per_pixel <= 16) {
       processors16.best_processor(constraints[nPlane])(dst.data(), dst.pitch(),
         frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
-        dst.width(), dst.height(), dst.origheight(), (Word)nThresholdDestination, (Word)nThresholdSource);
+        dst.width(), dst.height(), dst.origheight(), (uint16_t)nThresholdDestination, (uint16_t)nThresholdSource);
     }
     else {
-      processors32.best_processor(constraints[nPlane])((Float *)dst.data(), dst.pitch(),
-        (Float *)frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
+      processors32.best_processor(constraints[nPlane])((float *)dst.data(), dst.pitch(),
+        (float *)frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
         dst.width(), dst.height(), nThresholdDestination_f, nThresholdSource_f);
     }
   }
@@ -211,8 +211,8 @@ public:
         bool isSrcSub = nTh2 < 0;
         bool isSrcAdd = nTh2 > 0;
 
-        nThresholdDestination = convert<Byte, int>(abs<int>(nTh1));
-        nThresholdSource = convert<Byte, int>(abs<int>(nTh2));
+        nThresholdDestination = convert<uint8_t, int>(abs<int>(nTh1));
+        nThresholdSource = convert<uint8_t, int>(abs<int>(nTh2));
 
         if (parameters["mode"].toString() == "min")
         {
@@ -282,8 +282,8 @@ public:
         bool isSrcAdd = nTh2 > 0;
 
         int max_pixel_value = (1 << bits_per_pixel) - 1;
-        nThresholdDestination = min(convert<Word, int>(abs<int>(nTh1)), (Word)max_pixel_value);
-        nThresholdSource = min(convert<Word, int>(abs<int>(nTh2)), (Word)max_pixel_value);
+        nThresholdDestination = min(convert<uint16_t, int>(abs<int>(nTh1)), (uint16_t)max_pixel_value);
+        nThresholdSource = min(convert<uint16_t, int>(abs<int>(nTh2)), (uint16_t)max_pixel_value);
 
         if (parameters["mode"].toString() == "min")
         {

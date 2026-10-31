@@ -3,31 +3,31 @@
 
 using namespace Filtering;
 
-typedef Float (Operator32)(Float, Float);
+typedef float (Operator32)(float, float);
 
-inline Float binarize32_upper(Float x, Float t) { return x > t ? 0 : 1.0f; }
-inline Float binarize32_lower(Float x, Float t) { return x > t ? 1.0f : 0; }
+inline float binarize32_upper(float x, float t) { return x > t ? 0 : 1.0f; }
+inline float binarize32_lower(float x, float t) { return x > t ? 1.0f : 0; }
 
-inline Float binarize32_0_x(Float x, Float t) { return x > t ? 0 : x; }
-inline Float binarize32_t_x(Float x, Float t) { return x > t ? t : x; }
-inline Float binarize32_x_0(Float x, Float t) { return x > t ? x : 0; }
-inline Float binarize32_x_t(Float x, Float t) { return x > t ? x : t; }
+inline float binarize32_0_x(float x, float t) { return x > t ? 0 : x; }
+inline float binarize32_t_x(float x, float t) { return x > t ? t : x; }
+inline float binarize32_x_0(float x, float t) { return x > t ? x : 0; }
+inline float binarize32_x_t(float x, float t) { return x > t ? x : t; }
 
-inline Float binarize32_t_0(Float x, Float t) { return x > t ? t : 0; }
-inline Float binarize32_0_t(Float x, Float t) { return x > t ? 0 : t; }
+inline float binarize32_t_0(float x, float t) { return x > t ? t : 0; }
+inline float binarize32_0_t(float x, float t) { return x > t ? 0 : t; }
 
-inline Float binarize32_x_255(Float x, Float t) { return x > t ? x : 1.0f; }
-inline Float binarize32_t_255(Float x, Float t) { return x > t ? t : 1.0f; }
-inline Float binarize32_255_x(Float x, Float t) { return x > t ? 1.0f : x; }
-inline Float binarize32_255_t(Float x, Float t) { return x > t ? 1.0f : t; }
+inline float binarize32_x_255(float x, float t) { return x > t ? x : 1.0f; }
+inline float binarize32_t_255(float x, float t) { return x > t ? t : 1.0f; }
+inline float binarize32_255_x(float x, float t) { return x > t ? 1.0f : x; }
+inline float binarize32_255_t(float x, float t) { return x > t ? 1.0f : t; }
 
 
 template <Operator32 op>
-void binarize32_t(Byte *pDst, ptrdiff_t nDstPitch, Float nThreshold, int nWidth, int nHeight)
+void binarize32_t(uint8_t *pDst, ptrdiff_t nDstPitch, float nThreshold, int nWidth, int nHeight)
 {
    for ( int j = 0; j < nHeight; j++, pDst += nDstPitch )
       for ( int i = 0; i < nWidth; i++ )
-         reinterpret_cast<Float *>(pDst)[i] = op(reinterpret_cast<Float *>(pDst)[i], nThreshold);
+         reinterpret_cast<float *>(pDst)[i] = op(reinterpret_cast<float *>(pDst)[i], nThreshold);
 }
 
 /* SSE2 functions */
@@ -138,9 +138,9 @@ static MT_FORCEINLINE __m128 binarize32_255_t_sse2_op(__m128 x, __m128 t, __m128
 }
 
 template<MemoryMode mem_mode, decltype(binarize32_upper_0_1_sse2_op) op, decltype(binarize32_upper) op_c>
-void binarize32_sse2_t(Byte *dstp, ptrdiff_t dst_pitch, Float threshold, int width, int height)
+void binarize32_sse2_t(uint8_t *dstp, ptrdiff_t dst_pitch, float threshold, int width, int height)
 {
-    width *= sizeof(Float);
+    width *= sizeof(float);
     
     auto t = _mm_set1_ps(threshold);
     auto tOne = _mm_set1_ps(1.0f);
@@ -161,7 +161,7 @@ void binarize32_sse2_t(Byte *dstp, ptrdiff_t dst_pitch, Float threshold, int wid
     }
 
     if (width > mod32_width) {
-        binarize32_t<op_c>(dstp2 + mod32_width, dst_pitch, threshold, (width - mod32_width) / sizeof(Float), height);
+        binarize32_t<op_c>(dstp2 + mod32_width, dst_pitch, threshold, (width - mod32_width) / sizeof(float), height);
     }
 }
 

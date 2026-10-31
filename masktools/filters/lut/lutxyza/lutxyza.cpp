@@ -2,8 +2,8 @@
 
 using namespace Filtering;
 
-void Filtering::MaskTools::Filters::Lut::Quad::lut_c(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc1, ptrdiff_t nSrc1Pitch, 
-  const Byte *pSrc2, ptrdiff_t nSrc2Pitch, const Byte *pSrc3, ptrdiff_t nSrc3Pitch, int nWidth, int nHeight, const Byte *lut)
+void Filtering::MaskTools::Filters::Lut::Quad::lut_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch, 
+  const uint8_t *pSrc2, ptrdiff_t nSrc2Pitch, const uint8_t *pSrc3, ptrdiff_t nSrc3Pitch, int nWidth, int nHeight, const uint8_t *lut)
 {
    for ( int y = 0; y < nHeight; y++ )
    {
@@ -18,8 +18,8 @@ void Filtering::MaskTools::Filters::Lut::Quad::lut_c(Byte *pDst, ptrdiff_t nDstP
    }
 }
 
-void Filtering::MaskTools::Filters::Lut::Quad::realtime8_c(Byte *dstp, ptrdiff_t dst_pitch, const Byte *srcp, ptrdiff_t nSrcPitch, 
-  const Byte *srcp2, ptrdiff_t nSrc2Pitch, const Byte *srcp3, ptrdiff_t nSrc3Pitch, int width, int height, Parser::Context &ctx)
+void Filtering::MaskTools::Filters::Lut::Quad::realtime8_c(uint8_t *dstp, ptrdiff_t dst_pitch, const uint8_t *srcp, ptrdiff_t nSrcPitch, 
+  const uint8_t *srcp2, ptrdiff_t nSrc2Pitch, const uint8_t *srcp3, ptrdiff_t nSrc3Pitch, int width, int height, Parser::Context &ctx)
 {
   for (int y = 0; y < height; y++)
   {
@@ -34,23 +34,23 @@ void Filtering::MaskTools::Filters::Lut::Quad::realtime8_c(Byte *dstp, ptrdiff_t
 }
 
 template<int bits_per_pixel>
-static void realtime16_t_c(Byte *dstp, ptrdiff_t dst_pitch, const Byte *srcp, ptrdiff_t nSrcPitch, 
-  const Byte *srcp2, ptrdiff_t nSrc2Pitch, const Byte *srcp3, ptrdiff_t nSrc3Pitch, int width, int height, Parser::Context &ctx)
+static void realtime16_t_c(uint8_t *dstp, ptrdiff_t dst_pitch, const uint8_t *srcp, ptrdiff_t nSrcPitch, 
+  const uint8_t *srcp2, ptrdiff_t nSrc2Pitch, const uint8_t *srcp3, ptrdiff_t nSrc3Pitch, int width, int height, Parser::Context &ctx)
 {
-  const Word max_pixel_value = (1 << bits_per_pixel) - 1;
+  const uint16_t max_pixel_value = (1 << bits_per_pixel) - 1;
   for (int y = 0; y < height; y++)
   {
     for (int x = 0; x < width; x++) {
-      Word pixelX = reinterpret_cast<uint16_t *>(dstp)[x];
+      uint16_t pixelX = reinterpret_cast<uint16_t *>(dstp)[x];
       if (bits_per_pixel != 16) pixelX = min(pixelX, max_pixel_value); // clamp input below 16 bit
-      Word pixelY = reinterpret_cast<const uint16_t *>(srcp)[x];
+      uint16_t pixelY = reinterpret_cast<const uint16_t *>(srcp)[x];
       if (bits_per_pixel != 16) pixelY = min(pixelY, max_pixel_value); // clamp input below 16 bit
-      Word pixelZ = reinterpret_cast<const uint16_t *>(srcp2)[x];
+      uint16_t pixelZ = reinterpret_cast<const uint16_t *>(srcp2)[x];
       if (bits_per_pixel != 16) pixelZ = min(pixelZ, max_pixel_value); // clamp input below 16 bit
-      Word pixelA = reinterpret_cast<const uint16_t *>(srcp3)[x];
+      uint16_t pixelA = reinterpret_cast<const uint16_t *>(srcp3)[x];
       if (bits_per_pixel != 16) pixelA = min(pixelA, max_pixel_value); // clamp input below 16 bit
 
-      Word result = ctx.compute_word_xyza<bits_per_pixel>(pixelX, pixelY, pixelZ, pixelA);
+      uint16_t result = ctx.compute_word_xyza<bits_per_pixel>(pixelX, pixelY, pixelZ, pixelA);
 
       reinterpret_cast<uint16_t *>(dstp)[x] = result;
     }
@@ -61,16 +61,16 @@ static void realtime16_t_c(Byte *dstp, ptrdiff_t dst_pitch, const Byte *srcp, pt
   }
 }
 
-void Filtering::MaskTools::Filters::Lut::Quad::realtime32_c(Byte *dstp, ptrdiff_t dst_pitch, const Byte *srcp, ptrdiff_t nSrcPitch,
-  const Byte *srcp2, ptrdiff_t nSrc2Pitch, const Byte *srcp3, ptrdiff_t nSrc3Pitch, int width, int height, bool chroma, Parser::Context &ctx)
+void Filtering::MaskTools::Filters::Lut::Quad::realtime32_c(uint8_t *dstp, ptrdiff_t dst_pitch, const uint8_t *srcp, ptrdiff_t nSrcPitch,
+  const uint8_t *srcp2, ptrdiff_t nSrc2Pitch, const uint8_t *srcp3, ptrdiff_t nSrc3Pitch, int width, int height, bool chroma, Parser::Context &ctx)
 {
   for (int y = 0; y < height; y++)
   {
     for (int x = 0; x < width; x++) {
-      reinterpret_cast<Float *>(dstp)[x] = ctx.compute_float_xyza(reinterpret_cast<Float *>(dstp)[x],
-        reinterpret_cast<const Float *>(srcp)[x],
-        reinterpret_cast<const Float *>(srcp2)[x],
-        reinterpret_cast<const Float *>(srcp3)[x],
+      reinterpret_cast<float *>(dstp)[x] = ctx.compute_float_xyza(reinterpret_cast<float *>(dstp)[x],
+        reinterpret_cast<const float *>(srcp)[x],
+        reinterpret_cast<const float *>(srcp2)[x],
+        reinterpret_cast<const float *>(srcp3)[x],
         chroma);
     }
     dstp += dst_pitch;
@@ -80,10 +80,10 @@ void Filtering::MaskTools::Filters::Lut::Quad::realtime32_c(Byte *dstp, ptrdiff_
   }
 }
 
-template void realtime16_t_c<10>(Byte *dstp, ptrdiff_t dst_pitch, const Byte *pSrc, ptrdiff_t nSrcPitch, const Byte *srcp2, ptrdiff_t nSrc2Pitch, const Byte *srcp3, ptrdiff_t nSrc3Pitch, int width, int height, Parser::Context &ctx);
-template void realtime16_t_c<12>(Byte *dstp, ptrdiff_t dst_pitch, const Byte *pSrc, ptrdiff_t nSrcPitch, const Byte *srcp2, ptrdiff_t nSrc2Pitch, const Byte *srcp3, ptrdiff_t nSrc3Pitch, int width, int height, Parser::Context &ctx);
-template void realtime16_t_c<14>(Byte *dstp, ptrdiff_t dst_pitch, const Byte *pSrc, ptrdiff_t nSrcPitch, const Byte *srcp2, ptrdiff_t nSrc2Pitch, const Byte *srcp3, ptrdiff_t nSrc3Pitch, int width, int height, Parser::Context &ctx);
-template void realtime16_t_c<16>(Byte *dstp, ptrdiff_t dst_pitch, const Byte *pSrc, ptrdiff_t nSrcPitch, const Byte *srcp2, ptrdiff_t nSrc2Pitch, const Byte *srcp3, ptrdiff_t nSrc3Pitch, int width, int height, Parser::Context &ctx);
+template void realtime16_t_c<10>(uint8_t *dstp, ptrdiff_t dst_pitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, const uint8_t *srcp2, ptrdiff_t nSrc2Pitch, const uint8_t *srcp3, ptrdiff_t nSrc3Pitch, int width, int height, Parser::Context &ctx);
+template void realtime16_t_c<12>(uint8_t *dstp, ptrdiff_t dst_pitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, const uint8_t *srcp2, ptrdiff_t nSrc2Pitch, const uint8_t *srcp3, ptrdiff_t nSrc3Pitch, int width, int height, Parser::Context &ctx);
+template void realtime16_t_c<14>(uint8_t *dstp, ptrdiff_t dst_pitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, const uint8_t *srcp2, ptrdiff_t nSrc2Pitch, const uint8_t *srcp3, ptrdiff_t nSrc3Pitch, int width, int height, Parser::Context &ctx);
+template void realtime16_t_c<16>(uint8_t *dstp, ptrdiff_t dst_pitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, const uint8_t *srcp2, ptrdiff_t nSrc2Pitch, const uint8_t *srcp3, ptrdiff_t nSrc3Pitch, int width, int height, Parser::Context &ctx);
 
 namespace Filtering {
   namespace MaskTools {

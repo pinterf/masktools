@@ -6,9 +6,9 @@
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Lut { namespace Trial {
 
-typedef void(Processor)(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc1, ptrdiff_t nSrc1Pitch, const Byte *pSrc2, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight, const Byte *lut);
-typedef void(ProcessorCtx)(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdiff_t nSrcPitch, const Byte *pSrc2, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight, Parser::Context &ctx);
-typedef void(ProcessorCtx32)(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdiff_t nSrcPitch, const Byte *pSrc2, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight, bool chroma, Parser::Context &ctx);
+typedef void(Processor)(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch, const uint8_t *pSrc2, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight, const uint8_t *lut);
+typedef void(ProcessorCtx)(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, const uint8_t *pSrc2, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight, Parser::Context &ctx);
+typedef void(ProcessorCtx32)(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, const uint8_t *pSrc2, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight, bool chroma, Parser::Context &ctx);
 
 Processor lut_c;
 
@@ -23,14 +23,14 @@ class Lutxyz : public MaskTools::Filter
 {
     struct Lut {
         bool used;
-        Byte *ptr;
+        uint8_t *ptr;
     };
 
    Lut luts[4+1];
 
-   static Byte *calculateLut(const std::deque<Filtering::Parser::Symbol> &expr, String scale_inputs, int clamp_float, int& compute_error) {
+   static uint8_t *calculateLut(const std::deque<Filtering::Parser::Symbol> &expr, String scale_inputs, int clamp_float, int& compute_error) {
        Parser::Context ctx(expr, scale_inputs, clamp_float);
-       Byte *lut = new Byte[256 * 256 * 256];
+       uint8_t *lut = new uint8_t[256 * 256 * 256];
 
        for ( int x = 0; x < 256; x++ ) {
            for ( int y = 0; y < 256; y++ ) {
@@ -58,7 +58,7 @@ class Lutxyz : public MaskTools::Filter
    int use_expr;
 
 protected:
-    virtual void process(int n, const Plane<Byte> &dst, int nPlane, const Filtering::Frame<const Byte> frames[4], const Constraint constraints[4]) override
+    virtual void process(int n, const Plane<uint8_t> &dst, int nPlane, const Filtering::Frame<const uint8_t> frames[4], const Constraint constraints[4]) override
     {
         UNUSED(n);
         UNUSED(constraints);

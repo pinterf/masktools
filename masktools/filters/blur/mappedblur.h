@@ -5,9 +5,9 @@
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Blur { 
 
-typedef void(Processor)(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdiff_t nSrcPitch, const Byte *pMask, ptrdiff_t nMaskPitch, const Short *matrix, int nWidth, int nHeight);
-typedef void(Processor16)(Word *pDst, ptrdiff_t nDstPitch, const Word *pSrc, ptrdiff_t nSrcPitch, const Word *pMask, ptrdiff_t nMaskPitch, const Short *matrix, int nWidth, int nHeight);
-typedef void(Processor32)(Float *pDst, ptrdiff_t nDstPitch, const Float *pSrc, ptrdiff_t nSrcPitch, const Float *pMask, ptrdiff_t nMaskPitch, const Float *matrix, int nWidth, int nHeight);
+typedef void(Processor)(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, const uint8_t *pMask, ptrdiff_t nMaskPitch, const int16_t *matrix, int nWidth, int nHeight);
+typedef void(Processor16)(uint16_t *pDst, ptrdiff_t nDstPitch, const uint16_t *pSrc, ptrdiff_t nSrcPitch, const uint16_t *pMask, ptrdiff_t nMaskPitch, const int16_t *matrix, int nWidth, int nHeight);
+typedef void(Processor32)(float *pDst, ptrdiff_t nDstPitch, const float *pSrc, ptrdiff_t nSrcPitch, const float *pMask, ptrdiff_t nMaskPitch, const float *matrix, int nWidth, int nHeight);
 
 extern Processor *mapped_below_c;
 extern Processor *mapped_all_c;
@@ -24,8 +24,8 @@ extern Processor32 *mapped_all_32_c;
 
 class MappedBlur : public MaskTools::Filter
 {
-   Short matrix[10];
-   Float matrix_f[10];
+   int16_t matrix[10];
+   float matrix_f[10];
 
    int bits_per_pixel;
 
@@ -34,7 +34,7 @@ class MappedBlur : public MaskTools::Filter
    ProcessorList<Processor32> processors32;
 
 protected:
-  virtual void process(int n, const Plane<Byte> &dst, int nPlane, const Frame<const Byte> frames[4], const Constraint constraints[4]) override
+  virtual void process(int n, const Plane<uint8_t> &dst, int nPlane, const Frame<const uint8_t> frames[4], const Constraint constraints[4]) override
   {
     UNUSED(n);
     if (bits_per_pixel == 8) {
@@ -44,15 +44,15 @@ protected:
         matrix, dst.width(), dst.height());
     }
     else if (bits_per_pixel <= 16) {
-      processors16.best_processor(constraints[nPlane])((Word *)dst.data(), dst.pitch(),
-        (Word *)frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
-        (Word *)frames[1].plane(nPlane).data(), frames[1].plane(nPlane).pitch(),
+      processors16.best_processor(constraints[nPlane])((uint16_t *)dst.data(), dst.pitch(),
+        (uint16_t *)frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
+        (uint16_t *)frames[1].plane(nPlane).data(), frames[1].plane(nPlane).pitch(),
         matrix, dst.width(), dst.height());
     }
     else {
-      processors32.best_processor(constraints[nPlane])((Float *)dst.data(), dst.pitch(),
-        (Float *)frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
-        (Float *)frames[1].plane(nPlane).data(), frames[1].plane(nPlane).pitch(),
+      processors32.best_processor(constraints[nPlane])((float *)dst.data(), dst.pitch(),
+        (float *)frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
+        (float *)frames[1].plane(nPlane).data(), frames[1].plane(nPlane).pitch(),
         matrix_f, dst.width(), dst.height());
     }
   }
@@ -75,12 +75,12 @@ public:
             return;
           }
 
-          matrix_f[9] += abs(matrix_f[i] = Float(coeffs.front().getValue(0, 0, 0)));
+          matrix_f[9] += abs(matrix_f[i] = float(coeffs.front().getValue(0, 0, 0)));
           coeffs.pop_front();
         }
 
         if (coeffs.size())
-          matrix_f[9] = Float(coeffs.front().getValue(0, 0, 0));
+          matrix_f[9] = float(coeffs.front().getValue(0, 0, 0));
 
         if (!matrix_f[9])
           matrix_f[9] = 1.0f;
@@ -95,12 +95,12 @@ public:
             return;
           }
 
-          matrix[9] += abs(matrix[i] = Short(coeffs.front().getValue(0, 0, 0)));
+          matrix[9] += abs(matrix[i] = int16_t(coeffs.front().getValue(0, 0, 0)));
           coeffs.pop_front();
         }
 
         if (coeffs.size())
-          matrix[9] = Short(coeffs.front().getValue(0, 0, 0));
+          matrix[9] = int16_t(coeffs.front().getValue(0, 0, 0));
 
         if (!matrix[9])
           matrix[9] = 1;

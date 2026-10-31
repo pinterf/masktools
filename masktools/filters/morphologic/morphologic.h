@@ -6,10 +6,10 @@
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Morphologic {
 
-typedef void (Processor)(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight);
-typedef void (StackedProcessor)(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, int nOrigHeight);
-typedef void (Processor16)(Word *pDst, ptrdiff_t nDstPitch, const Word *pSrc, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, int nOrigHeight);
-typedef void (Processor32)(Float *pDst, ptrdiff_t nDstPitch, const Float *pSrc, ptrdiff_t nSrcPitch, Float nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight);
+typedef void (Processor)(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight);
+typedef void (StackedProcessor)(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, int nOrigHeight);
+typedef void (Processor16)(uint16_t *pDst, ptrdiff_t nDstPitch, const uint16_t *pSrc, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, int nOrigHeight);
+typedef void (Processor32)(float *pDst, ptrdiff_t nDstPitch, const float *pSrc, ptrdiff_t nSrcPitch, float nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight);
 
 class MorphologicFilter : public MaskTools::Filter
 {
@@ -30,7 +30,7 @@ protected:
     ProcessorList<Processor16> processors16;
     ProcessorList<Processor32> processors32;
 
-    virtual void process(int n, const Plane<Byte> &dst, int nPlane, const ::Filtering::Frame<const Byte> frames[4], const Constraint constraints[4]) override
+    virtual void process(int n, const Plane<uint8_t> &dst, int nPlane, const ::Filtering::Frame<const uint8_t> frames[4], const Constraint constraints[4]) override
     {
       UNUSED(n);
       if (bits_per_pixel == 8) {
@@ -44,13 +44,13 @@ protected:
           nMaxDeviations[nPlane], coordinates_list, coordinates_count, dst.width(), dst.height() / 2, dst.origheight()); // stacked: /2
       }
       else if(bits_per_pixel <= 16) {
-        processors16.best_processor(constraints[nPlane])(reinterpret_cast<Word*>((Byte*)dst.data()), dst.pitch() / sizeof(uint16_t), /* /2: word sized */
-          reinterpret_cast<const Word*>((const Byte*)(frames[0].plane(nPlane).data())), frames[0].plane(nPlane).pitch() / sizeof(uint16_t),
+        processors16.best_processor(constraints[nPlane])(reinterpret_cast<uint16_t*>((uint8_t*)dst.data()), dst.pitch() / sizeof(uint16_t), /* /2: word sized */
+          reinterpret_cast<const uint16_t*>((const uint8_t*)(frames[0].plane(nPlane).data())), frames[0].plane(nPlane).pitch() / sizeof(uint16_t),
           nMaxDeviations[nPlane], coordinates_list, coordinates_count, dst.width(), dst.height(), dst.origheight());
       }
       else {
-        processors32.best_processor(constraints[nPlane])((Float *)dst.data(), dst.pitch() / sizeof(Float),
-          (Float *)frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch() / sizeof(Float),
+        processors32.best_processor(constraints[nPlane])((float *)dst.data(), dst.pitch() / sizeof(float),
+          (float *)frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch() / sizeof(float),
           nMaxDeviations_f[nPlane], coordinates_list, coordinates_count, dst.width(), dst.height());
       }
     }

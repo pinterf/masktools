@@ -5,9 +5,9 @@
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Gradient {
 
-typedef void(Processor)(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdiff_t nSrcPitch, const Byte *pRef, ptrdiff_t nRefPitch, int nWidth, int nHeight, int nX, int nY, int nMinimum, int nMaximum, int nPrecision);
-typedef void(Processor16)(Word *pDst, ptrdiff_t nDstPitch, const Word *pSrc, ptrdiff_t nSrcPitch, const Word *pRef, ptrdiff_t nRefPitch, int nWidth, int nHeight, int nX, int nY, int nMinimum, int nMaximum, int nPrecision);
-typedef void(Processor32)(Float *pDst, ptrdiff_t nDstPitch, const Float *pSrc, ptrdiff_t nSrcPitch, const Float *pRef, ptrdiff_t nRefPitch, int nWidth, int nHeight, int nX, int nY, Float nMinimum, Float nMaximum, int nPrecision);
+typedef void(Processor)(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, const uint8_t *pRef, ptrdiff_t nRefPitch, int nWidth, int nHeight, int nX, int nY, int nMinimum, int nMaximum, int nPrecision);
+typedef void(Processor16)(uint16_t *pDst, ptrdiff_t nDstPitch, const uint16_t *pSrc, ptrdiff_t nSrcPitch, const uint16_t *pRef, ptrdiff_t nRefPitch, int nWidth, int nHeight, int nX, int nY, int nMinimum, int nMaximum, int nPrecision);
+typedef void(Processor32)(float *pDst, ptrdiff_t nDstPitch, const float *pSrc, ptrdiff_t nSrcPitch, const float *pRef, ptrdiff_t nRefPitch, int nWidth, int nHeight, int nX, int nY, float nMinimum, float nMaximum, int nPrecision);
 
 extern Processor *sad_c;
 extern Processor16 *sad_10_c;
@@ -34,7 +34,7 @@ class Gradient : public MaskTools::Filter
 
 protected:
 
-  virtual void process(int n, const Plane<Byte> &dst, int nPlane, const Frame<const Byte> frames[4], const Constraint constraints[4]) override
+  virtual void process(int n, const Plane<uint8_t> &dst, int nPlane, const Frame<const uint8_t> frames[4], const Constraint constraints[4]) override
   {
     UNUSED(n);
     if (bits_per_pixel == 8)
@@ -43,14 +43,14 @@ protected:
         frames[1].plane(nPlane).data(), frames[1].plane(nPlane).pitch(),
         dst.width(), dst.height(), nX[nPlane], nY[nPlane], nMinimum, nMaximum, nPrecision);
     else if (bits_per_pixel <= 16)
-      processors16.best_processor(constraints[nPlane])((Word *)dst.data(), dst.pitch(),
-      (Word *)frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
-        (Word *)frames[1].plane(nPlane).data(), frames[1].plane(nPlane).pitch(),
+      processors16.best_processor(constraints[nPlane])((uint16_t *)dst.data(), dst.pitch(),
+      (uint16_t *)frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
+        (uint16_t *)frames[1].plane(nPlane).data(), frames[1].plane(nPlane).pitch(),
         dst.width(), dst.height(), nX[nPlane], nY[nPlane], nMinimum, nMaximum, nPrecision);
     else // 32
-      processors32.best_processor(constraints[nPlane])((Float *)dst.data(), dst.pitch(),
-      (Float *)frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
-        (Float *)frames[1].plane(nPlane).data(), frames[1].plane(nPlane).pitch(),
+      processors32.best_processor(constraints[nPlane])((float *)dst.data(), dst.pitch(),
+      (float *)frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
+        (float *)frames[1].plane(nPlane).data(), frames[1].plane(nPlane).pitch(),
         dst.width(), dst.height(), nX[nPlane], nY[nPlane], nMinimum_f, nMaximum_f, nPrecision);
   }
 
@@ -75,8 +75,8 @@ public:
           nMaximum = parameters["max"].is_defined() ? parameters["max"].toInt() : 16 * 16 * (1 << bits_per_pixel); // max sad of 16x16 block
         }
         else {
-          nMinimum_f = parameters["min"].is_defined() ? (Float)parameters["min"].toFloat() : 0.0f;
-          nMaximum_f = parameters["max"].is_defined() ? (Float)parameters["max"].toFloat() : 16 * 16 * 1.0f; // max sad of block size 16x16 
+          nMinimum_f = parameters["min"].is_defined() ? (float)parameters["min"].toFloat() : 0.0f;
+          nMaximum_f = parameters["max"].is_defined() ? (float)parameters["max"].toFloat() : 16 * 16 * 1.0f; // max sad of block size 16x16 
         }
       }
       else 

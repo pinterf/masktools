@@ -3,11 +3,11 @@
 
 using namespace Filtering;
 
-typedef Byte (local_maximum_f)(Byte a1, Byte a2, Byte a3, Byte a4, Byte a5, Byte a6, Byte a7, Byte a8, Byte a9);
+typedef uint8_t (local_maximum_f)(uint8_t a1, uint8_t a2, uint8_t a3, uint8_t a4, uint8_t a5, uint8_t a6, uint8_t a7, uint8_t a8, uint8_t a9);
 
-static inline Byte maximum_square(Byte a1, Byte a2, Byte a3, Byte a4, Byte a5, Byte a6, Byte a7, Byte a8, Byte a9)
+static inline uint8_t maximum_square(uint8_t a1, uint8_t a2, uint8_t a3, uint8_t a4, uint8_t a5, uint8_t a6, uint8_t a7, uint8_t a8, uint8_t a9)
 {
-    Byte nMax = a1;
+    uint8_t nMax = a1;
     if (a2 > nMax) nMax = a2;
     if (a3 > nMax) nMax = a3;
     if (a4 > nMax) nMax = a4;
@@ -19,9 +19,9 @@ static inline Byte maximum_square(Byte a1, Byte a2, Byte a3, Byte a4, Byte a5, B
     return nMax;
 }
 
-static inline Byte maximum_horizontal(Byte a1, Byte a2, Byte a3, Byte a4, Byte a5, Byte a6, Byte a7, Byte a8, Byte a9)
+static inline uint8_t maximum_horizontal(uint8_t a1, uint8_t a2, uint8_t a3, uint8_t a4, uint8_t a5, uint8_t a6, uint8_t a7, uint8_t a8, uint8_t a9)
 {
-    Byte nMax = a4;
+    uint8_t nMax = a4;
 
     UNUSED(a1); UNUSED(a2); UNUSED(a3); UNUSED(a7); UNUSED(a8); UNUSED(a9);
 
@@ -30,9 +30,9 @@ static inline Byte maximum_horizontal(Byte a1, Byte a2, Byte a3, Byte a4, Byte a
     return nMax;
 }
 
-static inline Byte maximum_vertical(Byte a1, Byte a2, Byte a3, Byte a4, Byte a5, Byte a6, Byte a7, Byte a8, Byte a9)
+static inline uint8_t maximum_vertical(uint8_t a1, uint8_t a2, uint8_t a3, uint8_t a4, uint8_t a5, uint8_t a6, uint8_t a7, uint8_t a8, uint8_t a9)
 {
-    Byte nMax = a2;
+    uint8_t nMax = a2;
 
     UNUSED(a1); UNUSED(a3); UNUSED(a4); UNUSED(a6); UNUSED(a7); UNUSED(a9);
 
@@ -41,9 +41,9 @@ static inline Byte maximum_vertical(Byte a1, Byte a2, Byte a3, Byte a4, Byte a5,
     return nMax;
 }
 
-static inline Byte maximum_both(Byte a1, Byte a2, Byte a3, Byte a4, Byte a5, Byte a6, Byte a7, Byte a8, Byte a9)
+static inline uint8_t maximum_both(uint8_t a1, uint8_t a2, uint8_t a3, uint8_t a4, uint8_t a5, uint8_t a6, uint8_t a7, uint8_t a8, uint8_t a9)
 {
-    Byte nMax = a2;
+    uint8_t nMax = a2;
 
     UNUSED(a1); UNUSED(a3); UNUSED(a7); UNUSED(a9);
 
@@ -55,13 +55,13 @@ static inline Byte maximum_both(Byte a1, Byte a2, Byte a3, Byte a4, Byte a5, Byt
 }
 
 template<local_maximum_f Maximum>
-static inline Byte maximumThresholded(Byte a1, Byte a2, Byte a3, Byte a4, Byte a5, Byte a6, Byte a7, Byte a8, Byte a9, int nMaxDeviation)
+static inline uint8_t maximumThresholded(uint8_t a1, uint8_t a2, uint8_t a3, uint8_t a4, uint8_t a5, uint8_t a6, uint8_t a7, uint8_t a8, uint8_t a9, int nMaxDeviation)
 {
     int nMaximum = Maximum(a1, a2, a3, a4, a5, a6, a7, a8, a9);
     if (nMaximum - a5 > nMaxDeviation) {
         nMaximum = a5 + nMaxDeviation;
     }
-    return static_cast<Byte>(nMaximum);
+    return static_cast<uint8_t>(nMaximum);
 }
 
 extern "C" MT_FORCEINLINE __m128i expand_operator_sse2(__m128i a, __m128i b) {
@@ -73,18 +73,18 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Morpho
 class ExpandProcessor {
     int max;
     int max_deviation;
-    Byte value;
+    uint8_t value;
 public:
-    ExpandProcessor(Byte nValue, int nMaxDeviation) : max(-1), max_deviation(nMaxDeviation), value(nValue) { }
+    ExpandProcessor(uint8_t nValue, int nMaxDeviation) : max(-1), max_deviation(nMaxDeviation), value(nValue) { }
 
-    void add(Byte nValue) {
+    void add(uint8_t nValue) {
         if (nValue > max) {
             max = nValue;
         }
     }
 
-    Byte finalize() const {
-        return static_cast<Byte>(max < 0 ? value : (max - value > max_deviation ? value + max_deviation : max));
+    uint8_t finalize() const {
+        return static_cast<uint8_t>(max < 0 ? value : (max - value > max_deviation ? value + max_deviation : max));
     }
 };
 

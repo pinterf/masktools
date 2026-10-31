@@ -4,14 +4,14 @@
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Mask { namespace Motion {
 
-  static uint64_t sad16_c_op(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight)
+  static uint64_t sad16_c_op(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight)
   {
     uint64_t nSad = 0;
     for (int y = 0; y < nHeight; y++)
     {
       uint32_t nSad32 = 0; // faster than int64
       for (int x = 0; x < nWidth; x++)
-        nSad32 += abs(reinterpret_cast<Word *>(pDst)[x] - reinterpret_cast<const Word *>(pSrc)[x]);
+        nSad32 += abs(reinterpret_cast<uint16_t *>(pDst)[x] - reinterpret_cast<const uint16_t *>(pSrc)[x]);
       nSad += nSad32;
       pDst += nDstPitch;
       pSrc += nSrcPitch;
@@ -20,12 +20,12 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Mask {
   }
 
   template<int bits_per_pixel>
-  static void mask16_c_op(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdiff_t nSrcPitch, int nLowThreshold, int nHighThreshold, int nWidth, int nHeight)
+  static void mask16_c_op(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nLowThreshold, int nHighThreshold, int nWidth, int nHeight)
   {
     for (int y = 0; y < nHeight; y++)
     {
       for (int x = 0; x < nWidth; x++) {
-        reinterpret_cast<Word *>(pDst)[x] = threshold16<bits_per_pixel>(abs<int>(reinterpret_cast<Word *>(pDst)[x] - reinterpret_cast<const Word *>(pSrc)[x]), nLowThreshold, nHighThreshold);
+        reinterpret_cast<uint16_t *>(pDst)[x] = threshold16<bits_per_pixel>(abs<int>(reinterpret_cast<uint16_t *>(pDst)[x] - reinterpret_cast<const uint16_t *>(pSrc)[x]), nLowThreshold, nHighThreshold);
       }
       pDst += nDstPitch;
       pSrc += nSrcPitch;
@@ -34,7 +34,7 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Mask {
 
 
   template <MemoryMode mem_mode>
-  static uint64_t sad16_sse2_op(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight)
+  static uint64_t sad16_sse2_op(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight)
   {
     nWidth *= sizeof(uint16_t);
     uint64_t sad = 0; // avoid overflow
@@ -86,7 +86,7 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Mask {
 #if 0
   todo simd
   template <MemoryMode mem_mode>
-  static void mask16_sse2_op(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdiff_t nSrcPitch, int nLowThreshold, int nHighThreshold, int nWidth, int nHeight)
+  static void mask16_sse2_op(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nLowThreshold, int nHighThreshold, int nWidth, int nHeight)
   {
     nWidth *= sizeof(uint16_t);
     int wMod16 = (nWidth / 16) * 16;
@@ -94,8 +94,8 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Mask {
     auto pSrc2 = pSrc;
 
     auto v128 = _mm_set1_epi32(0x80808080);
-    auto lowThresh = _mm_set1_epi8(Byte(nLowThreshold));
-    auto highThresh = _mm_set1_epi8(Byte(nHighThreshold));
+    auto lowThresh = _mm_set1_epi8(uint8_t(nLowThreshold));
+    auto highThresh = _mm_set1_epi8(uint8_t(nHighThreshold));
     lowThresh = _mm_sub_epi8(lowThresh, v128);
     highThresh = _mm_sub_epi8(highThresh, v128);
 
@@ -123,12 +123,12 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Mask {
 #endif
 
 template <decltype(sad16_c_op) sad, decltype(mask16_c_op<10>) mask>
-bool mask16_t(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdiff_t nSrcPitch, int nLowThreshold, int nHighThreshold, int nMotionThreshold, int nSceneChange, int nSceneChangeValue, int nWidth, int nHeight)
+bool mask16_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nLowThreshold, int nHighThreshold, int nMotionThreshold, int nSceneChange, int nSceneChangeValue, int nWidth, int nHeight)
 {
     bool scenechange = nSceneChange >= 2 ? nSceneChange == 3 : sad(pDst, nDstPitch, pSrc, nSrcPitch, nWidth, nHeight) > (uint64_t)nMotionThreshold * nWidth * nHeight;
 
     if (scenechange) {
-        Functions::memset_plane_16((Byte *)pDst, nDstPitch, nWidth, nHeight, static_cast<Word>(nSceneChangeValue));
+        Functions::memset_plane_16((uint8_t *)pDst, nDstPitch, nWidth, nHeight, static_cast<uint16_t>(nSceneChangeValue));
     } else {
         mask(pDst, nDstPitch, pSrc, nSrcPitch, nLowThreshold, nHighThreshold, nWidth, nHeight);
     }

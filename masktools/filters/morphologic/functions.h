@@ -6,9 +6,9 @@
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Morphologic {
 
-typedef Byte (Operator)(Byte, Byte, Byte, Byte, Byte, Byte, Byte, Byte, Byte, int);
+typedef uint8_t (Operator)(uint8_t, uint8_t, uint8_t, uint8_t, uint8_t, uint8_t, uint8_t, uint8_t, uint8_t, int);
 typedef __m128i (Limit)(__m128i source, __m128i sum, __m128i deviation);
-typedef void (ProcessLineSse2)(Byte *pDst, const Byte *pSrcp, const Byte *pSrc, const Byte *pSrcn, const __m128i &maxDeviation, int width);
+typedef void (ProcessLineSse2)(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const __m128i &maxDeviation, int width);
 
 enum Directions {
     Vertical = 1,
@@ -18,10 +18,10 @@ enum Directions {
 };
 
 template<Operator op>
-void generic_c(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight)
+void generic_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight)
 {
-   const Byte *pSrcp = pSrc - nSrcPitch;
-   const Byte *pSrcn = pSrc + nSrcPitch;
+   const uint8_t *pSrcp = pSrc - nSrcPitch;
+   const uint8_t *pSrcn = pSrc + nSrcPitch;
 
    UNUSED(nCoordinates); UNUSED(pCoordinates);
 
@@ -81,7 +81,7 @@ static MT_FORCEINLINE __m128i limit_down_sse2(__m128i source, __m128i sum, __m12
 
 
 template<Border borderMode, Limit limit, MemoryMode mem_mode>
-static MT_FORCEINLINE void process_line_xxflate(Byte *pDst, const Byte *pSrcp, const Byte *pSrc, const Byte *pSrcn, const __m128i &maxDeviation, int width) {
+static MT_FORCEINLINE void process_line_xxflate(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const __m128i &maxDeviation, int width) {
     auto zero = _mm_setzero_si128();
     for ( int x = 0; x < width; x+=16 ) {
         auto up_left = load_one_to_left<borderMode, mem_mode>(pSrcp+x);
@@ -149,7 +149,7 @@ static MT_FORCEINLINE void process_line_xxflate(Byte *pDst, const Byte *pSrcp, c
 }
 
 template<Border borderMode, decltype(_mm_max_epu8) op, Limit limit, MemoryMode mem_mode>
-static MT_FORCEINLINE void process_line_xxpand_both(Byte *pDst, const Byte *pSrcp, const Byte *pSrc, const Byte *pSrcn, const __m128i &maxDeviation, int width) {
+static MT_FORCEINLINE void process_line_xxpand_both(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const __m128i &maxDeviation, int width) {
     for (int x = 0; x < width; x += 16) {
         __m128i up_center = simd_load_si128<mem_mode>(pSrcp+x);
         __m128i middle_center = simd_load_si128<mem_mode>(pSrc+x);
@@ -169,7 +169,7 @@ static MT_FORCEINLINE void process_line_xxpand_both(Byte *pDst, const Byte *pSrc
 /* Vertical mt_xxpand */
 
 template<decltype(_mm_max_epu8) op, Limit limit, MemoryMode mem_mode>
-static MT_FORCEINLINE void process_line_xxpand_vertical(Byte *pDst, const Byte *pSrcp, const Byte *pSrc, const Byte *pSrcn, const __m128i &maxDeviation, int width) {
+static MT_FORCEINLINE void process_line_xxpand_vertical(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const __m128i &maxDeviation, int width) {
     for (int x = 0; x < width; x += 16) {
         auto up_center = simd_load_si128<mem_mode>(pSrcp+x);
         auto down_center = simd_load_si128<mem_mode>(pSrcn+x);
@@ -181,12 +181,12 @@ static MT_FORCEINLINE void process_line_xxpand_vertical(Byte *pDst, const Byte *
 }
 
 template<decltype(_mm_max_epu8) op, Limit limit, MemoryMode mem_mode>
-static void xxpand_sse2_vertical(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight) {
-    const Byte *pSrcp = pSrc - nSrcPitch;
-    const Byte *pSrcn = pSrc + nSrcPitch;
+static void xxpand_sse2_vertical(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight) {
+    const uint8_t *pSrcp = pSrc - nSrcPitch;
+    const uint8_t *pSrcn = pSrc + nSrcPitch;
 
     UNUSED(nCoordinates); UNUSED(pCoordinates);
-    auto max_dev_v = _mm_set1_epi8(Byte(nMaxDeviation));
+    auto max_dev_v = _mm_set1_epi8(uint8_t(nMaxDeviation));
     int mod16_width = nWidth / 16 * 16;
     bool not_mod16 = nWidth != mod16_width;
    
@@ -225,35 +225,35 @@ static void xxpand_sse2_vertical(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pS
 
 /* Horizontal mt_xxpand */
 
-static MT_FORCEINLINE Byte expand_c_horizontal_core(Byte left, Byte center, Byte right, Byte max_dev) {
-    Byte ma = left;
+static MT_FORCEINLINE uint8_t expand_c_horizontal_core(uint8_t left, uint8_t center, uint8_t right, uint8_t max_dev) {
+    uint8_t ma = left;
 
     if (center > ma) ma = center;
     if (right > ma) ma = right;
     
     if (ma - center > max_dev) ma = center + max_dev;
-    return static_cast<Byte>(ma);
+    return static_cast<uint8_t>(ma);
 }
 
-static MT_FORCEINLINE Byte inpand_c_horizontal_core(Byte left, Byte center, Byte right, Byte max_dev) {
-    Byte mi = left;
+static MT_FORCEINLINE uint8_t inpand_c_horizontal_core(uint8_t left, uint8_t center, uint8_t right, uint8_t max_dev) {
+    uint8_t mi = left;
 
     if (center < mi) mi = center;
     if (right < mi) mi = right;
 
     if (center - mi > max_dev) mi = center - max_dev;
-    return static_cast<Byte>(mi);
+    return static_cast<uint8_t>(mi);
 }
 
 //this implemented in a somewhat retarded way to allow pDst and pSrc be the same pointer (used in 3x3 expand)
 template<decltype(_mm_max_epu8) op, Limit limit, MemoryMode mem_mode, decltype(expand_c_horizontal_core) c_core>
-static void xxpand_sse2_horizontal(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight) {
+static void xxpand_sse2_horizontal(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight) {
     UNUSED(nCoordinates); UNUSED(pCoordinates);
 
     int mod16_width = (nWidth / 16) * 16;
     int sse_loop_limit = nWidth == mod16_width ? mod16_width - 16 : mod16_width;
     
-    Byte max_dev = Byte(nMaxDeviation);
+    uint8_t max_dev = uint8_t(nMaxDeviation);
     __m128i max_dev_v = _mm_set1_epi8(max_dev);
     __m128i left_mask = _mm_set_epi32(0, 0, 0, 0xFF);
 #pragma warning(disable: 4309)
@@ -297,11 +297,11 @@ static void xxpand_sse2_horizontal(Byte *pDst, ptrdiff_t nDstPitch, const Byte *
 
             simd_store_si128<mem_mode>(pDst+mod16_width-16, result);
         } else { //some stuff left
-             Byte l = _mm_cvtsi128_si32(left) & 0xFF;
+             uint8_t l = _mm_cvtsi128_si32(left) & 0xFF;
 
              int x;
              for (x = mod16_width; x < nWidth-1; ++x) {
-                 Byte temp = c_core(l, pSrc[x], pSrc[x+1], max_dev);
+                 uint8_t temp = c_core(l, pSrc[x], pSrc[x+1], max_dev);
                  l = pSrc[x];
                  pDst[x] = temp;
              }
@@ -315,19 +315,19 @@ static void xxpand_sse2_horizontal(Byte *pDst, ptrdiff_t nDstPitch, const Byte *
 /* Square mt_xxpand */
 
 template<decltype(_mm_max_epu8) op, Limit limit, MemoryMode mem_mode, decltype(expand_c_horizontal_core) c_core>
-static void xxpand_sse2_square(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight) {
+static void xxpand_sse2_square(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight) {
     xxpand_sse2_vertical<op, limit, mem_mode>(pDst, nDstPitch, pSrc, nSrcPitch, nMaxDeviation, pCoordinates, nCoordinates, nWidth, nHeight);
     xxpand_sse2_horizontal<op, limit, mem_mode, c_core>(pDst, nDstPitch, pDst, nDstPitch, nMaxDeviation, pCoordinates, nCoordinates, nWidth, nHeight);
 }
 
 
 template<ProcessLineSse2 process_line_left, ProcessLineSse2 process_line, ProcessLineSse2 process_line_right>
-static void generic_sse2(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight) {
-    const Byte *pSrcp = pSrc - nSrcPitch;
-    const Byte *pSrcn = pSrc + nSrcPitch;
+static void generic_sse2(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight) {
+    const uint8_t *pSrcp = pSrc - nSrcPitch;
+    const uint8_t *pSrcn = pSrc + nSrcPitch;
 
     UNUSED(nCoordinates); UNUSED(pCoordinates);
-    auto max_dev_v = _mm_set1_epi8(Byte(nMaxDeviation));
+    auto max_dev_v = _mm_set1_epi8(uint8_t(nMaxDeviation));
     int mod16_width = (nWidth - 1 - 16) / 16 * 16 + 16;
     /* top-left */
     process_line_left(pDst, pSrc, pSrc, pSrcn, max_dev_v, 16);
@@ -366,7 +366,7 @@ static void generic_sse2(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrd
 }
 
 template<class T>
-void generic_custom_c(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight)
+void generic_custom_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight)
 {
    for ( int j = 0; j < nHeight; j++ )
    {

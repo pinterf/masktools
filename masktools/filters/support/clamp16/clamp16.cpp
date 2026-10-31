@@ -5,12 +5,12 @@
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Support  { namespace Clamp {
 
 template<int bits_per_pixel>
-static Word MT_FORCEINLINE clamp16_core_c(Word dst, Word upperLimit, Word lowerLimit, int overshoot, int undershoot) {
-    Word result = static_cast<Word>(dst > upperLimit + overshoot ? upperLimit + overshoot : dst);
+static uint16_t MT_FORCEINLINE clamp16_core_c(uint16_t dst, uint16_t upperLimit, uint16_t lowerLimit, int overshoot, int undershoot) {
+    uint16_t result = static_cast<uint16_t>(dst > upperLimit + overshoot ? upperLimit + overshoot : dst);
     if (bits_per_pixel < 16)
-      return min(static_cast<Word>(result < lowerLimit - undershoot ? lowerLimit - undershoot : result), Word((1 << bits_per_pixel) - 1));
+      return min(static_cast<uint16_t>(result < lowerLimit - undershoot ? lowerLimit - undershoot : result), uint16_t((1 << bits_per_pixel) - 1));
     else
-      return static_cast<Word>(result < lowerLimit - undershoot ? lowerLimit - undershoot : result);
+      return static_cast<uint16_t>(result < lowerLimit - undershoot ? lowerLimit - undershoot : result);
 }
 
 template<CpuFlags flags, bool lessThan16bits>
@@ -24,7 +24,7 @@ static __m128i MT_FORCEINLINE clamp16_core_simd(const __m128i &dst, const __m128
     return simd_max_epu16<flags>(limited, lower_limit_real); // _mm_max_epu16: SSE4.1 function. Simulated on SSE2
 }
 
-void clamp16_stacked_c(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pUpLimit, ptrdiff_t nUpLimitPitch, const Byte *pLowLimit, ptrdiff_t nLowLimitPitch, int nWidth, int nHeight, int nOrigHeight, int nOvershoot, int nUndershoot)
+void clamp16_stacked_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pUpLimit, ptrdiff_t nUpLimitPitch, const uint8_t *pLowLimit, ptrdiff_t nLowLimitPitch, int nWidth, int nHeight, int nOrigHeight, int nOvershoot, int nUndershoot)
 {
    auto pDstLsb = pDst + nDstPitch * nOrigHeight / 2;
    auto pUpLimitLsb = pUpLimit + nUpLimitPitch * nOrigHeight / 2;
@@ -32,11 +32,11 @@ void clamp16_stacked_c(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pUpLimit, pt
 
    for (int y = 0; y < nHeight / 2; y++) {
        for (int x = 0; x < nWidth; x++) {
-           Word dst = read_word_stacked(pDst, pDstLsb, x);
-           Word upperLimit = read_word_stacked(pUpLimit, pUpLimitLsb, x);
-           Word lowerLimit = read_word_stacked(pLowLimit, pLowLimitLsb, x);
+           uint16_t dst = read_word_stacked(pDst, pDstLsb, x);
+           uint16_t upperLimit = read_word_stacked(pUpLimit, pUpLimitLsb, x);
+           uint16_t lowerLimit = read_word_stacked(pLowLimit, pLowLimitLsb, x);
 
-           Word result = clamp16_core_c<16>(dst, upperLimit, lowerLimit, nOvershoot, nUndershoot);
+           uint16_t result = clamp16_core_c<16>(dst, upperLimit, lowerLimit, nOvershoot, nUndershoot);
 
            write_word_stacked(pDst, pDstLsb, x, result);
        }
@@ -50,13 +50,13 @@ void clamp16_stacked_c(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pUpLimit, pt
 }
 
 template<int bits_per_pixel>
-void clamp16_native_c(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pUpLimit, ptrdiff_t nUpLimitPitch, const Byte *pLowLimit, ptrdiff_t nLowLimitPitch, int nWidth, int nHeight, int nOrigHeight, int nOvershoot, int nUndershoot)
+void clamp16_native_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pUpLimit, ptrdiff_t nUpLimitPitch, const uint8_t *pLowLimit, ptrdiff_t nLowLimitPitch, int nWidth, int nHeight, int nOrigHeight, int nOvershoot, int nUndershoot)
 {
     UNUSED(nOrigHeight);
     for (int y = 0; y < nHeight; y++) {
-        auto pDstWord = reinterpret_cast<Word*>(pDst);
-        auto pUpLimitWord = reinterpret_cast<const Word*>(pUpLimit);
-        auto pLowLimitWord = reinterpret_cast<const Word*>(pLowLimit);
+        auto pDstWord = reinterpret_cast<uint16_t*>(pDst);
+        auto pUpLimitWord = reinterpret_cast<const uint16_t*>(pUpLimit);
+        auto pLowLimitWord = reinterpret_cast<const uint16_t*>(pLowLimit);
 
         for (int x = 0; x < nWidth; x++) {
             pDstWord[x] = clamp16_core_c<bits_per_pixel>(pDstWord[x], pUpLimitWord[x], pLowLimitWord[x], nOvershoot, nUndershoot);
@@ -68,7 +68,7 @@ void clamp16_native_c(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pUpLimit, ptr
 }
 
 template<CpuFlags flags>
-void clamp16_stacked_simd(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pUpLimit, ptrdiff_t nUpLimitPitch, const Byte *pLowLimit, ptrdiff_t nLowLimitPitch, int nWidth, int nHeight, int nOrigHeight, int nOvershoot, int nUndershoot)
+void clamp16_stacked_simd(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pUpLimit, ptrdiff_t nUpLimitPitch, const uint8_t *pLowLimit, ptrdiff_t nLowLimitPitch, int nWidth, int nHeight, int nOrigHeight, int nOvershoot, int nUndershoot)
 {
     int wMod8 = (nWidth / 8) * 8;
     auto pDst2 = pDst;
@@ -79,8 +79,8 @@ void clamp16_stacked_simd(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pUpLimit,
     auto pUpLimitLsb = pUpLimit + nUpLimitPitch * nOrigHeight / 2;
     auto pLowLimitLsb = pLowLimit + nLowLimitPitch * nOrigHeight / 2;
 
-    auto overshoot_v = _mm_set1_epi16(Word(nOvershoot));
-    auto undershoot_v = _mm_set1_epi16(Word(nUndershoot));
+    auto overshoot_v = _mm_set1_epi16(uint16_t(nOvershoot));
+    auto undershoot_v = _mm_set1_epi16(uint16_t(nUndershoot));
     auto ff = _mm_set1_epi16(0x00FF);
     auto zero = _mm_setzero_si128();
 #pragma warning(disable: 4310)
@@ -111,7 +111,7 @@ void clamp16_stacked_simd(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pUpLimit,
 }
 
 template<CpuFlags flags, int bits_per_pixel>
-void clamp16_native_simd(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pUpLimit, ptrdiff_t nUpLimitPitch, const Byte *pLowLimit, ptrdiff_t nLowLimitPitch, int nWidth, int nHeight, int nOrigHeight, int nOvershoot, int nUndershoot)
+void clamp16_native_simd(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pUpLimit, ptrdiff_t nUpLimitPitch, const uint8_t *pLowLimit, ptrdiff_t nLowLimitPitch, int nWidth, int nHeight, int nOrigHeight, int nOvershoot, int nUndershoot)
 {
     nWidth *= 2; // really rowsize: width * sizeof(uint16), see also division at C trailer
   
@@ -120,10 +120,10 @@ void clamp16_native_simd(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pUpLimit, 
     auto pUpLimit2 = pUpLimit;
     auto pLowLimit2 = pLowLimit;
 
-    auto overshoot_v = _mm_set1_epi16(Word(nOvershoot));
-    auto undershoot_v = _mm_set1_epi16(Word(nUndershoot));
+    auto overshoot_v = _mm_set1_epi16(uint16_t(nOvershoot));
+    auto undershoot_v = _mm_set1_epi16(uint16_t(nUndershoot));
     int _max_pixel_value = (1 << bits_per_pixel) - 1;
-    auto max_pixel_value = _mm_set1_epi16(Word(_max_pixel_value));
+    auto max_pixel_value = _mm_set1_epi16(uint16_t(_max_pixel_value));
 
     for ( int j = 0; j < nHeight; ++j ) {
         for ( int i = 0; i < wMod16; i+=16 ) {
@@ -147,23 +147,23 @@ void clamp16_native_simd(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pUpLimit, 
     }
 }
 
-template void clamp16_stacked_simd<CPU_SSE2>(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pUpLimit, ptrdiff_t nUpLimitPitch, const Byte *pLowLimit, ptrdiff_t nLowLimitPitch, int nWidth, int nHeight, int nOrigHeight, int nOvershoot, int nUndershoot);
-template void clamp16_stacked_simd<CPU_SSE4_1>(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pUpLimit, ptrdiff_t nUpLimitPitch, const Byte *pLowLimit, ptrdiff_t nLowLimitPitch, int nWidth, int nHeight, int nOrigHeight, int nOvershoot, int nUndershoot);
+template void clamp16_stacked_simd<CPU_SSE2>(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pUpLimit, ptrdiff_t nUpLimitPitch, const uint8_t *pLowLimit, ptrdiff_t nLowLimitPitch, int nWidth, int nHeight, int nOrigHeight, int nOvershoot, int nUndershoot);
+template void clamp16_stacked_simd<CPU_SSE4_1>(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pUpLimit, ptrdiff_t nUpLimitPitch, const uint8_t *pLowLimit, ptrdiff_t nLowLimitPitch, int nWidth, int nHeight, int nOrigHeight, int nOvershoot, int nUndershoot);
 
-template void clamp16_native_c<10>(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pUpLimit, ptrdiff_t nUpLimitPitch, const Byte *pLowLimit, ptrdiff_t nLowLimitPitch, int nWidth, int nHeight, int nOrigHeight, int nOvershoot, int nUndershoot);
-template void clamp16_native_c<12>(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pUpLimit, ptrdiff_t nUpLimitPitch, const Byte *pLowLimit, ptrdiff_t nLowLimitPitch, int nWidth, int nHeight, int nOrigHeight, int nOvershoot, int nUndershoot);
-template void clamp16_native_c<14>(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pUpLimit, ptrdiff_t nUpLimitPitch, const Byte *pLowLimit, ptrdiff_t nLowLimitPitch, int nWidth, int nHeight, int nOrigHeight, int nOvershoot, int nUndershoot);
-template void clamp16_native_c<16>(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pUpLimit, ptrdiff_t nUpLimitPitch, const Byte *pLowLimit, ptrdiff_t nLowLimitPitch, int nWidth, int nHeight, int nOrigHeight, int nOvershoot, int nUndershoot);
+template void clamp16_native_c<10>(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pUpLimit, ptrdiff_t nUpLimitPitch, const uint8_t *pLowLimit, ptrdiff_t nLowLimitPitch, int nWidth, int nHeight, int nOrigHeight, int nOvershoot, int nUndershoot);
+template void clamp16_native_c<12>(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pUpLimit, ptrdiff_t nUpLimitPitch, const uint8_t *pLowLimit, ptrdiff_t nLowLimitPitch, int nWidth, int nHeight, int nOrigHeight, int nOvershoot, int nUndershoot);
+template void clamp16_native_c<14>(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pUpLimit, ptrdiff_t nUpLimitPitch, const uint8_t *pLowLimit, ptrdiff_t nLowLimitPitch, int nWidth, int nHeight, int nOrigHeight, int nOvershoot, int nUndershoot);
+template void clamp16_native_c<16>(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pUpLimit, ptrdiff_t nUpLimitPitch, const uint8_t *pLowLimit, ptrdiff_t nLowLimitPitch, int nWidth, int nHeight, int nOrigHeight, int nOvershoot, int nUndershoot);
 
-template void clamp16_native_simd<CPU_SSE2,10>(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pUpLimit, ptrdiff_t nUpLimitPitch, const Byte *pLowLimit, ptrdiff_t nLowLimitPitch, int nWidth, int nHeight, int nOrigHeight, int nOvershoot, int nUndershoot);
-template void clamp16_native_simd<CPU_SSE2,12>(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pUpLimit, ptrdiff_t nUpLimitPitch, const Byte *pLowLimit, ptrdiff_t nLowLimitPitch, int nWidth, int nHeight, int nOrigHeight, int nOvershoot, int nUndershoot);
-template void clamp16_native_simd<CPU_SSE2,14>(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pUpLimit, ptrdiff_t nUpLimitPitch, const Byte *pLowLimit, ptrdiff_t nLowLimitPitch, int nWidth, int nHeight, int nOrigHeight, int nOvershoot, int nUndershoot);
-template void clamp16_native_simd<CPU_SSE2,16>(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pUpLimit, ptrdiff_t nUpLimitPitch, const Byte *pLowLimit, ptrdiff_t nLowLimitPitch, int nWidth, int nHeight, int nOrigHeight, int nOvershoot, int nUndershoot);
+template void clamp16_native_simd<CPU_SSE2,10>(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pUpLimit, ptrdiff_t nUpLimitPitch, const uint8_t *pLowLimit, ptrdiff_t nLowLimitPitch, int nWidth, int nHeight, int nOrigHeight, int nOvershoot, int nUndershoot);
+template void clamp16_native_simd<CPU_SSE2,12>(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pUpLimit, ptrdiff_t nUpLimitPitch, const uint8_t *pLowLimit, ptrdiff_t nLowLimitPitch, int nWidth, int nHeight, int nOrigHeight, int nOvershoot, int nUndershoot);
+template void clamp16_native_simd<CPU_SSE2,14>(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pUpLimit, ptrdiff_t nUpLimitPitch, const uint8_t *pLowLimit, ptrdiff_t nLowLimitPitch, int nWidth, int nHeight, int nOrigHeight, int nOvershoot, int nUndershoot);
+template void clamp16_native_simd<CPU_SSE2,16>(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pUpLimit, ptrdiff_t nUpLimitPitch, const uint8_t *pLowLimit, ptrdiff_t nLowLimitPitch, int nWidth, int nHeight, int nOrigHeight, int nOvershoot, int nUndershoot);
 
-template void clamp16_native_simd<CPU_SSE4_1,10>(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pUpLimit, ptrdiff_t nUpLimitPitch, const Byte *pLowLimit, ptrdiff_t nLowLimitPitch, int nWidth, int nHeight, int nOrigHeight, int nOvershoot, int nUndershoot);
-template void clamp16_native_simd<CPU_SSE4_1,12>(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pUpLimit, ptrdiff_t nUpLimitPitch, const Byte *pLowLimit, ptrdiff_t nLowLimitPitch, int nWidth, int nHeight, int nOrigHeight, int nOvershoot, int nUndershoot);
-template void clamp16_native_simd<CPU_SSE4_1,14>(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pUpLimit, ptrdiff_t nUpLimitPitch, const Byte *pLowLimit, ptrdiff_t nLowLimitPitch, int nWidth, int nHeight, int nOrigHeight, int nOvershoot, int nUndershoot);
-template void clamp16_native_simd<CPU_SSE4_1,16>(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pUpLimit, ptrdiff_t nUpLimitPitch, const Byte *pLowLimit, ptrdiff_t nLowLimitPitch, int nWidth, int nHeight, int nOrigHeight, int nOvershoot, int nUndershoot);
+template void clamp16_native_simd<CPU_SSE4_1,10>(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pUpLimit, ptrdiff_t nUpLimitPitch, const uint8_t *pLowLimit, ptrdiff_t nLowLimitPitch, int nWidth, int nHeight, int nOrigHeight, int nOvershoot, int nUndershoot);
+template void clamp16_native_simd<CPU_SSE4_1,12>(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pUpLimit, ptrdiff_t nUpLimitPitch, const uint8_t *pLowLimit, ptrdiff_t nLowLimitPitch, int nWidth, int nHeight, int nOrigHeight, int nOvershoot, int nUndershoot);
+template void clamp16_native_simd<CPU_SSE4_1,14>(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pUpLimit, ptrdiff_t nUpLimitPitch, const uint8_t *pLowLimit, ptrdiff_t nLowLimitPitch, int nWidth, int nHeight, int nOrigHeight, int nOvershoot, int nUndershoot);
+template void clamp16_native_simd<CPU_SSE4_1,16>(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pUpLimit, ptrdiff_t nUpLimitPitch, const uint8_t *pLowLimit, ptrdiff_t nLowLimitPitch, int nWidth, int nHeight, int nOrigHeight, int nOvershoot, int nUndershoot);
 
 Processor16 *clamp16_stacked_sse2 = &clamp16_stacked_simd<CPU_SSE2>;
 Processor16 *clamp16_stacked_sse4_1 = &clamp16_stacked_simd<CPU_SSE4_1>;

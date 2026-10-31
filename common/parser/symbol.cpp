@@ -13,7 +13,7 @@ static double multiplication  (double x, double y) { return x * y; }
 static double division        (double x, double y) { return x / y; }
 static double substraction    (double x, double y) { return x - y; }
 static double power           (double x, double y) { return pow(x, y); }
-static double modulo          (double x, double y) { return double(convert<Int64, double>( x ) % convert<Int64, double>( y )); }
+static double modulo          (double x, double y) { return double(convert<int64_t, double>( x ) % convert<int64_t, double>( y )); }
 // Ternary operator helper
 static double interrogation   (double x, double y, double z) { return x > 0 ? y : z; }
 // comparison
@@ -29,19 +29,19 @@ static double _or              (double x, double y) { return x > 0 || y > 0 ? 1 
 static double andNot          (double x, double y) { return x > 0 && y <= 0 ? 1 : -1; }
 static double _xor             (double x, double y) { return (x > 0 && y <= 0) || (x <= 0 && y > 0)? 1 : -1; }
 // Unsigned Bit arithmetic
-static double andUB           (double x, double y) { return double(clip<Uint64, double>(x) & clip<Uint64, double>(y)); }
-static double orUB            (double x, double y) { return double(clip<Uint64, double>(x) | clip<Uint64, double>(y)); }
-static double xorUB           (double x, double y) { return double(clip<Uint64, double>(x) ^ clip<Uint64, double>(y)); }
-static double negateUB        (double x) { return double(~clip<Uint64, double>(x)); }
-static double posshiftUB      (double x, double y) { return y >= 0 ? double(clip<Uint64, double>(x) << clip<Int64, double>(y)) : double(clip<Uint64, double>(x) >> clip<Int64, double>(-y)); }
-static double negshiftUB      (double x, double y) { return y >= 0 ? double(clip<Uint64, double>(x) >> clip<Int64, double>(y)) : double(clip<Uint64, double>(x) << clip<Int64, double>(-y)); }
+static double andUB           (double x, double y) { return double(clip<uint64_t, double>(x) & clip<uint64_t, double>(y)); }
+static double orUB            (double x, double y) { return double(clip<uint64_t, double>(x) | clip<uint64_t, double>(y)); }
+static double xorUB           (double x, double y) { return double(clip<uint64_t, double>(x) ^ clip<uint64_t, double>(y)); }
+static double negateUB        (double x) { return double(~clip<uint64_t, double>(x)); }
+static double posshiftUB      (double x, double y) { return y >= 0 ? double(clip<uint64_t, double>(x) << clip<int64_t, double>(y)) : double(clip<uint64_t, double>(x) >> clip<int64_t, double>(-y)); }
+static double negshiftUB      (double x, double y) { return y >= 0 ? double(clip<uint64_t, double>(x) >> clip<int64_t, double>(y)) : double(clip<uint64_t, double>(x) << clip<int64_t, double>(-y)); }
 // Signed Bit arithmetic
-static double andSB           (double x, double y) { return double(clip<Int64, double>(x) & clip<Int64, double>(y)); }
-static double orSB            (double x, double y) { return double(clip<Int64, double>(x) | clip<Int64, double>(y)); }
-static double xorSB           (double x, double y) { return double(clip<Int64, double>(x) ^ clip<Int64, double>(y)); }
-static double negateSB        (double x) { return double(~clip<Int64, double>(x)); }
-static double posshiftSB      (double x, double y) { return y >= 0 ? double(clip<Int64, double>(x) << clip<Int64, double>(y)) : double(clip<Int64, double>(x) >> clip<Int64, double>(-y)); }
-static double negshiftSB      (double x, double y) { return y >= 0 ? double(clip<Int64, double>(x) >> clip<Int64, double>(y)) : double(clip<Int64, double>(x) << clip<Int64, double>(-y)); }
+static double andSB           (double x, double y) { return double(clip<int64_t, double>(x) & clip<int64_t, double>(y)); }
+static double orSB            (double x, double y) { return double(clip<int64_t, double>(x) | clip<int64_t, double>(y)); }
+static double xorSB           (double x, double y) { return double(clip<int64_t, double>(x) ^ clip<int64_t, double>(y)); }
+static double negateSB        (double x) { return double(~clip<int64_t, double>(x)); }
+static double posshiftSB      (double x, double y) { return y >= 0 ? double(clip<int64_t, double>(x) << clip<int64_t, double>(y)) : double(clip<int64_t, double>(x) >> clip<int64_t, double>(-y)); }
+static double negshiftSB      (double x, double y) { return y >= 0 ? double(clip<int64_t, double>(x) >> clip<int64_t, double>(y)) : double(clip<int64_t, double>(x) << clip<int64_t, double>(-y)); }
 // Math
 static double mtcos             (double x) { return cos(x); }
 static double mtsin             (double x) { return sin(x); }
@@ -53,13 +53,13 @@ static double mtacos            (double x) { return acos(x); }
 static double mtasin            (double x) { return asin(x); }
 static double mtatan            (double x) { return atan(x); }
 static double mtatan2           (double y, double x) { return atan2(y, x); }
-static double mtround           (double x) { return double(convert<Int64, double>( x )); }
+static double mtround           (double x) { return double(convert<int64_t, double>( x )); }
 static double mtclip            (double x, double y, double z) { return clip<double, double>( x, y, z ); }
 static double mtmin             (double x, double y) { return min<double>( x, y ); }
 static double mtmax             (double x, double y) { return max<double>( x, y ); }
 static double mtfloor           (double x) { return floor(x); }
 static double mtceil            (double x) { return ceil(x); }
-static double mttrunc           (double x) { return double(Int64(x)); }
+static double mttrunc           (double x) { return double(int64_t(x)); }
 
 // bit depth conversion helpers. x:value on 8 bit scale y: target bit depth 8-32 z:base bit depth
 static double do_upscaleByShift(double x, int y, int z, bool chroma, bool shift_float)

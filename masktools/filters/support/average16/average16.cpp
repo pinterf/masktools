@@ -4,17 +4,17 @@
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Support  { namespace Average {
 
-void average16_stacked_c(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight, int nOrigHeight)
+void average16_stacked_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight, int nOrigHeight)
 {
     auto pDstLsb = pDst + nDstPitch * nOrigHeight / 2;
     auto pSrcLsb = pSrc + nSrcPitch * nOrigHeight / 2;
 
     for (int y = 0; y < nHeight / 2; y++) {
         for (int x = 0; x < nWidth; x++) {
-            Word dst = read_word_stacked(pDst, pDstLsb, x);
-            Word src = read_word_stacked(pSrc, pSrcLsb, x);
+            uint16_t dst = read_word_stacked(pDst, pDstLsb, x);
+            uint16_t src = read_word_stacked(pSrc, pSrcLsb, x);
 
-            Word avg = (dst + src + 1) >> 1;
+            uint16_t avg = (dst + src + 1) >> 1;
 
             write_word_stacked(pDst, pDstLsb, x, avg);
         }
@@ -25,11 +25,11 @@ void average16_stacked_c(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrd
     }
 }
 
-void average16_native_c(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight, int)
+void average16_native_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight, int)
 {
     for (int y = 0; y < nHeight; y++) {
-        auto pDstWord = reinterpret_cast<Word*>(pDst);
-        auto pSrcWord = reinterpret_cast<const Word*>(pSrc);
+        auto pDstWord = reinterpret_cast<uint16_t*>(pDst);
+        auto pSrcWord = reinterpret_cast<const uint16_t*>(pSrc);
 
         for (int x = 0; x < nWidth; x++) {
             pDstWord[x] = (pDstWord[x] + pSrcWord[x] + 1) >> 1;
@@ -40,7 +40,7 @@ void average16_native_c(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdi
 }
 
 
-void average16_stacked_sse2(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight, int nOrigHeight)
+void average16_stacked_sse2(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight, int nOrigHeight)
 {
     int wMod8 = (nWidth / 8) * 8;
 
@@ -71,7 +71,7 @@ void average16_stacked_sse2(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, p
     }
 }
 
-void average16_native_sse2(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight, int nOrigHeight)
+void average16_native_sse2(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight, int nOrigHeight)
 {
     nWidth *= 2; // really rowsize: width * sizeof(uint16), see also division at C trailer
   

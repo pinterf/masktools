@@ -8,9 +8,9 @@
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Lut { namespace SpatialExtended {
 
-typedef void(Processor)(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc1, ptrdiff_t nSrc1Pitch, const Byte *pSrc2, ptrdiff_t nSrc2Pitch, const Byte *lut, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, const String &mode1, const String &mode2);
-typedef void(ProcessorCtx)(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc1, ptrdiff_t nSrc1Pitch, const Byte *pSrc2, ptrdiff_t nSrc2Pitch, Parser::Context *ctx, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, const String &mode1, const String &mode2);
-typedef void(ProcessorCtx32)(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc1, ptrdiff_t nSrc1Pitch, const Byte *pSrc2, ptrdiff_t nSrc2Pitch, Parser::Context *ctx, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, const String &mode1, const String &mode2, bool chroma);
+typedef void(Processor)(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch, const uint8_t *pSrc2, ptrdiff_t nSrc2Pitch, const uint8_t *lut, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, const String &mode1, const String &mode2);
+typedef void(ProcessorCtx)(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch, const uint8_t *pSrc2, ptrdiff_t nSrc2Pitch, Parser::Context *ctx, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, const String &mode1, const String &mode2);
+typedef void(ProcessorCtx32)(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch, const uint8_t *pSrc2, ptrdiff_t nSrc2Pitch, Parser::Context *ctx, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, const String &mode1, const String &mode2, bool chroma);
 
 extern Processor *processors_array[NUM_MODES][NUM_MODES];
 extern ProcessorCtx *processors_realtime_8_array[NUM_MODES][NUM_MODES];
@@ -22,7 +22,7 @@ extern ProcessorCtx32 *processors_realtime_32_array[NUM_MODES][NUM_MODES];
 
 class Lutsx : public MaskTools::Filter
 {
-   std::pair<bool, Byte*> luts[4+1];
+   std::pair<bool, uint8_t*> luts[4+1];
 
    int *pCoordinates;
    int nCoordinates;
@@ -56,9 +56,9 @@ class Lutsx : public MaskTools::Filter
       }
    }
 
-   static Byte *calculateLut(const std::deque<Filtering::Parser::Symbol> &expr, String scale_inputs, int clamp_float, int& compute_error) {
+   static uint8_t *calculateLut(const std::deque<Filtering::Parser::Symbol> &expr, String scale_inputs, int clamp_float, int& compute_error) {
        Parser::Context ctx(expr, scale_inputs, clamp_float);
-       Byte *lut = new Byte[256 * 256 * 256];
+       uint8_t *lut = new uint8_t[256 * 256 * 256];
 
        for ( int x = 0; x < 256; x++ ) {
            for ( int y = 0; y < 256; y++ ) {
@@ -75,7 +75,7 @@ class Lutsx : public MaskTools::Filter
    }
 
 protected:
-    virtual void process(int n, const Plane<Byte> &dst, int nPlane, const Filtering::Frame<const Byte> frames[4], const Constraint constraints[4]) override
+    virtual void process(int n, const Plane<uint8_t> &dst, int nPlane, const Filtering::Frame<const uint8_t> frames[4], const Constraint constraints[4]) override
     {
         UNUSED(n);
         if (realtime) {

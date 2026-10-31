@@ -4,30 +4,30 @@
 
 using namespace Filtering;
 
-static inline Word meanMax(Word a1, Word a2, Word a3, Word a4, Word a5, Word a6, Word a7, Word a8, Word a9)
+static inline uint16_t meanMax(uint16_t a1, uint16_t a2, uint16_t a3, uint16_t a4, uint16_t a5, uint16_t a6, uint16_t a7, uint16_t a8, uint16_t a9)
 {
     int nSum = 0;
     nSum += a1 + a2 + a3 + a4 + a6 + a7 + a8 + a9;
     nSum >>= 3;
-    return static_cast<Word>(nSum > a5 ? nSum : a5);
+    return static_cast<uint16_t>(nSum > a5 ? nSum : a5);
 }
 
-static inline Word meanMaxThresholded(Word a1, Word a2, Word a3, Word a4, Word a5, Word a6, Word a7, Word a8, Word a9, int nMaxDeviation)
+static inline uint16_t meanMaxThresholded(uint16_t a1, uint16_t a2, uint16_t a3, uint16_t a4, uint16_t a5, uint16_t a6, uint16_t a7, uint16_t a8, uint16_t a9, int nMaxDeviation)
 {
     int nMeanMax = meanMax(a1, a2, a3, a4, a5, a6, a7, a8, a9);
     if ( nMeanMax - a5 > nMaxDeviation ) nMeanMax = a5 + nMaxDeviation;
-    return static_cast<Word>(nMeanMax);
+    return static_cast<uint16_t>(nMeanMax);
 }
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Morphologic { namespace Inflate {
 
-StackedProcessor *inflate_stacked_c = &MorphologicProcessor<Byte>::generic_16_c<
+StackedProcessor *inflate_stacked_c = &MorphologicProcessor<uint8_t>::generic_16_c<
     process_line_morpho_stacked_c<Border::Left, meanMaxThresholded>,
     process_line_morpho_stacked_c<Border::None, meanMaxThresholded>,
     process_line_morpho_stacked_c<Border::Right, meanMaxThresholded>
 >;
 
-Processor16 *inflate_16_c = &MorphologicProcessor<Word>::generic_16_c<
+Processor16 *inflate_16_c = &MorphologicProcessor<uint16_t>::generic_16_c<
     process_line_morpho_16_c<Border::Left, meanMaxThresholded>,
     process_line_morpho_16_c<Border::None, meanMaxThresholded>,
     process_line_morpho_16_c<Border::Right, meanMaxThresholded>

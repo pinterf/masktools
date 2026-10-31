@@ -3,8 +3,8 @@
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Merge {
 
-   static void merge32_avx2_c(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc1, ptrdiff_t nSrc1Pitch,
-      const Byte *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
+   static void merge32_avx2_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
+      const uint8_t *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
    {
       for (int y = 0; y < nHeight; ++y)
       {
@@ -17,8 +17,8 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Merge 
       }
    }
 
-   static void merge32_luma_420_avx2_c(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc1, ptrdiff_t nSrc1Pitch,
-      const Byte *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
+   static void merge32_luma_420_avx2_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
+      const uint8_t *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
    {
       for (int y = 0; y < nHeight; ++y)
       {
@@ -36,8 +36,8 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Merge 
    }
 
    template<bool allow_leftminus1>
-   static void internal_merge32_luma_420_mpeg2_avx2_c(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc1, ptrdiff_t nSrc1Pitch,
-     const Byte *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
+   static void internal_merge32_luma_420_mpeg2_avx2_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
+     const uint8_t *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
    {
      for (int y = 0; y < nHeight; ++y)
      {
@@ -63,20 +63,20 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Merge 
      }
    }
 
-   static void merge32_luma_420_mpeg2_avx2_c(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc1, ptrdiff_t nSrc1Pitch,
-     const Byte *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
+   static void merge32_luma_420_mpeg2_avx2_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
+     const uint8_t *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
    {
      internal_merge32_luma_420_mpeg2_avx2_c<false>(pDst, nDstPitch, pSrc1, nSrc1Pitch, pMask, nSrc2Pitch, nWidth, nHeight);
    }
 
-   static void merge32_luma_420_mpeg2_allow_leftminus1_avx2_c(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc1, ptrdiff_t nSrc1Pitch,
-     const Byte *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
+   static void merge32_luma_420_mpeg2_allow_leftminus1_avx2_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
+     const uint8_t *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
    {
      internal_merge32_luma_420_mpeg2_avx2_c<true>(pDst, nDstPitch, pSrc1, nSrc1Pitch, pMask, nSrc2Pitch, nWidth, nHeight);
    }
 
-   static void merge32_luma_422_avx2_c(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc1, ptrdiff_t nSrc1Pitch,
-     const Byte *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
+   static void merge32_luma_422_avx2_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
+     const uint8_t *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
    {
      for (int y = 0; y < nHeight; ++y)
      {
@@ -92,8 +92,8 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Merge 
    }
 
    template<bool allow_leftminus1>
-   static void internal_merge32_luma_422_mpeg2_avx2_c(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc1, ptrdiff_t nSrc1Pitch,
-     const Byte *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
+   static void internal_merge32_luma_422_mpeg2_avx2_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
+     const uint8_t *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
    {
      for (int y = 0; y < nHeight; ++y)
      {
@@ -119,21 +119,21 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Merge 
      }
    }
 
-   static void merge32_luma_422_mpeg2_avx2_c(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc1, ptrdiff_t nSrc1Pitch,
-     const Byte *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
+   static void merge32_luma_422_mpeg2_avx2_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
+     const uint8_t *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
    {
      internal_merge32_luma_422_mpeg2_avx2_c<false>(pDst, nDstPitch, pSrc1, nSrc1Pitch, pMask, nSrc2Pitch, nWidth, nHeight);
    }
 
-   static void merge32_luma_422_mpeg2_allow_leftminus1_avx2_c(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc1, ptrdiff_t nSrc1Pitch,
-     const Byte *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
+   static void merge32_luma_422_mpeg2_allow_leftminus1_avx2_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
+     const uint8_t *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
    {
      internal_merge32_luma_422_mpeg2_avx2_c<true>(pDst, nDstPitch, pSrc1, nSrc1Pitch, pMask, nSrc2Pitch, nWidth, nHeight);
    }
 
 
    template <MemoryMode mem_mode>
-   MT_FORCEINLINE __m256 merge32_avx2_core(Byte *pDst, const Byte *pSrc, const __m256& mask) {
+   MT_FORCEINLINE __m256 merge32_avx2_core(uint8_t *pDst, const uint8_t *pSrc, const __m256& mask) {
       // ( 1- mask) * dst + mask * src = 
       // dst - dst * mask + src * mask = 
       // dst + mask * (src - dst)
@@ -145,10 +145,10 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Merge 
    }
 
    template <MemoryMode mem_mode>
-   void merge32_avx2_t(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc1, ptrdiff_t nSrc1Pitch,
-      const Byte *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
+   void merge32_avx2_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
+      const uint8_t *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
    {
-      nWidth *= sizeof(Float);
+      nWidth *= sizeof(float);
 
       int wMod32 = (nWidth / 32) * 32;
       auto pDst_s = pDst;
@@ -166,15 +166,15 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Merge 
       }
 
       if (nWidth > wMod32) {
-         merge32_avx2_c(pDst_s + wMod32, nDstPitch, pSrc1_s + wMod32, nSrc1Pitch, pMask_s + wMod32, nSrc2Pitch, (nWidth - wMod32) / sizeof(Float), nHeight);
+         merge32_avx2_c(pDst_s + wMod32, nDstPitch, pSrc1_s + wMod32, nSrc1Pitch, pMask_s + wMod32, nSrc2Pitch, (nWidth - wMod32) / sizeof(float), nHeight);
       }
    }
 
    template <MemoryMode mem_mode>
-   void merge32_luma_420_avx2_t(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc1, ptrdiff_t nSrc1Pitch,
-     const Byte *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
+   void merge32_luma_420_avx2_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
+     const uint8_t *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
    {
-     nWidth *= sizeof(Float);
+     nWidth *= sizeof(float);
 
      int wMod32 = (nWidth / 32) * 32;
      auto pDst_s = pDst;
@@ -209,15 +209,15 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Merge 
        pMask += nSrc2Pitch * 2;
      }
      if (nWidth > wMod32) {
-       merge32_luma_420_avx2_c(pDst_s + wMod32, nDstPitch, pSrc1_s + wMod32, nSrc1Pitch, pMask_s + wMod32 * 2, nSrc2Pitch, (nWidth - wMod32) / sizeof(Float), nHeight);
+       merge32_luma_420_avx2_c(pDst_s + wMod32, nDstPitch, pSrc1_s + wMod32, nSrc1Pitch, pMask_s + wMod32 * 2, nSrc2Pitch, (nWidth - wMod32) / sizeof(float), nHeight);
      }
    }
 
    template <MemoryMode mem_mode>
-   void merge32_luma_420_mpeg2_avx2_t(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc1, ptrdiff_t nSrc1Pitch,
-     const Byte *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
+   void merge32_luma_420_mpeg2_avx2_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
+     const uint8_t *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
    {
-     nWidth *= sizeof(Float);
+     nWidth *= sizeof(float);
 
      int wMod32 = (nWidth / 32) * 32;
      auto pDst_s = pDst;
@@ -278,17 +278,17 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Merge 
      if (nWidth > wMod32) {
        // pMask offset: mask is not subsampled -> width*2
        if (wMod32 != 0)
-         merge32_luma_420_mpeg2_allow_leftminus1_avx2_c(pDst_s + wMod32, nDstPitch, pSrc1_s + wMod32, nSrc1Pitch, pMask_s + wMod32 * 2, nSrc2Pitch, (nWidth - wMod32) / sizeof(Float), nHeight);
+         merge32_luma_420_mpeg2_allow_leftminus1_avx2_c(pDst_s + wMod32, nDstPitch, pSrc1_s + wMod32, nSrc1Pitch, pMask_s + wMod32 * 2, nSrc2Pitch, (nWidth - wMod32) / sizeof(float), nHeight);
        else
-         merge32_luma_420_mpeg2_avx2_c(pDst_s + wMod32, nDstPitch, pSrc1_s + wMod32, nSrc1Pitch, pMask_s + wMod32 * 2, nSrc2Pitch, (nWidth - wMod32) / sizeof(Float), nHeight);
+         merge32_luma_420_mpeg2_avx2_c(pDst_s + wMod32, nDstPitch, pSrc1_s + wMod32, nSrc1Pitch, pMask_s + wMod32 * 2, nSrc2Pitch, (nWidth - wMod32) / sizeof(float), nHeight);
      }
    }
 
    template <MemoryMode mem_mode>
-   void merge32_luma_422_avx2_t(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc1, ptrdiff_t nSrc1Pitch,
-     const Byte *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
+   void merge32_luma_422_avx2_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
+     const uint8_t *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
    {
-     nWidth *= sizeof(Float);
+     nWidth *= sizeof(float);
 
      int wMod32 = (nWidth / 32) * 32;
      auto pDst_s = pDst;
@@ -316,15 +316,15 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Merge 
        pMask += nSrc2Pitch;
      }
      if (nWidth > wMod32) {
-       merge32_luma_422_avx2_c(pDst_s + wMod32, nDstPitch, pSrc1_s + wMod32, nSrc1Pitch, pMask_s + wMod32 * 2, nSrc2Pitch, (nWidth - wMod32) / sizeof(Float), nHeight);
+       merge32_luma_422_avx2_c(pDst_s + wMod32, nDstPitch, pSrc1_s + wMod32, nSrc1Pitch, pMask_s + wMod32 * 2, nSrc2Pitch, (nWidth - wMod32) / sizeof(float), nHeight);
      }
    }
 
    template <MemoryMode mem_mode>
-   void merge32_luma_422_mpeg2_avx2_t(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc1, ptrdiff_t nSrc1Pitch,
-     const Byte *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
+   void merge32_luma_422_mpeg2_avx2_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
+     const uint8_t *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
    {
-     nWidth *= sizeof(Float);
+     nWidth *= sizeof(float);
 
      int wMod32 = (nWidth / 32) * 32;
      auto pDst_s = pDst;
@@ -375,9 +375,9 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Merge 
      if (nWidth > wMod32) {
        // pMask offset: mask is not subsampled -> width*2
        if (wMod32 != 0)
-         merge32_luma_422_mpeg2_allow_leftminus1_avx2_c(pDst_s + wMod32, nDstPitch, pSrc1_s + wMod32, nSrc1Pitch, pMask_s + wMod32 * 2, nSrc2Pitch, (nWidth - wMod32) / sizeof(Float), nHeight);
+         merge32_luma_422_mpeg2_allow_leftminus1_avx2_c(pDst_s + wMod32, nDstPitch, pSrc1_s + wMod32, nSrc1Pitch, pMask_s + wMod32 * 2, nSrc2Pitch, (nWidth - wMod32) / sizeof(float), nHeight);
        else
-         merge32_luma_422_mpeg2_avx2_c(pDst_s + wMod32, nDstPitch, pSrc1_s + wMod32, nSrc1Pitch, pMask_s + wMod32 * 2, nSrc2Pitch, (nWidth - wMod32) / sizeof(Float), nHeight);
+         merge32_luma_422_mpeg2_avx2_c(pDst_s + wMod32, nDstPitch, pSrc1_s + wMod32, nSrc1Pitch, pMask_s + wMod32 * 2, nSrc2Pitch, (nWidth - wMod32) / sizeof(float), nHeight);
      }
    }
 

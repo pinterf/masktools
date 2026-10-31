@@ -6,18 +6,18 @@
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Lut { namespace Coordinate {
 
-typedef void(Processor)(Byte *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight, const Byte *lut);
+typedef void(Processor)(uint8_t *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight, const uint8_t *lut);
 
 Processor lut_c;
 
 class Lutspa : public MaskTools::Filter
 {
-   Byte *luts[4];
+   uint8_t *luts[4];
    int bits_per_pixel;
    int pixelsize;
 
 protected:
-    virtual void process(int n, const Plane<Byte> &dst, int nPlane, const Filtering::Frame<const Byte> frames[4], const Constraint constraints[4]) override
+    virtual void process(int n, const Plane<uint8_t> &dst, int nPlane, const Filtering::Frame<const uint8_t> frames[4], const Constraint constraints[4]) override
     {
         UNUSED(n); UNUSED(frames); UNUSED(constraints);
         Functions::copy_plane(dst.data(), dst.pitch(), luts[nPlane], dst.width() * pixelsize, dst.width() * pixelsize, dst.height());
@@ -90,7 +90,7 @@ public:
             return;
          }
 
-         luts[i] = reinterpret_cast<Byte*>(_aligned_malloc(w*h*pixelsize, 16));
+         luts[i] = reinterpret_cast<uint8_t*>(_aligned_malloc(w*h*pixelsize, 16));
 
          switch(bits_per_pixel) {
          case 8:

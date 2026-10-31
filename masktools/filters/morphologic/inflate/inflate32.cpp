@@ -4,22 +4,22 @@
 
 using namespace Filtering;
 
-static inline Float meanMax(Float a1, Float a2, Float a3, Float a4, Float a5, Float a6, Float a7, Float a8, Float a9)
+static inline float meanMax(float a1, float a2, float a3, float a4, float a5, float a6, float a7, float a8, float a9)
 {
-    Float nSum = (a1 + a2 + a3 + a4 + a6 + a7 + a8 + a9) / 8.0f;
+    float nSum = (a1 + a2 + a3 + a4 + a6 + a7 + a8 + a9) / 8.0f;
     return nSum > a5 ? nSum : a5;
 }
 
-static inline Float meanMaxThresholded(Float a1, Float a2, Float a3, Float a4, Float a5, Float a6, Float a7, Float a8, Float a9, Float nMaxDeviation)
+static inline float meanMaxThresholded(float a1, float a2, float a3, float a4, float a5, float a6, float a7, float a8, float a9, float nMaxDeviation)
 {
-    Float nMeanMax = meanMax(a1, a2, a3, a4, a5, a6, a7, a8, a9);
+    float nMeanMax = meanMax(a1, a2, a3, a4, a5, a6, a7, a8, a9);
     if ( nMeanMax - a5 > nMaxDeviation ) nMeanMax = a5 + nMaxDeviation;
     return nMeanMax;
 }
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Morphologic { namespace Inflate {
 
-Processor32 *inflate32_c = &MorphologicProcessor<Float>::generic_32_c<
+Processor32 *inflate32_c = &MorphologicProcessor<float>::generic_32_c<
     process_line_morpho_32_c<Border::Left, meanMaxThresholded>,
     process_line_morpho_32_c<Border::None, meanMaxThresholded>,
     process_line_morpho_32_c<Border::Right, meanMaxThresholded>

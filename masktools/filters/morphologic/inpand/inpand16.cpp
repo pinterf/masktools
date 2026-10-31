@@ -3,11 +3,11 @@
 
 using namespace Filtering;
 
-typedef Word (local_minimum_f)(Word a1, Word a2, Word a3, Word a4, Word a5, Word a6, Word a7, Word a8, Word a9);
+typedef uint16_t (local_minimum_f)(uint16_t a1, uint16_t a2, uint16_t a3, uint16_t a4, uint16_t a5, uint16_t a6, uint16_t a7, uint16_t a8, uint16_t a9);
 
-static inline Word minimum_square(Word a1, Word a2, Word a3, Word a4, Word a5, Word a6, Word a7, Word a8, Word a9)
+static inline uint16_t minimum_square(uint16_t a1, uint16_t a2, uint16_t a3, uint16_t a4, uint16_t a5, uint16_t a6, uint16_t a7, uint16_t a8, uint16_t a9)
 {
-    Word nMin = a1;
+    uint16_t nMin = a1;
     if ( a2 < nMin ) nMin = a2;
     if ( a3 < nMin ) nMin = a3;
     if ( a4 < nMin ) nMin = a4;
@@ -19,9 +19,9 @@ static inline Word minimum_square(Word a1, Word a2, Word a3, Word a4, Word a5, W
     return nMin;
 }
 
-static inline Word minimum_horizontal(Word a1, Word a2, Word a3, Word a4, Word a5, Word a6, Word a7, Word a8, Word a9)
+static inline uint16_t minimum_horizontal(uint16_t a1, uint16_t a2, uint16_t a3, uint16_t a4, uint16_t a5, uint16_t a6, uint16_t a7, uint16_t a8, uint16_t a9)
 {
-    Word nMin = a4;
+    uint16_t nMin = a4;
 
     UNUSED(a1); UNUSED(a2); UNUSED(a3); UNUSED(a7); UNUSED(a8); UNUSED(a9); 
 
@@ -30,9 +30,9 @@ static inline Word minimum_horizontal(Word a1, Word a2, Word a3, Word a4, Word a
     return nMin;
 }
 
-static inline Word minimum_vertical(Word a1, Word a2, Word a3, Word a4, Word a5, Word a6, Word a7, Word a8, Word a9)
+static inline uint16_t minimum_vertical(uint16_t a1, uint16_t a2, uint16_t a3, uint16_t a4, uint16_t a5, uint16_t a6, uint16_t a7, uint16_t a8, uint16_t a9)
 {
-    Word nMin = a2;
+    uint16_t nMin = a2;
 
     UNUSED(a1); UNUSED(a3); UNUSED(a4); UNUSED(a6); UNUSED(a7); UNUSED(a9); 
 
@@ -41,9 +41,9 @@ static inline Word minimum_vertical(Word a1, Word a2, Word a3, Word a4, Word a5,
     return nMin;
 }
 
-static inline Word minimum_both(Word a1, Word a2, Word a3, Word a4, Word a5, Word a6, Word a7, Word a8, Word a9)
+static inline uint16_t minimum_both(uint16_t a1, uint16_t a2, uint16_t a3, uint16_t a4, uint16_t a5, uint16_t a6, uint16_t a7, uint16_t a8, uint16_t a9)
 {
-    Word nMin = a2;
+    uint16_t nMin = a2;
 
     UNUSED(a1); UNUSED(a3); UNUSED(a7); UNUSED(a9); 
 
@@ -55,11 +55,11 @@ static inline Word minimum_both(Word a1, Word a2, Word a3, Word a4, Word a5, Wor
 }
 
 template<local_minimum_f Minimum>
-static inline Word minimumThresholded(Word a1, Word a2, Word a3, Word a4, Word a5, Word a6, Word a7, Word a8, Word a9, int nMaxDeviation)
+static inline uint16_t minimumThresholded(uint16_t a1, uint16_t a2, uint16_t a3, uint16_t a4, uint16_t a5, uint16_t a6, uint16_t a7, uint16_t a8, uint16_t a9, int nMaxDeviation)
 {
     int nMinimum = Minimum(a1, a2, a3, a4, a5, a6, a7, a8, a9);
     if ( a5 - nMinimum > nMaxDeviation ) nMinimum = a5 - nMaxDeviation;
-    return static_cast<Word>(nMinimum);
+    return static_cast<uint16_t>(nMinimum);
 }
 
 extern "C" MT_FORCEINLINE __m128i inpand_operator_sse4_16(__m128i a, __m128i b) {
@@ -71,56 +71,56 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Morpho
     class NewValue16 {
         int nMin;
         int nMaxDeviation;
-        Word nValue;
+        uint16_t nValue;
     public:
-        NewValue16(Word nValue, int nMaxDeviation) : nMin(65536), nMaxDeviation(nMaxDeviation), nValue(nValue) { }
-        void add(Word _nValue) { if ( _nValue < nMin ) nMin = _nValue; }
-        Word finalize() const { return static_cast<Word>(nMin > 65535 ? nValue : (nValue - nMin > nMaxDeviation ? nValue - nMaxDeviation : nMin)); }
+        NewValue16(uint16_t nValue, int nMaxDeviation) : nMin(65536), nMaxDeviation(nMaxDeviation), nValue(nValue) { }
+        void add(uint16_t _nValue) { if ( _nValue < nMin ) nMin = _nValue; }
+        uint16_t finalize() const { return static_cast<uint16_t>(nMin > 65535 ? nValue : (nValue - nMin > nMaxDeviation ? nValue - nMaxDeviation : nMin)); }
     };
 
-StackedProcessor *inpand_square_stacked_c = &MorphologicProcessor<Byte>::generic_16_c<
+StackedProcessor *inpand_square_stacked_c = &MorphologicProcessor<uint8_t>::generic_16_c<
     process_line_morpho_stacked_c<Border::Left, minimumThresholded<::minimum_square>>,
     process_line_morpho_stacked_c<Border::None, minimumThresholded<::minimum_square>>,
     process_line_morpho_stacked_c<Border::Right, minimumThresholded<::minimum_square>>
     >;
 
-StackedProcessor *inpand_horizontal_stacked_c = &MorphologicProcessor<Byte>::generic_16_c<
+StackedProcessor *inpand_horizontal_stacked_c = &MorphologicProcessor<uint8_t>::generic_16_c<
     process_line_morpho_stacked_c<Border::Left, minimumThresholded<::minimum_horizontal>>,
     process_line_morpho_stacked_c<Border::None, minimumThresholded<::minimum_horizontal>>,
     process_line_morpho_stacked_c<Border::Right, minimumThresholded<::minimum_horizontal>>
     >;
 
-StackedProcessor *inpand_vertical_stacked_c = &MorphologicProcessor<Byte>::generic_16_c<
+StackedProcessor *inpand_vertical_stacked_c = &MorphologicProcessor<uint8_t>::generic_16_c<
     process_line_morpho_stacked_c<Border::Left, minimumThresholded<::minimum_vertical>>,
     process_line_morpho_stacked_c<Border::None, minimumThresholded<::minimum_vertical>>,
     process_line_morpho_stacked_c<Border::Right, minimumThresholded<::minimum_vertical>>
     >;
 
-StackedProcessor *inpand_both_stacked_c = &MorphologicProcessor<Byte>::generic_16_c<
+StackedProcessor *inpand_both_stacked_c = &MorphologicProcessor<uint8_t>::generic_16_c<
     process_line_morpho_stacked_c<Border::Left, minimumThresholded<::minimum_both>>,
     process_line_morpho_stacked_c<Border::None, minimumThresholded<::minimum_both>>,
     process_line_morpho_stacked_c<Border::Right, minimumThresholded<::minimum_both>>
     >;
 
-Processor16 *inpand_square_16_c = &MorphologicProcessor<Word>::generic_16_c<
+Processor16 *inpand_square_16_c = &MorphologicProcessor<uint16_t>::generic_16_c<
     process_line_morpho_16_c<Border::Left, minimumThresholded<::minimum_square>>,
     process_line_morpho_16_c<Border::None, minimumThresholded<::minimum_square>>,
     process_line_morpho_16_c<Border::Right, minimumThresholded<::minimum_square>>
     >;
 
-Processor16 *inpand_horizontal_16_c = &MorphologicProcessor<Word>::generic_16_c<
+Processor16 *inpand_horizontal_16_c = &MorphologicProcessor<uint16_t>::generic_16_c<
     process_line_morpho_16_c<Border::Left, minimumThresholded<::minimum_horizontal>>,
     process_line_morpho_16_c<Border::None, minimumThresholded<::minimum_horizontal>>,
     process_line_morpho_16_c<Border::Right, minimumThresholded<::minimum_horizontal>>
     >;
 
-Processor16 *inpand_vertical_16_c = &MorphologicProcessor<Word>::generic_16_c<
+Processor16 *inpand_vertical_16_c = &MorphologicProcessor<uint16_t>::generic_16_c<
     process_line_morpho_16_c<Border::Left, minimumThresholded<::minimum_vertical>>,
     process_line_morpho_16_c<Border::None, minimumThresholded<::minimum_vertical>>,
     process_line_morpho_16_c<Border::Right, minimumThresholded<::minimum_vertical>>
     >;
 
-Processor16 *inpand_both_16_c = &MorphologicProcessor<Word>::generic_16_c<
+Processor16 *inpand_both_16_c = &MorphologicProcessor<uint16_t>::generic_16_c<
     process_line_morpho_16_c<Border::Left, minimumThresholded<::minimum_both>>,
     process_line_morpho_16_c<Border::None, minimumThresholded<::minimum_both>>,
     process_line_morpho_16_c<Border::Right, minimumThresholded<::minimum_both>>

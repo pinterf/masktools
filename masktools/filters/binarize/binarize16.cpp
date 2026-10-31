@@ -4,50 +4,50 @@
 
 using namespace Filtering;
 
-typedef Word (Operator)(Word, Word);
+typedef uint16_t (Operator)(uint16_t, uint16_t);
 
 template<int bits_per_pixel>
-inline Word binarize_upper(Word x, Word t) { return x > t ? 0 : ((1 << bits_per_pixel)-1); }
+inline uint16_t binarize_upper(uint16_t x, uint16_t t) { return x > t ? 0 : ((1 << bits_per_pixel)-1); }
 template<int bits_per_pixel>
-inline Word binarize_lower(Word x, Word t) { return x > t ? ((1 << bits_per_pixel)-1) : 0; }
+inline uint16_t binarize_lower(uint16_t x, uint16_t t) { return x > t ? ((1 << bits_per_pixel)-1) : 0; }
 
 template<int bits_per_pixel>
-inline Word binarize_0_x(Word x, Word t) { return x > t ? 0 : x; }
+inline uint16_t binarize_0_x(uint16_t x, uint16_t t) { return x > t ? 0 : x; }
 template<int bits_per_pixel>
-inline Word binarize_t_x(Word x, Word t) { return x > t ? t : x; }
+inline uint16_t binarize_t_x(uint16_t x, uint16_t t) { return x > t ? t : x; }
 template<int bits_per_pixel>
-inline Word binarize_x_0(Word x, Word t) { return x > t ? x : 0; }
+inline uint16_t binarize_x_0(uint16_t x, uint16_t t) { return x > t ? x : 0; }
 template<int bits_per_pixel>
-inline Word binarize_x_t(Word x, Word t) { return x > t ? x : t; }
+inline uint16_t binarize_x_t(uint16_t x, uint16_t t) { return x > t ? x : t; }
 
 template<int bits_per_pixel>
-inline Word binarize_t_0(Word x, Word t) { return x > t ? t : 0; }
+inline uint16_t binarize_t_0(uint16_t x, uint16_t t) { return x > t ? t : 0; }
 template<int bits_per_pixel>
-inline Word binarize_0_t(Word x, Word t) { return x > t ? 0 : t; }
+inline uint16_t binarize_0_t(uint16_t x, uint16_t t) { return x > t ? 0 : t; }
 
 template<int bits_per_pixel>
-inline Word binarize_x_255(Word x, Word t) { return x > t ? x : ((1 << bits_per_pixel)-1); }
+inline uint16_t binarize_x_255(uint16_t x, uint16_t t) { return x > t ? x : ((1 << bits_per_pixel)-1); }
 template<int bits_per_pixel>
-inline Word binarize_t_255(Word x, Word t) { return x > t ? t : ((1 << bits_per_pixel)-1); }
+inline uint16_t binarize_t_255(uint16_t x, uint16_t t) { return x > t ? t : ((1 << bits_per_pixel)-1); }
 template<int bits_per_pixel>
-inline Word binarize_255_x(Word x, Word t) { return x > t ? ((1 << bits_per_pixel)-1) : x; }
+inline uint16_t binarize_255_x(uint16_t x, uint16_t t) { return x > t ? ((1 << bits_per_pixel)-1) : x; }
 template<int bits_per_pixel>
-inline Word binarize_255_t(Word x, Word t) { return x > t ? ((1 << bits_per_pixel)-1) : t; }
+inline uint16_t binarize_255_t(uint16_t x, uint16_t t) { return x > t ? ((1 << bits_per_pixel)-1) : t; }
 
 // specialize them
 #define MAKE_TEMPLATES(bits_per_pixel) \
-template Word binarize_upper<bits_per_pixel>(Word x, Word t); \
-template Word binarize_lower<bits_per_pixel>(Word x, Word t); \
-template Word binarize_0_x<bits_per_pixel>(Word x, Word t); \
-template Word binarize_t_x<bits_per_pixel>(Word x, Word t); \
-template Word binarize_x_0<bits_per_pixel>(Word x, Word t); \
-template Word binarize_x_t<bits_per_pixel>(Word x, Word t); \
-template Word binarize_t_0<bits_per_pixel>(Word x, Word t); \
-template Word binarize_0_t<bits_per_pixel>(Word x, Word t); \
-template Word binarize_x_255<bits_per_pixel>(Word x, Word t); \
-template Word binarize_t_255<bits_per_pixel>(Word x, Word t); \
-template Word binarize_255_x<bits_per_pixel>(Word x, Word t); \
-template Word binarize_255_t<bits_per_pixel>(Word x, Word t);
+template uint16_t binarize_upper<bits_per_pixel>(uint16_t x, uint16_t t); \
+template uint16_t binarize_lower<bits_per_pixel>(uint16_t x, uint16_t t); \
+template uint16_t binarize_0_x<bits_per_pixel>(uint16_t x, uint16_t t); \
+template uint16_t binarize_t_x<bits_per_pixel>(uint16_t x, uint16_t t); \
+template uint16_t binarize_x_0<bits_per_pixel>(uint16_t x, uint16_t t); \
+template uint16_t binarize_x_t<bits_per_pixel>(uint16_t x, uint16_t t); \
+template uint16_t binarize_t_0<bits_per_pixel>(uint16_t x, uint16_t t); \
+template uint16_t binarize_0_t<bits_per_pixel>(uint16_t x, uint16_t t); \
+template uint16_t binarize_x_255<bits_per_pixel>(uint16_t x, uint16_t t); \
+template uint16_t binarize_t_255<bits_per_pixel>(uint16_t x, uint16_t t); \
+template uint16_t binarize_255_x<bits_per_pixel>(uint16_t x, uint16_t t); \
+template uint16_t binarize_255_t<bits_per_pixel>(uint16_t x, uint16_t t);
 
 MAKE_TEMPLATES(10)
 MAKE_TEMPLATES(12)
@@ -56,14 +56,14 @@ MAKE_TEMPLATES(16)
 #undef MAKE_TEMPLATES
 
 template <Operator op>
-void binarize_stacked_t(Byte *pDst, ptrdiff_t nDstPitch, Word nThreshold, int nWidth, int nHeight, int nOrigHeight)
+void binarize_stacked_t(uint8_t *pDst, ptrdiff_t nDstPitch, uint16_t nThreshold, int nWidth, int nHeight, int nOrigHeight)
 {
     auto pLsb = pDst + nDstPitch * nOrigHeight / 2;
 
     for ( int y = 0; y < nHeight / 2; y++ )
     {
         for ( int x = 0; x < nWidth; x++ ) {
-            Word result = op(read_word_stacked(pDst, pLsb, x), nThreshold);
+            uint16_t result = op(read_word_stacked(pDst, pLsb, x), nThreshold);
             write_word_stacked(pDst, pLsb, x, result);
         }
         pDst += nDstPitch;
@@ -72,11 +72,11 @@ void binarize_stacked_t(Byte *pDst, ptrdiff_t nDstPitch, Word nThreshold, int nW
 }
 
 template <Operator op>
-void binarize_native_t(Byte *pDst, ptrdiff_t nDstPitch, Word nThreshold, int nWidth, int nHeight, int)
+void binarize_native_t(uint8_t *pDst, ptrdiff_t nDstPitch, uint16_t nThreshold, int nWidth, int nHeight, int)
 {
     for ( int y = 0; y < nHeight; y++ )
     {
-        auto pDst16 = reinterpret_cast<Word*>(pDst);
+        auto pDst16 = reinterpret_cast<uint16_t*>(pDst);
         for ( int x = 0; x < nWidth; x+=1 )
             pDst16[x] = op(pDst16[x], nThreshold);
         pDst += nDstPitch;
@@ -174,17 +174,17 @@ static inline __m128i binarize_255_t_sse2_op(__m128i x, __m128i t, __m128i halfr
 
 #pragma warning(disable: 4309)
 template<int bits_per_pixel, decltype(binarize_upper_sse2_op<16>) op, decltype(binarize_upper<16>) op_c>
-void binarize_sse2_stacked_t(Byte *pDst, ptrdiff_t nDstPitch, Word nThreshold, int nWidth, int nHeight, int nOrigHeight)
+void binarize_sse2_stacked_t(uint8_t *pDst, ptrdiff_t nDstPitch, uint16_t nThreshold, int nWidth, int nHeight, int nOrigHeight)
 {
     int wMod8 = (nWidth / 8) * 8;
     auto pDst2 = pDst;
     auto pDstLsb = pDst + nDstPitch * nOrigHeight / 2;
 
-    auto t = _mm_set1_epi16(Word(nThreshold));
+    auto t = _mm_set1_epi16(uint16_t(nThreshold));
     auto halfrange = _mm_add_epi16(t, _mm_set1_epi16(0x8000)); // shift for signed int cmp
     auto ff = _mm_set1_epi16(0x00FF);
     auto zero = _mm_setzero_si128();
-    auto max = _mm_set1_epi16(Word((1 << bits_per_pixel) - 1));
+    auto max = _mm_set1_epi16(uint16_t((1 << bits_per_pixel) - 1));
 
     for ( int j = 0; j < nHeight / 2; ++j ) {
         for ( int i = 0; i < wMod8; i+=8 ) {
@@ -203,14 +203,14 @@ void binarize_sse2_stacked_t(Byte *pDst, ptrdiff_t nDstPitch, Word nThreshold, i
 }
 
 template<int bits_per_pixel, decltype(binarize_upper_sse2_op<16>) op, decltype(binarize_upper<16>) op_c> // 16 or whatever for decltype
-void binarize_sse2_native_t(Byte *pDst, ptrdiff_t nDstPitch, Word nThreshold, int nWidth, int nHeight, int nOrigHeight)
+void binarize_sse2_native_t(uint8_t *pDst, ptrdiff_t nDstPitch, uint16_t nThreshold, int nWidth, int nHeight, int nOrigHeight)
 {
     nWidth *= 2; // really rowsize: width * sizeof(uint16)
     int wMod16 = (nWidth / 16) * 16;
     auto pDst2 = pDst;
-    auto t = _mm_set1_epi16(Word(nThreshold));
+    auto t = _mm_set1_epi16(uint16_t(nThreshold));
     auto halfrange = _mm_add_epi16(t, _mm_set1_epi16(0x8000)); // shift for signed int cmp
-    auto max = _mm_set1_epi16(Word((1 << bits_per_pixel) - 1));
+    auto max = _mm_set1_epi16(uint16_t((1 << bits_per_pixel) - 1));
 
     for (int j = 0; j < nHeight; ++j) {
         for (int i = 0; i < wMod16; i+=16) {

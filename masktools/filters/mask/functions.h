@@ -6,14 +6,14 @@
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Mask {
 
-typedef Byte (Operator)(Byte, Byte, Byte, Byte, Byte, Byte, Byte, Byte, Byte, const Short matrix[10], int nLowThreshold, int nHighThreshold);
-typedef void (ProcessLineSse2)(Byte *pDst, const Byte *pSrcp, const Byte *pSrc, const Byte *pSrcn, const Short matrix[10], const __m128i &lowThresh, const __m128i &highThresh, int width);
+typedef uint8_t (Operator)(uint8_t, uint8_t, uint8_t, uint8_t, uint8_t, uint8_t, uint8_t, uint8_t, uint8_t, const int16_t matrix[10], int nLowThreshold, int nHighThreshold);
+typedef void (ProcessLineSse2)(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m128i &lowThresh, const __m128i &highThresh, int width);
 
 template<Operator op, class T>
-void generic_c(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdiff_t nSrcPitch, T &thresholds, const Short matrix[10], int nWidth, int nHeight)
+void generic_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, T &thresholds, const int16_t matrix[10], int nWidth, int nHeight)
 {
-   const Byte *pSrcp = pSrc - nSrcPitch;
-   const Byte *pSrcn = pSrc + nSrcPitch;
+   const uint8_t *pSrcp = pSrc - nSrcPitch;
+   const uint8_t *pSrcn = pSrc + nSrcPitch;
 
    /* top-left */
    pDst[0] = op(pSrc[0], pSrc[0], pSrc[1], pSrc[0], pSrc[0], pSrc[1], pSrcn[0], pSrcn[0], pSrcn[1], matrix, thresholds.min(0), thresholds.max(0));
@@ -64,14 +64,14 @@ void generic_c(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdiff_t nSrc
 }
 
 template<ProcessLineSse2 process_line_left, ProcessLineSse2 process_line, ProcessLineSse2 process_line_right>
-static void generic_sse2(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdiff_t nSrcPitch, const Short matrix[10], int nLowThreshold, int nHighThreshold, int nWidth, int nHeight) {
-    const Byte *pSrcp = pSrc - nSrcPitch;
-    const Byte *pSrcn = pSrc + nSrcPitch;
+static void generic_sse2(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, const int16_t matrix[10], int nLowThreshold, int nHighThreshold, int nWidth, int nHeight) {
+    const uint8_t *pSrcp = pSrc - nSrcPitch;
+    const uint8_t *pSrcn = pSrc + nSrcPitch;
 
-    auto v128 = _mm_set1_epi8(Byte(128));
-    auto low_thr_v = _mm_set1_epi8(Byte(nLowThreshold));
+    auto v128 = _mm_set1_epi8(uint8_t(128));
+    auto low_thr_v = _mm_set1_epi8(uint8_t(nLowThreshold));
     low_thr_v = _mm_sub_epi8(low_thr_v, v128);
-    auto high_thr_v = _mm_set1_epi8(Byte(nHighThreshold));
+    auto high_thr_v = _mm_set1_epi8(uint8_t(nHighThreshold));
     high_thr_v = _mm_sub_epi8(high_thr_v, v128);
 
     int sse2_width = (nWidth - 1 - 16) / 16 * 16 + 16;

@@ -6,9 +6,9 @@
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Convolution {
 
 // void* parameters can be either int* or float*
-typedef void(Processor)(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdiff_t nSrcPitch, void *, void *, void *, int nHorizontal, int nVertical, int nWidth, int nHeight);
-typedef void(Processor16)(Word *pDst, ptrdiff_t nDstPitch, const Word *pSrc, ptrdiff_t nSrcPitch, void *, void *, void *, int nHorizontal, int nVertical, int nWidth, int nHeight);
-typedef void(Processor32)(Float *pDst, ptrdiff_t nDstPitch, const Float *pSrc, ptrdiff_t nSrcPitch, void *, void *, void *, int nHorizontal, int nVertical, int nWidth, int nHeight);
+typedef void(Processor)(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, void *, void *, void *, int nHorizontal, int nVertical, int nWidth, int nHeight);
+typedef void(Processor16)(uint16_t *pDst, ptrdiff_t nDstPitch, const uint16_t *pSrc, ptrdiff_t nSrcPitch, void *, void *, void *, int nHorizontal, int nVertical, int nWidth, int nHeight);
+typedef void(Processor32)(float *pDst, ptrdiff_t nDstPitch, const float *pSrc, ptrdiff_t nSrcPitch, void *, void *, void *, int nHorizontal, int nVertical, int nWidth, int nHeight);
 
 extern Processor *convolution_f_s_c;
 extern Processor *convolution_i_s_c;
@@ -57,7 +57,7 @@ class Convolution : public MaskTools::Filter
    ProcessorList<Processor32> processors32;
 protected:
 
-  virtual void process(int n, const Plane<Byte> &dst, int nPlane, const Frame<const Byte> frames[4], const Constraint constraints[4]) override
+  virtual void process(int n, const Plane<uint8_t> &dst, int nPlane, const Frame<const uint8_t> frames[4], const Constraint constraints[4]) override
   {
     UNUSED(n);
     if (bits_per_pixel == 8) {
@@ -66,14 +66,14 @@ protected:
         horizontal, vertical, total, nHorizontal, nVertical, dst.width(), dst.height());
     }
     else if (bits_per_pixel <= 16) {
-      processors16.best_processor(constraints[nPlane])((Word *)dst.data(), dst.pitch(),
-        (Word *)frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
+      processors16.best_processor(constraints[nPlane])((uint16_t *)dst.data(), dst.pitch(),
+        (uint16_t *)frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
         horizontal, vertical, total, nHorizontal, nVertical, dst.width(), dst.height());
     }
     else
     {
-      processors32.best_processor(constraints[nPlane])((Float *)dst.data(), dst.pitch(),
-        (Float *)frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
+      processors32.best_processor(constraints[nPlane])((float *)dst.data(), dst.pitch(),
+        (float *)frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
         horizontal, vertical, total, nHorizontal, nVertical, dst.width(), dst.height());
     }
   }
@@ -110,7 +110,7 @@ public:
       {
          i_vertical = new int[nVertical];
          i_horizontal = new int[nHorizontal];
-         i_total = convert<int, Double>(parameters["total"].toFloat());
+         i_total = convert<int, double>(parameters["total"].toFloat());
          if ( i_total == 0 )
             i_total = 1;
          vertical = i_vertical;
@@ -124,7 +124,7 @@ public:
          if ( isFloat )
             f_horizontal[i] = float(hcoeffs.front().getValue(0,0,0));
          else
-            i_horizontal[i] = convert<int, Double>(hcoeffs.front().getValue(0,0,0));
+            i_horizontal[i] = convert<int, double>(hcoeffs.front().getValue(0,0,0));
 
          hcoeffs.pop_front();
       }
@@ -133,7 +133,7 @@ public:
          if ( isFloat )
             f_vertical[i] = float(vcoeffs.front().getValue(0,0,0));
          else
-            i_vertical[i] = convert<int, Double>(vcoeffs.front().getValue(0,0,0));
+            i_vertical[i] = convert<int, double>(vcoeffs.front().getValue(0,0,0));
 
          vcoeffs.pop_front();
       }

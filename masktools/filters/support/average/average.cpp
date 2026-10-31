@@ -3,7 +3,7 @@
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Support  { namespace Average {
 
-void average_c(Byte *pDst, ptrdiff_t dst_pitch, const Byte *pSrc, ptrdiff_t src_pitch, int width, int height)
+void average_c(uint8_t *pDst, ptrdiff_t dst_pitch, const uint8_t *pSrc, ptrdiff_t src_pitch, int width, int height)
 {
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
@@ -15,7 +15,7 @@ void average_c(Byte *pDst, ptrdiff_t dst_pitch, const Byte *pSrc, ptrdiff_t src_
 }
 
 template<MemoryMode mem_mode>
-static void average_sse2_t(Byte *pDst, ptrdiff_t dst_pitch, const Byte *pSrc, ptrdiff_t src_pitch, int width, int height)
+static void average_sse2_t(uint8_t *pDst, ptrdiff_t dst_pitch, const uint8_t *pSrc, ptrdiff_t src_pitch, int width, int height)
 {
     int mod16_width = (width / 16) * 16;
     auto pDst2 = pDst;
@@ -42,11 +42,11 @@ static void average_sse2_t(Byte *pDst, ptrdiff_t dst_pitch, const Byte *pSrc, pt
     }
 }
 
-void average32_c(Byte *pDst, ptrdiff_t dst_pitch, const Byte *pSrc, ptrdiff_t src_pitch, int width, int height)
+void average32_c(uint8_t *pDst, ptrdiff_t dst_pitch, const uint8_t *pSrc, ptrdiff_t src_pitch, int width, int height)
 {
   for (int y = 0; y < height; y++) {
     for (int x = 0; x < width; x++) {
-      reinterpret_cast<Float *>(pDst)[x] = (reinterpret_cast<Float *>(pDst)[x] + reinterpret_cast<const Float *>(pSrc)[x]) * 0.5f;
+      reinterpret_cast<float *>(pDst)[x] = (reinterpret_cast<float *>(pDst)[x] + reinterpret_cast<const float *>(pSrc)[x]) * 0.5f;
     }
     pDst += dst_pitch;
     pSrc += src_pitch;
@@ -54,9 +54,9 @@ void average32_c(Byte *pDst, ptrdiff_t dst_pitch, const Byte *pSrc, ptrdiff_t sr
 }
 
 template<MemoryMode mem_mode>
-static void average32_sse2_t(Byte *pDst, ptrdiff_t dst_pitch, const Byte *pSrc, ptrdiff_t src_pitch, int width, int height)
+static void average32_sse2_t(uint8_t *pDst, ptrdiff_t dst_pitch, const uint8_t *pSrc, ptrdiff_t src_pitch, int width, int height)
 {
-  width *= sizeof(Float);
+  width *= sizeof(float);
 
   int mod16_width = (width / 16) * 16;
   auto pDst2 = pDst;
@@ -80,7 +80,7 @@ static void average32_sse2_t(Byte *pDst, ptrdiff_t dst_pitch, const Byte *pSrc, 
   }
 
   if (width > mod16_width) {
-    average32_c(pDst2 + mod16_width, dst_pitch, pSrc2 + mod16_width, src_pitch, (width - mod16_width) / sizeof(Float), height);
+    average32_c(pDst2 + mod16_width, dst_pitch, pSrc2 + mod16_width, src_pitch, (width - mod16_width) / sizeof(float), height);
   }
 }
 

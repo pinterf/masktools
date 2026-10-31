@@ -4,14 +4,14 @@
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Mask { namespace Motion {
 
-  static double sad32_c_op(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight)
+  static double sad32_c_op(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight)
   {
     double nSad = 0;
     for (int y = 0; y < nHeight; y++)
     {
       float nSad32 = 0; // faster than double
       for (int x = 0; x < nWidth; x++)
-        nSad32 += abs(reinterpret_cast<Float *>(pDst)[x] - reinterpret_cast<const Float *>(pSrc)[x]);
+        nSad32 += abs(reinterpret_cast<float *>(pDst)[x] - reinterpret_cast<const float *>(pSrc)[x]);
       nSad += nSad32;
       pDst += nDstPitch;
       pSrc += nSrcPitch;
@@ -19,13 +19,13 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Mask {
     return nSad;
   }
 
-  static void mask32_c_op(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdiff_t nSrcPitch, Float nLowThreshold, Float nHighThreshold, int nWidth, int nHeight)
+  static void mask32_c_op(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, float nLowThreshold, float nHighThreshold, int nWidth, int nHeight)
   {
     for (int y = 0; y < nHeight; y++)
     {
       for (int x = 0; x < nWidth; x++) {
         // threashold function: mask value creation. base=0.0 mask=1.0
-        reinterpret_cast<Float *>(pDst)[x] = threshold<Float, Float>(abs<Float>(reinterpret_cast<Float *>(pDst)[x] - reinterpret_cast<const Float *>(pSrc)[x]), nLowThreshold, nHighThreshold);
+        reinterpret_cast<float *>(pDst)[x] = threshold<float, float>(abs<float>(reinterpret_cast<float *>(pDst)[x] - reinterpret_cast<const float *>(pSrc)[x]), nLowThreshold, nHighThreshold);
       }
       pDst += nDstPitch;
       pSrc += nSrcPitch;
@@ -39,9 +39,9 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Mask {
   }
 
   template <MemoryMode mem_mode>
-  static double sad32_sse2_op(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight)
+  static double sad32_sse2_op(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight)
   {
-    nWidth *= sizeof(Float);
+    nWidth *= sizeof(float);
     double sad = 0; // avoid overflow
     int wMod16 = (nWidth / 16) * 16;
     auto pDstSave = pDst;
@@ -72,7 +72,7 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Mask {
     }
 
     if (nWidth > wMod16) {
-      sad += sad32_c_op(pDstSave + wMod16, nDstPitch, pSrcSave + wMod16, nSrcPitch, (nWidth - wMod16) / sizeof(Float), nHeight);
+      sad += sad32_c_op(pDstSave + wMod16, nDstPitch, pSrcSave + wMod16, nSrcPitch, (nWidth - wMod16) / sizeof(float), nHeight);
     }
     return sad;
   }
@@ -80,16 +80,16 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Mask {
 #if 0
   // todo simd
   template <MemoryMode mem_mode>
-  static void mask32_sse2_op(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdiff_t nSrcPitch, int nLowThreshold, int nHighThreshold, int nWidth, int nHeight)
+  static void mask32_sse2_op(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nLowThreshold, int nHighThreshold, int nWidth, int nHeight)
   {
-    nWidth *= sizeof(Float);
+    nWidth *= sizeof(float);
     int wMod16 = (nWidth / 16) * 16;
     auto pDst2 = pDst;
     auto pSrc2 = pSrc;
 
     auto v128 = _mm_set1_epi32(0x80808080);
-    auto lowThresh = _mm_set1_epi8(Byte(nLowThreshold));
-    auto highThresh = _mm_set1_epi8(Byte(nHighThreshold));
+    auto lowThresh = _mm_set1_epi8(uint8_t(nLowThreshold));
+    auto highThresh = _mm_set1_epi8(uint8_t(nHighThreshold));
     lowThresh = _mm_sub_epi8(lowThresh, v128);
     highThresh = _mm_sub_epi8(highThresh, v128);
 
@@ -117,12 +117,12 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Mask {
 #endif
 
 template <decltype(sad32_c_op) sad, decltype(mask32_c_op) mask>
-bool mask32_t(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdiff_t nSrcPitch, Float nLowThreshold, Float nHighThreshold, Float nMotionThreshold, int nSceneChange, Float nSceneChangeValue, int nWidth, int nHeight)
+bool mask32_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, float nLowThreshold, float nHighThreshold, float nMotionThreshold, int nSceneChange, float nSceneChangeValue, int nWidth, int nHeight)
 {
     bool scenechange = nSceneChange >= 2 ? nSceneChange == 3 : sad(pDst, nDstPitch, pSrc, nSrcPitch, nWidth, nHeight) > (double)(nMotionThreshold * nWidth * nHeight);
 
     if (scenechange) {
-        Functions::memset_plane_32((Byte *)pDst, nDstPitch, nWidth, nHeight, nSceneChangeValue);
+        Functions::memset_plane_32((uint8_t *)pDst, nDstPitch, nWidth, nHeight, nSceneChangeValue);
     } else {
         mask(pDst, nDstPitch, pSrc, nSrcPitch, nLowThreshold, nHighThreshold, nWidth, nHeight);
     }

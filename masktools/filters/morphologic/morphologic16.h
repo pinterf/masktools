@@ -7,8 +7,8 @@
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Morphologic16 {
 
-typedef void (StackedProcessor)(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, int nOrigHeight);
-typedef void (Processor16)(Word *pDst, ptrdiff_t nDstPitch, const Word *pSrc, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, int nOrigHeight);
+typedef void (StackedProcessor)(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, int nOrigHeight);
+typedef void (Processor16)(uint16_t *pDst, ptrdiff_t nDstPitch, const uint16_t *pSrc, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, int nOrigHeight);
 
 class MorphologicFilter16 : public MaskTools::Filter
 {
@@ -22,7 +22,7 @@ protected:
    ProcessorList<StackedProcessor> stackedProcessors;
    ProcessorList<Processor16> processors16;
 
-   virtual void process(int n, const Plane<Byte> &dst, int nPlane, const ::Filtering::Frame<const Byte> frames[3], const Constraint constraints[3]) override
+   virtual void process(int n, const Plane<uint8_t> &dst, int nPlane, const ::Filtering::Frame<const uint8_t> frames[3], const Constraint constraints[3]) override
     {
         UNUSED(n);
         if (parameters["stacked"].toBool()) {
@@ -31,8 +31,8 @@ protected:
                 nMaxDeviations[nPlane], coordinates_list, coordinates_count, dst.width(), dst.height() / 2, dst.origheight()); // stacked: /2
         }
         else {
-            processors16.best_processor(constraints[nPlane])(reinterpret_cast<Word*>((Byte*)dst.data()), dst.pitch() / 2, /* /2: word sized */
-                reinterpret_cast<const Word*>((const Byte*)(frames[0].plane(nPlane).data())), frames[0].plane(nPlane).pitch() / 2, 
+            processors16.best_processor(constraints[nPlane])(reinterpret_cast<uint16_t*>((uint8_t*)dst.data()), dst.pitch() / 2, /* /2: word sized */
+                reinterpret_cast<const uint16_t*>((const uint8_t*)(frames[0].plane(nPlane).data())), frames[0].plane(nPlane).pitch() / 2, 
                 nMaxDeviations[nPlane], coordinates_list, coordinates_count, dst.width(), dst.height(), dst.origheight());
         }
     }

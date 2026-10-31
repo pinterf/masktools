@@ -5,9 +5,9 @@
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Binarize {
 
-typedef void(Processor)(Byte *pDst, ptrdiff_t nDstPitch, Byte nThreshold, int nWidth, int nHeight);
-typedef void(Processor16)(Byte *pDst, ptrdiff_t nDstPitch, Word nThreshold, int nWidth, int nHeight, int nOrigHeight);
-typedef void(Processor32)(Byte *pDst, ptrdiff_t nDstPitch, Float nThreshold, int nWidth, int nHeight);
+typedef void(Processor)(uint8_t *pDst, ptrdiff_t nDstPitch, uint8_t nThreshold, int nWidth, int nHeight);
+typedef void(Processor16)(uint8_t *pDst, ptrdiff_t nDstPitch, uint16_t nThreshold, int nWidth, int nHeight, int nOrigHeight);
+typedef void(Processor32)(uint8_t *pDst, ptrdiff_t nDstPitch, float nThreshold, int nWidth, int nHeight);
 
 #define DEFINE_PROCESSOR(name) \
    extern Processor *binarize_##name##_c; \
@@ -92,13 +92,13 @@ class Binarize : public MaskTools::Filter
 
    int bits_per_pixel;
 protected:
-    virtual void process(int n, const Plane<Byte> &dst, int nPlane, const Frame<const Byte> frames[4], const Constraint constraints[4]) override
+    virtual void process(int n, const Plane<uint8_t> &dst, int nPlane, const Frame<const uint8_t> frames[4], const Constraint constraints[4]) override
     {
         UNUSED(n); UNUSED(frames);
         if(bits_per_pixel == 8)
-          processors.best_processor(constraints[nPlane])(dst.data(), dst.pitch(), (Byte)nThreshold, dst.width(), dst.height());
+          processors.best_processor(constraints[nPlane])(dst.data(), dst.pitch(), (uint8_t)nThreshold, dst.width(), dst.height());
         else if(bits_per_pixel <= 16)
-          processors16.best_processor(constraints[nPlane])(dst.data(), dst.pitch(),(Word)nThreshold, dst.width(), dst.height(), dst.origheight());
+          processors16.best_processor(constraints[nPlane])(dst.data(), dst.pitch(),(uint16_t)nThreshold, dst.width(), dst.height(), dst.origheight());
         else
           processors32.best_processor(constraints[nPlane])(dst.data(), dst.pitch(), nThreshold_f, dst.width(), dst.height());
     }

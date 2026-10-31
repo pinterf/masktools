@@ -79,15 +79,6 @@
 
 namespace Filtering {
 
-/* basic types definition : Byte, Word, Float, Double */
-typedef char Char;
-typedef short Short;
-typedef unsigned char Byte;
-typedef unsigned short Word;
-typedef int64_t Int64; // the same type as int64_t: the Int64 specializations apply to int64_t as well (Linux: long)
-typedef uint64_t Uint64;
-typedef float Float;
-typedef double Double;
 typedef std::string String;
 
 /* case insensive == operator for String */
@@ -225,23 +216,23 @@ static inline double fix(double a) { return std::isnan(a) || !std::isfinite(a) ?
 
 /* abs */
 template<typename T> static T abs(T x) { return x < 0 ? -x : x; }
-template<> inline Byte abs<Byte>(Byte x) { return x; } // unsigned abs = nop
-template<> inline Word abs<Word>(Word x) { return x; } // unsigned abs = nop
+template<> inline uint8_t abs<uint8_t>(uint8_t x) { return x; } // unsigned abs = nop
+template<> inline uint16_t abs<uint16_t>(uint16_t x) { return x; } // unsigned abs = nop
 
 /* max_value, for integer type */
 // for threshold and clip (clamp)
 template<typename T> static T max_value() { return T(-1); } // unsigned only, all bits to 1!
 template<> inline int max_value<int>() { return 0x7fffffff; }
-template<> inline Short max_value<Short>() { return (1 << 15) - 1; }
-template<> inline Char max_value<Char>() { return (1 << 7) - 1; }
-template<> inline Int64 max_value<Int64>() { return std::numeric_limits<int64_t>::max(); /*0x7FFFFFFFFFFFFFFFLL;*/ }
-template<> inline Float max_value<Float>() { return 1.0f; } // for mask
+template<> inline int16_t max_value<int16_t>() { return (1 << 15) - 1; }
+template<> inline int8_t max_value<int8_t>() { return (1 << 7) - 1; }
+template<> inline int64_t max_value<int64_t>() { return std::numeric_limits<int64_t>::max(); /*0x7FFFFFFFFFFFFFFFLL;*/ }
+template<> inline float max_value<float>() { return 1.0f; } // for mask
 
 /* min_value, for integer type */
 template<typename T> static T min_value() { return 0; } // unsigned only
-template<> inline Short min_value<Short>() { return -(1 << 15); }
-template<> inline Char min_value<Char>() { return -(1 << 7); }
-template<> inline Int64 min_value<Int64>() { return std::numeric_limits<int64_t>::min(); /*-(1LL << 63);*/ }
+template<> inline int16_t min_value<int16_t>() { return -(1 << 15); }
+template<> inline int8_t min_value<int8_t>() { return -(1 << 7); }
+template<> inline int64_t min_value<int64_t>() { return std::numeric_limits<int64_t>::min(); /*-(1LL << 63);*/ }
 
 /* ceiled & floored round */
 template<typename T> static T ceiled(T x, T mod) { return ((x + mod - 1) / mod) * mod; }
@@ -249,31 +240,31 @@ template<typename T> static T floored(T x, T mod) { return (x / mod) * mod; }
 
 /* zero_threshold */
 template<typename T> static T zero_threshold() { return 1; } // integer types
-template<> inline Float zero_threshold<Float>() { return (Float)0.00001; } 
-template<> inline Double zero_threshold<Double>() { return 0.00001; } 
+template<> inline float zero_threshold<float>() { return (float)0.00001; } 
+template<> inline double zero_threshold<double>() { return 0.00001; } 
 
 /* conversion from and to */
 template<typename To, typename From> static To convert(From x) { return To(x); }
-template<> inline Char convert<Char, Double>(Double x) { return x >= 0 ? Char(x + 0.5) : Char(x - 0.5); }
-template<> inline Byte convert<Byte, Double>(Double x) { return Byte(x + 0.5); }
-template<> inline Int64 convert<Int64, Double>(Double x) { return x >= 0 ? Int64(x + 0.5) : Int64(x - 0.5); }
-template<> inline Uint64 convert<Uint64, Double>(Double x) { return Uint64(x + 0.5); }
-template<> inline Short convert<Short, Double>(Double x) { return x >= 0 ? Short(x + 0.5) : Short(x - 0.5); }
-template<> inline Word convert<Word, Double>(Double x) { return Word(x + 0.5); }
-template<> inline int convert<int, Double>(Double x) { return x >= 0 ? int(x + 0.5) : int(x - 0.5); }
+template<> inline int8_t convert<int8_t, double>(double x) { return x >= 0 ? int8_t(x + 0.5) : int8_t(x - 0.5); }
+template<> inline uint8_t convert<uint8_t, double>(double x) { return uint8_t(x + 0.5); }
+template<> inline int64_t convert<int64_t, double>(double x) { return x >= 0 ? int64_t(x + 0.5) : int64_t(x - 0.5); }
+template<> inline uint64_t convert<uint64_t, double>(double x) { return uint64_t(x + 0.5); }
+template<> inline int16_t convert<int16_t, double>(double x) { return x >= 0 ? int16_t(x + 0.5) : int16_t(x - 0.5); }
+template<> inline uint16_t convert<uint16_t, double>(double x) { return uint16_t(x + 0.5); }
+template<> inline int convert<int, double>(double x) { return x >= 0 ? int(x + 0.5) : int(x - 0.5); }
 
-template<> inline Char convert<Char, Float>(Float x) { return x >= 0 ? Char(x + 0.5f) : Char(x - 0.5f); }
-template<> inline Byte convert<Byte, Float>(Float x) { return Byte(x + 0.5f); }
-template<> inline Int64 convert<Int64, Float>(Float x) { return x >= 0 ? Int64(x + 0.5f) : Int64(x - 0.5f); }
-template<> inline Uint64 convert<Uint64, Float>(Float x) { return Uint64(x + 0.5f); }
-template<> inline Short convert<Short, Float>(Float x) { return x >= 0 ? Short(x + 0.5f) : Short(x - 0.5f); }
-template<> inline Word convert<Word, Float>(Float x) { return Word(x + 0.5f); }
-template<> inline int convert<int, Float>(Float x) { return x >= 0 ? int(x + 0.5f) : int(x - 0.5f); }
+template<> inline int8_t convert<int8_t, float>(float x) { return x >= 0 ? int8_t(x + 0.5f) : int8_t(x - 0.5f); }
+template<> inline uint8_t convert<uint8_t, float>(float x) { return uint8_t(x + 0.5f); }
+template<> inline int64_t convert<int64_t, float>(float x) { return x >= 0 ? int64_t(x + 0.5f) : int64_t(x - 0.5f); }
+template<> inline uint64_t convert<uint64_t, float>(float x) { return uint64_t(x + 0.5f); }
+template<> inline int16_t convert<int16_t, float>(float x) { return x >= 0 ? int16_t(x + 0.5f) : int16_t(x - 0.5f); }
+template<> inline uint16_t convert<uint16_t, float>(float x) { return uint16_t(x + 0.5f); }
+template<> inline int convert<int, float>(float x) { return x >= 0 ? int(x + 0.5f) : int(x - 0.5f); }
 
 /* rounded division */
 template<typename T> static T rounded_division(T x, T y) { return x / y; }
 template<> inline int rounded_division<int>(int x, int y) { return x > 0 ? (x + (y >> 1)) / y : (x - (y >> 1)) / y; }
-template<> inline Int64 rounded_division<Int64>(Int64 x, Int64 y) { return x > 0 ? (x + (y >> 1)) / y : (x - (y >> 1)) / y; }
+template<> inline int64_t rounded_division<int64_t>(int64_t x, int64_t y) { return x > 0 ? (x + (y >> 1)) / y : (x - (y >> 1)) / y; }
 
 /* clip */
 template<typename T, typename U> T clip(U x, U mini = U(min_value<T>()), U maxi = U(max_value<T>())) { return convert<T, U>( min<U>( maxi, max<U>( mini, x ) ) ); }
@@ -284,18 +275,18 @@ template<typename T, typename U> static T threshold(U x, U mini, U maxi, U botto
    return convert<T, U>( x <= mini ? bottom : x > maxi ? top : x );
 }
 // specialize template
-template<> inline Float threshold<Float, Float>(Float x, Float mini, Float maxi, Float bottom, Float top)
+template<> inline float threshold<float, float>(float x, float mini, float maxi, float bottom, float top)
 { // todo: proper non-clamping for float?
-  bottom = Float(0.0f);
-  top = Float(1.0f);
-  return convert<Float, Float>(x <= mini ? bottom : x > maxi ? top : x);
+  bottom = float(0.0f);
+  top = float(1.0f);
+  return convert<float, float>(x <= mini ? bottom : x > maxi ? top : x);
 }
 
-template<int bits_per_pixel> static inline Word threshold16(int x, int mini, int maxi)
+template<int bits_per_pixel> static inline uint16_t threshold16(int x, int mini, int maxi)
 { 
   int bottom = 0;
   int top = (1 << bits_per_pixel) - 1;
-  return convert<Word, int>(x <= mini ? bottom : x > maxi ? top : x);
+  return convert<uint16_t, int>(x <= mini ? bottom : x > maxi ? top : x);
 }
 
 /* width & height ratios, according to the colorspace */

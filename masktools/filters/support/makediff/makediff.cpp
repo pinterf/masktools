@@ -3,11 +3,11 @@
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Support  { namespace MakeDiff {
 
-void makediff_c(Byte *pDst, ptrdiff_t dst_pitch, const Byte *pSrc, ptrdiff_t src_pitch, int width, int height)
+void makediff_c(uint8_t *pDst, ptrdiff_t dst_pitch, const uint8_t *pSrc, ptrdiff_t src_pitch, int width, int height)
 {
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
-            pDst[x] = clip<Byte, int>(int(pDst[x]) - pSrc[x] + 128, 0, 255);
+            pDst[x] = clip<uint8_t, int>(int(pDst[x]) - pSrc[x] + 128, 0, 255);
         }
         pDst += dst_pitch;
         pSrc += src_pitch;
@@ -16,7 +16,7 @@ void makediff_c(Byte *pDst, ptrdiff_t dst_pitch, const Byte *pSrc, ptrdiff_t src
 
 
 template<MemoryMode mem_mode>
-static void makediff_sse2_t(Byte *pDst, ptrdiff_t dst_pitch, const Byte *pSrc, ptrdiff_t src_pitch, int width, int height)
+static void makediff_sse2_t(uint8_t *pDst, ptrdiff_t dst_pitch, const uint8_t *pSrc, ptrdiff_t src_pitch, int width, int height)
 {
     int mod32_width = (width / 32) * 32;
     auto pDst2 = pDst;
@@ -57,7 +57,7 @@ static void makediff_sse2_t(Byte *pDst, ptrdiff_t dst_pitch, const Byte *pSrc, p
     }
 }
 
-void makediff32_c(Byte *pDst, ptrdiff_t dst_pitch, const Byte *pSrc, ptrdiff_t src_pitch, int width, int height, bool chroma)
+void makediff32_c(uint8_t *pDst, ptrdiff_t dst_pitch, const uint8_t *pSrc, ptrdiff_t src_pitch, int width, int height, bool chroma)
 {
 #ifdef FLOAT_CHROMA_IS_HALF_CENTERED
   UNUSED(chroma);
@@ -67,7 +67,7 @@ void makediff32_c(Byte *pDst, ptrdiff_t dst_pitch, const Byte *pSrc, ptrdiff_t s
 #endif
   for (int y = 0; y < height; y++) {
     for (int x = 0; x < width; x++) {
-      reinterpret_cast<Float *>(pDst)[x] = reinterpret_cast<Float *>(pDst)[x] - reinterpret_cast<const Float *>(pSrc)[x] + middle_value; // to work like "x y - 128 +"
+      reinterpret_cast<float *>(pDst)[x] = reinterpret_cast<float *>(pDst)[x] - reinterpret_cast<const float *>(pSrc)[x] + middle_value; // to work like "x y - 128 +"
     }
     pDst += dst_pitch;
     pSrc += src_pitch;
@@ -76,9 +76,9 @@ void makediff32_c(Byte *pDst, ptrdiff_t dst_pitch, const Byte *pSrc, ptrdiff_t s
 
 
 template<MemoryMode mem_mode>
-static void makediff32_sse2_t(Byte *pDst, ptrdiff_t dst_pitch, const Byte *pSrc, ptrdiff_t src_pitch, int width, int height, bool chroma)
+static void makediff32_sse2_t(uint8_t *pDst, ptrdiff_t dst_pitch, const uint8_t *pSrc, ptrdiff_t src_pitch, int width, int height, bool chroma)
 {
-  width *= sizeof(Float);
+  width *= sizeof(float);
 
   int mod16_width = (width / 16) * 16;
   auto pDst2 = pDst;
@@ -106,7 +106,7 @@ static void makediff32_sse2_t(Byte *pDst, ptrdiff_t dst_pitch, const Byte *pSrc,
   }
 
   if (width > mod16_width) {
-    makediff32_c(pDst2 + mod16_width, dst_pitch, pSrc2 + mod16_width, src_pitch, (width - mod16_width) / sizeof(Float), height, chroma);
+    makediff32_c(pDst2 + mod16_width, dst_pitch, pSrc2 + mod16_width, src_pitch, (width - mod16_width) / sizeof(float), height, chroma);
   }
 }
 

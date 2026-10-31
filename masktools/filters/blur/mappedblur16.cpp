@@ -6,7 +6,7 @@ using namespace Filtering;
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Blur {
 
 template<int bits_per_pixel>
-inline Word convolution_all_16_t_c(Word a11, Word a21, Word a31, Word a12, Word a22, Word a32, Word a13, Word a23, Word a33, const Short matrix[10], int nLowThreshold, int nHighThreshold)
+inline uint16_t convolution_all_16_t_c(uint16_t a11, uint16_t a21, uint16_t a31, uint16_t a12, uint16_t a22, uint16_t a32, uint16_t a13, uint16_t a23, uint16_t a33, const int16_t matrix[10], int nLowThreshold, int nHighThreshold)
 {
    int nSum = a22 * matrix[4];
 
@@ -21,11 +21,11 @@ inline Word convolution_all_16_t_c(Word a11, Word a21, Word a31, Word a12, Word 
    if ( abs(a23 - a22) < nLowThreshold ) nSum += a23 * matrix[7]; else nSum += a22 * matrix[7];
    if ( abs(a33 - a22) < nLowThreshold ) nSum += a33 * matrix[8]; else nSum += a22 * matrix[8];
 
-   return clip<Word, int>((nSum + matrix[9] / 2)/ matrix[9], 0, (1 << bits_per_pixel) - 1);
+   return clip<uint16_t, int>((nSum + matrix[9] / 2)/ matrix[9], 0, (1 << bits_per_pixel) - 1);
 }
 
 template<int bits_per_pixel>
-inline Word convolution_below_16_t_c(Word a11, Word a21, Word a31, Word a12, Word a22, Word a32, Word a13, Word a23, Word a33, const Short matrix[10], int nLowThreshold, int nHighThreshold)
+inline uint16_t convolution_below_16_t_c(uint16_t a11, uint16_t a21, uint16_t a31, uint16_t a12, uint16_t a22, uint16_t a32, uint16_t a13, uint16_t a23, uint16_t a33, const int16_t matrix[10], int nLowThreshold, int nHighThreshold)
 {
    int nSum = a22 * matrix[4];
    int nSumCoeff = matrix[4];
@@ -41,15 +41,15 @@ inline Word convolution_below_16_t_c(Word a11, Word a21, Word a31, Word a12, Wor
    if ( abs(a23 - a22) < nLowThreshold ) { nSum += a23 * matrix[7]; nSumCoeff += matrix[7]; }
    if ( abs(a33 - a22) < nLowThreshold ) { nSum += a33 * matrix[8]; nSumCoeff += matrix[8]; }
 
-   if ( nSumCoeff ) return clip<Word, int>((nSum + nSumCoeff / 2) / nSumCoeff, 0, (1 << bits_per_pixel) - 1);
+   if ( nSumCoeff ) return clip<uint16_t, int>((nSum + nSumCoeff / 2) / nSumCoeff, 0, (1 << bits_per_pixel) - 1);
    else return a22;
 }
 
 class Thresholds {
-   const Word *pThreshold;
+   const uint16_t *pThreshold;
    ptrdiff_t nPitch;
 public:
-   Thresholds(const Word *pThreshold, ptrdiff_t nPitch) :
+   Thresholds(const uint16_t *pThreshold, ptrdiff_t nPitch) :
    pThreshold(pThreshold), nPitch(nPitch / sizeof(uint16_t))
    {
    }
@@ -57,12 +57,12 @@ public:
    ptrdiff_t minpitch() const { return nPitch; }
    ptrdiff_t maxpitch() const { return nPitch; }
    void nextRow() { pThreshold += nPitch; }
-   Word min(int x) const { return pThreshold[x]; }
-   Word max(int x) const { return pThreshold[x]; }
+   uint16_t min(int x) const { return pThreshold[x]; }
+   uint16_t max(int x) const { return pThreshold[x]; }
 };
 
 template<Filters::Mask::Operator op>
-void mask16_t(Word *pDst, ptrdiff_t nDstPitch, const Word *pSrc, ptrdiff_t nSrcPitch, const Word *pMask, ptrdiff_t nMaskPitch, const Short matrix[10], int nWidth, int nHeight)
+void mask16_t(uint16_t *pDst, ptrdiff_t nDstPitch, const uint16_t *pSrc, ptrdiff_t nSrcPitch, const uint16_t *pMask, ptrdiff_t nMaskPitch, const int16_t matrix[10], int nWidth, int nHeight)
 {
    Thresholds thresholds(pMask, nMaskPitch);
    Filters::Mask::generic16_c<op, Thresholds>(pDst, nDstPitch, pSrc, nSrcPitch, thresholds, matrix, nWidth, nHeight);

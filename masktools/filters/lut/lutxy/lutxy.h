@@ -7,10 +7,10 @@
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Lut { namespace Dual {
 
-typedef void(Processor)(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight, const Byte lut[65536]);
-typedef void(Processor16)(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight, const Word *lut);
-typedef void(ProcessorCtx)(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight, Parser::Context &ctx);
-typedef void(ProcessorCtx32)(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight, bool chroma, Parser::Context &ctx);
+typedef void(Processor)(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight, const uint8_t lut[65536]);
+typedef void(Processor16)(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight, const uint16_t *lut);
+typedef void(ProcessorCtx)(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight, Parser::Context &ctx);
+typedef void(ProcessorCtx32)(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight, bool chroma, Parser::Context &ctx);
 
 Processor lut_c;
 extern Processor16 *lut10_c;
@@ -31,16 +31,16 @@ class Lutxy : public MaskTools::Filter
    // re-use repeated luts, like in lutxyz
    struct Lut {
      bool used;
-     Byte *ptr;
+     uint8_t *ptr;
    };
 
    Lut luts[4+1];
    
-   static Byte *calculateLut(const std::deque<Filtering::Parser::Symbol> &expr, int bits_per_pixel, String scale_inputs, int clamp_float, int& compute_error) {
+   static uint8_t *calculateLut(const std::deque<Filtering::Parser::Symbol> &expr, int bits_per_pixel, String scale_inputs, int clamp_float, int& compute_error) {
      Parser::Context ctx(expr, scale_inputs, clamp_float);
      int pixelsize = bits_per_pixel == 8 ? 1 : 2; // byte / uint16_t
      size_t buffer_size = ((size_t)1 << bits_per_pixel) * ((size_t)1 << bits_per_pixel) *pixelsize;
-     Byte *lut = new Byte[buffer_size];
+     uint8_t *lut = new uint8_t[buffer_size];
 
      switch (bits_per_pixel) {
      case 8:
@@ -51,23 +51,23 @@ class Lutxy : public MaskTools::Filter
      case 10:
        for (int x = 0; x < 1024; x++)
          for (int y = 0; y < 1024; y++)
-           reinterpret_cast<Word *>(lut)[(x << 10) + y] = ctx.compute_word_xy<10>(x, y);
+           reinterpret_cast<uint16_t *>(lut)[(x << 10) + y] = ctx.compute_word_xy<10>(x, y);
        break;
      case 12:
        for (int x = 0; x < 4096; x++)
          for (int y = 0; y < 4096; y++)
-           reinterpret_cast<Word *>(lut)[(x << 12) + y] = ctx.compute_word_xy<12>(x, y);
+           reinterpret_cast<uint16_t *>(lut)[(x << 12) + y] = ctx.compute_word_xy<12>(x, y);
        break;
      case 14:
        for (int x = 0; x < 16384; x++)
          for (int y = 0; y < 16384; y++)
-           reinterpret_cast<Word *>(lut)[(x << 14) + y] = ctx.compute_word_xy<14>(x, y);
+           reinterpret_cast<uint16_t *>(lut)[(x << 14) + y] = ctx.compute_word_xy<14>(x, y);
        break;
      case 16:
        // 64bit only
        for (int x = 0; x < 65536; x++)
          for (int y = 0; y < 65536; y++)
-           reinterpret_cast<Word *>(lut)[((size_t)x << 16) + y] = ctx.compute_word_xy<16>(x, y);
+           reinterpret_cast<uint16_t *>(lut)[((size_t)x << 16) + y] = ctx.compute_word_xy<16>(x, y);
        break;
      }
 
@@ -91,7 +91,7 @@ class Lutxy : public MaskTools::Filter
    int use_expr;
 
 protected:
-    virtual void process(int n, const Plane<Byte> &dst, int nPlane, const ::Filtering::Frame<const Byte> frames[4], const Constraint constraints[4]) override
+    virtual void process(int n, const Plane<uint8_t> &dst, int nPlane, const ::Filtering::Frame<const uint8_t> frames[4], const Constraint constraints[4]) override
     {
         UNUSED(n);
         UNUSED(constraints);
@@ -108,7 +108,7 @@ protected:
         else if (bits_per_pixel == 8)
           processor(dst.data(), dst.pitch(), frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(), dst.width(), dst.height(), luts[nPlane].ptr);
         else if (bits_per_pixel <= 16)
-          processor16(dst.data(), dst.pitch(), frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(), dst.width(), dst.height(), (Word *)luts[nPlane].ptr);
+          processor16(dst.data(), dst.pitch(), frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(), dst.width(), dst.height(), (uint16_t *)luts[nPlane].ptr);
     }
 
 public:

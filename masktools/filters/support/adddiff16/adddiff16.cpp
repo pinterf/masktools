@@ -5,10 +5,10 @@
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Support  { namespace AddDiff {
 
 template<int bits_per_pixel>
-static MT_FORCEINLINE Word adddiff16_core_c(Word dst, Word src) {
+static MT_FORCEINLINE uint16_t adddiff16_core_c(uint16_t dst, uint16_t src) {
     const int max_pixel_value = (1 << bits_per_pixel) - 1;
     const int half = 1 << (bits_per_pixel - 1);
-    return clip<Word, int>(int(dst) + src - (half), 0, max_pixel_value);
+    return clip<uint16_t, int>(int(dst) + src - (half), 0, max_pixel_value);
 }
 
 template<CpuFlags flags, bool lessThan16bits>
@@ -27,17 +27,17 @@ static MT_FORCEINLINE __m128i adddiff16_core_simd(const __m128i &dst, const __m1
 }
 
 
-void adddiff16_stacked_c(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight, int nOrigHeight)
+void adddiff16_stacked_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight, int nOrigHeight)
 {
    auto pDstLsb = pDst + nDstPitch * nOrigHeight / 2;
    auto pSrcLsb = pSrc + nSrcPitch * nOrigHeight / 2;
 
    for (int y = 0; y < nHeight / 2; y++) {
        for (int x = 0; x < nWidth; x++) {
-           Word dst = read_word_stacked(pDst, pDstLsb, x);
-           Word src = read_word_stacked(pSrc, pSrcLsb, x);
+           uint16_t dst = read_word_stacked(pDst, pDstLsb, x);
+           uint16_t src = read_word_stacked(pSrc, pSrcLsb, x);
 
-           Word result = adddiff16_core_c<16>(dst, src);
+           uint16_t result = adddiff16_core_c<16>(dst, src);
 
            write_word_stacked(pDst, pDstLsb, x, result);
        }
@@ -49,11 +49,11 @@ void adddiff16_stacked_c(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrd
 }
 
 template<int bits_per_pixel>
-void adddiff16_native_c(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight, int)
+void adddiff16_native_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight, int)
 {
     for (int y = 0; y < nHeight; y++) {
-        auto pDstWord = reinterpret_cast<Word*>(pDst);
-        auto pSrcWord = reinterpret_cast<const Word*>(pSrc);
+        auto pDstWord = reinterpret_cast<uint16_t*>(pDst);
+        auto pSrcWord = reinterpret_cast<const uint16_t*>(pSrc);
 
         for (int x = 0; x < nWidth; x++) { // width is real width
           pDstWord[x] = adddiff16_core_c<bits_per_pixel>(pDstWord[x], pSrcWord[x]);
@@ -65,7 +65,7 @@ void adddiff16_native_c(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdi
 
 #pragma warning(disable: 4309)
 
-void adddiff16_stacked_sse2(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight, int nOrigHeight)
+void adddiff16_stacked_sse2(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight, int nOrigHeight)
 {
     int wMod8 = (nWidth / 8) * 8;
     auto pDst2 = pDst;
@@ -99,7 +99,7 @@ void adddiff16_stacked_sse2(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, p
 
 // for 16 bits SSE2 is enough, 10-14 can benefit from SSE4_1
 template<CpuFlags flags, int bits_per_pixel>
-void adddiff16_native_simd(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight, int nOrigHeight)
+void adddiff16_native_simd(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight, int nOrigHeight)
 {
     nWidth *= 2; // really rowsize: width * sizeof(uint16), see also division at C trailer
 
@@ -135,9 +135,9 @@ void adddiff16_native_simd(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, pt
 }
 
 #define MAKE_TEMPLATES(bits_per_pixel) \
-template void adddiff16_native_c<bits_per_pixel>(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight, int nOrigHeight); \
-template void adddiff16_native_simd<CPU_SSE2,bits_per_pixel>(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight, int nOrigHeight); \
-template void adddiff16_native_simd<CPU_SSE4_1,bits_per_pixel>(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight, int nOrigHeight);
+template void adddiff16_native_c<bits_per_pixel>(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight, int nOrigHeight); \
+template void adddiff16_native_simd<CPU_SSE2,bits_per_pixel>(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight, int nOrigHeight); \
+template void adddiff16_native_simd<CPU_SSE4_1,bits_per_pixel>(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight, int nOrigHeight);
 MAKE_TEMPLATES(10)
 MAKE_TEMPLATES(12)
 MAKE_TEMPLATES(14)

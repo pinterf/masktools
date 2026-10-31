@@ -6,8 +6,8 @@
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Merge16 {
 
-typedef void(Processor16)(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc1, ptrdiff_t nSrc1Pitch,
-                        const Byte *pSrc2, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight, int nOrigHeight);
+typedef void(Processor16)(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
+                        const uint8_t *pSrc2, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight, int nOrigHeight);
 
 extern Processor16 *merge16_c_stacked;
 extern Processor16 *merge16_luma_420_c_stacked;
@@ -53,7 +53,7 @@ class Merge16 : public MaskTools::Filter
 
 protected:
 
-    virtual void process(int n, const Plane<Byte> &dst, int nPlane, const Frame<const Byte> frames[3], const Constraint constraints[3]) override
+    virtual void process(int n, const Plane<uint8_t> &dst, int nPlane, const Frame<const uint8_t> frames[3], const Constraint constraints[3]) override
     {
         UNUSED(n);
         if (use_luma && (nPlane > 0)) {

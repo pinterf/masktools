@@ -3,27 +3,27 @@
 
 using namespace Filtering;
 
-typedef Byte (Operator)(Byte, Byte);
+typedef uint8_t (Operator)(uint8_t, uint8_t);
 
-inline Byte binarize_upper(Byte x, Byte t) { return x > t ? 0 : 255; }
-inline Byte binarize_lower(Byte x, Byte t) { return x > t ? 255 : 0; }
+inline uint8_t binarize_upper(uint8_t x, uint8_t t) { return x > t ? 0 : 255; }
+inline uint8_t binarize_lower(uint8_t x, uint8_t t) { return x > t ? 255 : 0; }
 
-inline Byte binarize_0_x(Byte x, Byte t) { return x > t ? 0 : x; }
-inline Byte binarize_t_x(Byte x, Byte t) { return x > t ? t : x; }
-inline Byte binarize_x_0(Byte x, Byte t) { return x > t ? x : 0; }
-inline Byte binarize_x_t(Byte x, Byte t) { return x > t ? x : t; }
+inline uint8_t binarize_0_x(uint8_t x, uint8_t t) { return x > t ? 0 : x; }
+inline uint8_t binarize_t_x(uint8_t x, uint8_t t) { return x > t ? t : x; }
+inline uint8_t binarize_x_0(uint8_t x, uint8_t t) { return x > t ? x : 0; }
+inline uint8_t binarize_x_t(uint8_t x, uint8_t t) { return x > t ? x : t; }
 
-inline Byte binarize_t_0(Byte x, Byte t) { return x > t ? t : 0; }
-inline Byte binarize_0_t(Byte x, Byte t) { return x > t ? 0 : t; }
+inline uint8_t binarize_t_0(uint8_t x, uint8_t t) { return x > t ? t : 0; }
+inline uint8_t binarize_0_t(uint8_t x, uint8_t t) { return x > t ? 0 : t; }
 
-inline Byte binarize_x_255(Byte x, Byte t) { return x > t ? x : 255; }
-inline Byte binarize_t_255(Byte x, Byte t) { return x > t ? t : 255; }
-inline Byte binarize_255_x(Byte x, Byte t) { return x > t ? 255 : x; }
-inline Byte binarize_255_t(Byte x, Byte t) { return x > t ? 255 : t; }
+inline uint8_t binarize_x_255(uint8_t x, uint8_t t) { return x > t ? x : 255; }
+inline uint8_t binarize_t_255(uint8_t x, uint8_t t) { return x > t ? t : 255; }
+inline uint8_t binarize_255_x(uint8_t x, uint8_t t) { return x > t ? 255 : x; }
+inline uint8_t binarize_255_t(uint8_t x, uint8_t t) { return x > t ? 255 : t; }
 
 
 template <Operator op>
-void binarize_t(Byte *pDst, ptrdiff_t nDstPitch, Byte nThreshold, int nWidth, int nHeight)
+void binarize_t(uint8_t *pDst, ptrdiff_t nDstPitch, uint8_t nThreshold, int nWidth, int nHeight)
 {
    for ( int j = 0; j < nHeight; j++, pDst += nDstPitch )
       for ( int i = 0; i < nWidth; i++ )
@@ -90,9 +90,9 @@ static MT_FORCEINLINE __m128i binarize_255_t_sse2_op(__m128i x, __m128i t, __m12
 }
 
 template<MemoryMode mem_mode, decltype(binarize_upper_sse2_op) op, decltype(binarize_upper) op_c>
-void binarize_sse2_t(Byte *dstp, ptrdiff_t dst_pitch, Byte threshold, int width, int height)
+void binarize_sse2_t(uint8_t *dstp, ptrdiff_t dst_pitch, uint8_t threshold, int width, int height)
 {
-    auto t = _mm_set1_epi8(Byte(threshold));
+    auto t = _mm_set1_epi8(uint8_t(threshold));
     auto t128 = _mm_add_epi8(t, _mm_set1_epi32(0x80808080));
     int mod32_width = (width / 32) * 32;
     auto dstp2 = dstp;

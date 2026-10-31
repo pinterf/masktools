@@ -4,12 +4,12 @@ using namespace Filtering;
 
 
 template<int bits_per_pixel>
-static void lut16_t_c(Byte * pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight, const Word *lut, int)
+static void lut16_t_c(uint8_t * pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight, const uint16_t *lut, int)
 {
     constexpr int max_pixel_value = (1 << bits_per_pixel) - 1;
     for ( int y = 0; y < nHeight; y++ )
     {
-        auto pDst16 = reinterpret_cast<Word*>(pDst);
+        auto pDst16 = reinterpret_cast<uint16_t*>(pDst);
         int x;
         const int wmod2 = nWidth / 2 * 2;
         for (x = 0; x < wmod2; x+=2 ) {
@@ -39,7 +39,7 @@ static void lut16_t_c(Byte * pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight,
 }
 
 template<int bits_per_pixel>
-static void realtime16_t_c(Byte* dstp, ptrdiff_t dst_pitch, int width, int height, Parser::Context& ctx)
+static void realtime16_t_c(uint8_t* dstp, ptrdiff_t dst_pitch, int width, int height, Parser::Context& ctx)
 {
   constexpr int max_pixel_value = (1 << bits_per_pixel) - 1;
   for (int y = 0; y < height; y++)
@@ -57,14 +57,14 @@ static void realtime16_t_c(Byte* dstp, ptrdiff_t dst_pitch, int width, int heigh
   }
 }
 
-static void lut16_t_stacked_c(Byte* pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight, const Word* lut, int nOrigHeightForStacked)
+static void lut16_t_stacked_c(uint8_t* pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight, const uint16_t* lut, int nOrigHeightForStacked)
 {
   auto pLsb = pDst + nDstPitch * nOrigHeightForStacked / 2;
 
   for (int y = 0; y < nHeight / 2; y++)
   {
     for (int x = 0; x < nWidth; x++) {
-      Word value = lut[(pDst[x] << 8) + pLsb[x]];
+      uint16_t value = lut[(pDst[x] << 8) + pLsb[x]];
       pDst[x] = value >> 8;
       pLsb[x] = value & 0xFF;
     }
@@ -73,15 +73,15 @@ static void lut16_t_stacked_c(Byte* pDst, ptrdiff_t nDstPitch, int nWidth, int n
   }
 }
 
-template void realtime16_t_c<10>(Byte* dstp, ptrdiff_t dst_pitch, int width, int height, Parser::Context& ctx);
-template void realtime16_t_c<12>(Byte* dstp, ptrdiff_t dst_pitch, int width, int height, Parser::Context& ctx);
-template void realtime16_t_c<14>(Byte* dstp, ptrdiff_t dst_pitch, int width, int height, Parser::Context& ctx);
-template void realtime16_t_c<16>(Byte* dstp, ptrdiff_t dst_pitch, int width, int height, Parser::Context& ctx);
+template void realtime16_t_c<10>(uint8_t* dstp, ptrdiff_t dst_pitch, int width, int height, Parser::Context& ctx);
+template void realtime16_t_c<12>(uint8_t* dstp, ptrdiff_t dst_pitch, int width, int height, Parser::Context& ctx);
+template void realtime16_t_c<14>(uint8_t* dstp, ptrdiff_t dst_pitch, int width, int height, Parser::Context& ctx);
+template void realtime16_t_c<16>(uint8_t* dstp, ptrdiff_t dst_pitch, int width, int height, Parser::Context& ctx);
 
-template void lut16_t_c<10>(Byte* dstp, ptrdiff_t dst_pitch, int width, int height, const Word* lut, int);
-template void lut16_t_c<12>(Byte* dstp, ptrdiff_t dst_pitch, int width, int height, const Word* lut, int);
-template void lut16_t_c<14>(Byte* dstp, ptrdiff_t dst_pitch, int width, int height, const Word* lut, int);
-template void lut16_t_c<16>(Byte* dstp, ptrdiff_t dst_pitch, int width, int height, const Word* lut, int);
+template void lut16_t_c<10>(uint8_t* dstp, ptrdiff_t dst_pitch, int width, int height, const uint16_t* lut, int);
+template void lut16_t_c<12>(uint8_t* dstp, ptrdiff_t dst_pitch, int width, int height, const uint16_t* lut, int);
+template void lut16_t_c<14>(uint8_t* dstp, ptrdiff_t dst_pitch, int width, int height, const uint16_t* lut, int);
+template void lut16_t_c<16>(uint8_t* dstp, ptrdiff_t dst_pitch, int width, int height, const uint16_t* lut, int);
 
 namespace Filtering {
   namespace MaskTools {

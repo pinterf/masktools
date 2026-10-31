@@ -6,7 +6,7 @@
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Invert {
 
-typedef void(Processor)(Byte *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight);
+typedef void(Processor)(uint8_t *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight);
 
 Processor invert_c;
 Processor invert_sse2;
@@ -28,7 +28,7 @@ class Invert : public MaskTools::Filter
    ProcessorList<Processor> processors;
 
 protected:
-    virtual void process(int n, const Plane<Byte> &dst, int nPlane, const Frame<const Byte> frames[4], const Constraint constraints[4]) override
+    virtual void process(int n, const Plane<uint8_t> &dst, int nPlane, const Frame<const uint8_t> frames[4], const Constraint constraints[4]) override
     {
         UNUSED(n); UNUSED(frames);
         processors.best_processor(constraints[nPlane])(dst.data(), dst.pitch(), dst.width(), dst.height());

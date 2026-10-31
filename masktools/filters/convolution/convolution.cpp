@@ -58,17 +58,17 @@ void compute_line_t(const pixel_t *pSrc, const Type *horizontal, const int nHori
 template<class Type, class pixel_t, int bits_per_pixel>
 pixel_t clamp(Type a);
 
-template<> Byte clamp<int, Byte, 8>(int a) { return a < 0 ? 0 : ( a > 255 ? 255 : Byte(a)); }
-template<> Byte clamp<float, Byte, 8>(float a) { return a < 0.0 ? 0 : ( a > 255.0 ? 255 : Byte(a+0.5) ); }
-template<> Word clamp<int, Word, 10>(int a) { return a < 0 ? 0 : (a > 1023 ? 1023 : Word(a)); }
-template<> Word clamp<float, Word, 10>(float a) { return a < 0.0 ? 0 : (a > 1023 ? 1023 : Word(a + 0.5)); }
-template<> Word clamp<int, Word, 12>(int a) { return a < 0 ? 0 : (a > 4095 ? 4095 : Word(a)); }
-template<> Word clamp<float, Word, 12>(float a) { return a < 0.0 ? 0 : (a > 4095 ? 4095 : Word(a + 0.5)); }
-template<> Word clamp<int, Word, 14>(int a) { return a < 0 ? 0 : (a > 16383 ? 16383 : Word(a)); }
-template<> Word clamp<float, Word, 14>(float a) { return a < 0.0 ? 0 : (a > 16383 ? 16383 : Word(a + 0.5)); }
-template<> Word clamp<int, Word, 16>(int a) { return a < 0 ? 0 : (a > 65535 ? 65535 : Word(a)); }
-template<> Word clamp<float, Word, 16>(float a) { return a < 0.0 ? 0 : (a > 65535 ? 65535 : Word(a + 0.5)); }
-template<> Float clamp<float, float, 32>(float a) { return a; /*< 0.0f ? 0 : (a > 1.0f ? 1.0f : a);*/ } // no clamp for float
+template<> uint8_t clamp<int, uint8_t, 8>(int a) { return a < 0 ? 0 : ( a > 255 ? 255 : uint8_t(a)); }
+template<> uint8_t clamp<float, uint8_t, 8>(float a) { return a < 0.0 ? 0 : ( a > 255.0 ? 255 : uint8_t(a+0.5) ); }
+template<> uint16_t clamp<int, uint16_t, 10>(int a) { return a < 0 ? 0 : (a > 1023 ? 1023 : uint16_t(a)); }
+template<> uint16_t clamp<float, uint16_t, 10>(float a) { return a < 0.0 ? 0 : (a > 1023 ? 1023 : uint16_t(a + 0.5)); }
+template<> uint16_t clamp<int, uint16_t, 12>(int a) { return a < 0 ? 0 : (a > 4095 ? 4095 : uint16_t(a)); }
+template<> uint16_t clamp<float, uint16_t, 12>(float a) { return a < 0.0 ? 0 : (a > 4095 ? 4095 : uint16_t(a + 0.5)); }
+template<> uint16_t clamp<int, uint16_t, 14>(int a) { return a < 0 ? 0 : (a > 16383 ? 16383 : uint16_t(a)); }
+template<> uint16_t clamp<float, uint16_t, 14>(float a) { return a < 0.0 ? 0 : (a > 16383 ? 16383 : uint16_t(a + 0.5)); }
+template<> uint16_t clamp<int, uint16_t, 16>(int a) { return a < 0 ? 0 : (a > 65535 ? 65535 : uint16_t(a)); }
+template<> uint16_t clamp<float, uint16_t, 16>(float a) { return a < 0.0 ? 0 : (a > 65535 ? 65535 : uint16_t(a + 0.5)); }
+template<> float clamp<float, float, 32>(float a) { return a; /*< 0.0f ? 0 : (a > 1.0f ? 1.0f : a);*/ } // no clamp for float
 
 template<class Type>
 struct NOP{
@@ -130,7 +130,7 @@ public:
             nSum += uncircled_horizontals[j][i] * vertical[j];
          pDst[i] = clamp<Type, pixel_t, bits_per_pixel>((SaturateOp::function(nSum) + (sizeof(pixel_t) == 4 ? 0 : (nNormalization / 2))) / nNormalization);
          // for float (sizeof==4): don't add normalization/2. This is a rounding for integer. If normalization = 1.0, (totals parameter)
-         // then it would shift all Float values to with 0.5 which is half of its whole range!)
+         // then it would shift all float values to with 0.5 which is half of its whole range!)
       }
    }
 };
@@ -205,30 +205,30 @@ void convolution_t(pixel_t *pDst, ptrdiff_t nDstPitch, const pixel_t *pSrc, ptrd
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Convolution {
 
-Processor *convolution_i_s_c = &::convolution_t<int, struct NOP<int> , Byte, 8>;
-Processor *convolution_f_s_c = &::convolution_t<float, struct NOP<float>, Byte, 8 >;
-Processor *convolution_i_m_c = &::convolution_t<int, struct MIRROR<int>, Byte, 8 >;
-Processor *convolution_f_m_c = &::convolution_t<float, struct MIRROR<float>, Byte, 8>;
+Processor *convolution_i_s_c = &::convolution_t<int, struct NOP<int> , uint8_t, 8>;
+Processor *convolution_f_s_c = &::convolution_t<float, struct NOP<float>, uint8_t, 8 >;
+Processor *convolution_i_m_c = &::convolution_t<int, struct MIRROR<int>, uint8_t, 8 >;
+Processor *convolution_f_m_c = &::convolution_t<float, struct MIRROR<float>, uint8_t, 8>;
 
-Processor16 *convolution_i_s_10_c = &::convolution_t<int, struct NOP<int>, Word, 10>;
-Processor16 *convolution_f_s_10_c = &::convolution_t<float, struct NOP<float>, Word, 10 >;
-Processor16 *convolution_i_m_10_c = &::convolution_t<int, struct MIRROR<int>, Word, 10 >;
-Processor16 *convolution_f_m_10_c = &::convolution_t<float, struct MIRROR<float>, Word, 10>;
+Processor16 *convolution_i_s_10_c = &::convolution_t<int, struct NOP<int>, uint16_t, 10>;
+Processor16 *convolution_f_s_10_c = &::convolution_t<float, struct NOP<float>, uint16_t, 10 >;
+Processor16 *convolution_i_m_10_c = &::convolution_t<int, struct MIRROR<int>, uint16_t, 10 >;
+Processor16 *convolution_f_m_10_c = &::convolution_t<float, struct MIRROR<float>, uint16_t, 10>;
 
-Processor16 *convolution_i_s_12_c = &::convolution_t<int, struct NOP<int>, Word, 12>;
-Processor16 *convolution_f_s_12_c = &::convolution_t<float, struct NOP<float>, Word, 12 >;
-Processor16 *convolution_i_m_12_c = &::convolution_t<int, struct MIRROR<int>, Word, 12 >;
-Processor16 *convolution_f_m_12_c = &::convolution_t<float, struct MIRROR<float>, Word, 12>;
+Processor16 *convolution_i_s_12_c = &::convolution_t<int, struct NOP<int>, uint16_t, 12>;
+Processor16 *convolution_f_s_12_c = &::convolution_t<float, struct NOP<float>, uint16_t, 12 >;
+Processor16 *convolution_i_m_12_c = &::convolution_t<int, struct MIRROR<int>, uint16_t, 12 >;
+Processor16 *convolution_f_m_12_c = &::convolution_t<float, struct MIRROR<float>, uint16_t, 12>;
 
-Processor16 *convolution_i_s_14_c = &::convolution_t<int, struct NOP<int>, Word, 14>;
-Processor16 *convolution_f_s_14_c = &::convolution_t<float, struct NOP<float>, Word, 14 >;
-Processor16 *convolution_i_m_14_c = &::convolution_t<int, struct MIRROR<int>, Word, 14 >;
-Processor16 *convolution_f_m_14_c = &::convolution_t<float, struct MIRROR<float>, Word, 14>;
+Processor16 *convolution_i_s_14_c = &::convolution_t<int, struct NOP<int>, uint16_t, 14>;
+Processor16 *convolution_f_s_14_c = &::convolution_t<float, struct NOP<float>, uint16_t, 14 >;
+Processor16 *convolution_i_m_14_c = &::convolution_t<int, struct MIRROR<int>, uint16_t, 14 >;
+Processor16 *convolution_f_m_14_c = &::convolution_t<float, struct MIRROR<float>, uint16_t, 14>;
 
-Processor16 *convolution_i_s_16_c = &::convolution_t<int, struct NOP<int>, Word, 16>;
-Processor16 *convolution_f_s_16_c = &::convolution_t<float, struct NOP<float>, Word, 16 >;
-Processor16 *convolution_i_m_16_c = &::convolution_t<int, struct MIRROR<int>, Word, 16 >;
-Processor16 *convolution_f_m_16_c = &::convolution_t<float, struct MIRROR<float>, Word, 16>;
+Processor16 *convolution_i_s_16_c = &::convolution_t<int, struct NOP<int>, uint16_t, 16>;
+Processor16 *convolution_f_s_16_c = &::convolution_t<float, struct NOP<float>, uint16_t, 16 >;
+Processor16 *convolution_i_m_16_c = &::convolution_t<int, struct MIRROR<int>, uint16_t, 16 >;
+Processor16 *convolution_f_m_16_c = &::convolution_t<float, struct MIRROR<float>, uint16_t, 16>;
 
 // 32 bit: no int version
 //Processor32 *convolution_i_s_32_c = &::convolution_t<int, struct NOP<int>, float, 32>;

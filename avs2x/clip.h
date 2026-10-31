@@ -20,13 +20,13 @@ namespace Filtering { namespace Avisynth2x {
 /* plane conversion */
 template<typename T> Plane<T> ConvertTo(const PVideoFrame& frame, int nPlane, int nPixelSize);
 
-template<> inline Plane<Byte> ConvertTo<Byte>(const PVideoFrame &frame, int nPlane, int nPixelSize)
+template<> inline Plane<uint8_t> ConvertTo<uint8_t>(const PVideoFrame &frame, int nPlane, int nPixelSize)
 {
-   return Plane<Byte>( frame->GetWritePtr( nPlane ), frame->GetPitch( nPlane ), frame->GetRowSize( nPlane ), frame->GetHeight( nPlane ), nPixelSize, frame->GetHeight(nPlane));
+   return Plane<uint8_t>( frame->GetWritePtr( nPlane ), frame->GetPitch( nPlane ), frame->GetRowSize( nPlane ), frame->GetHeight( nPlane ), nPixelSize, frame->GetHeight(nPlane));
 }
-template<> inline Plane<const Byte> ConvertTo<const Byte>(const PVideoFrame &frame, int nPlane, int nPixelSize)
+template<> inline Plane<const uint8_t> ConvertTo<const uint8_t>(const PVideoFrame &frame, int nPlane, int nPixelSize)
 {
-   return Plane<const Byte>( frame->GetReadPtr( nPlane ), frame->GetPitch( nPlane ), frame->GetRowSize( nPlane ), frame->GetHeight( nPlane ), nPixelSize, frame->GetHeight(nPlane));
+   return Plane<const uint8_t>( frame->GetReadPtr( nPlane ), frame->GetPitch( nPlane ), frame->GetRowSize( nPlane ), frame->GetHeight( nPlane ), nPixelSize, frame->GetHeight(nPlane));
 }
 
 /* colorspace conversion */
@@ -149,13 +149,13 @@ public:
 
 
 
-   virtual Frame<const Byte> get_const_frame(int n, PVideoFrame &frame_out, IScriptEnvironment *env)
+   virtual Frame<const uint8_t> get_const_frame(int n, PVideoFrame &frame_out, IScriptEnvironment *env)
    {
      // PF 170211: Issue: volatile pointers
      // return the frame, or else plane pointers stored in ConvertTo are not valid anymore
      // after function exit
      frame_out = pclip->GetFrame(clip<int>(n, 0, nFrames - 1), env);
-     return ConvertTo<const Byte>(frame_out);
+     return ConvertTo<const uint8_t>(frame_out);
    }
 
    virtual ::PClip get_avs_clip()

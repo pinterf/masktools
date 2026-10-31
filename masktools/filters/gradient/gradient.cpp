@@ -5,12 +5,12 @@ using namespace Filtering;
 
 //template<typename pixel_t, typename sad_t>
 //using Distortion sad_t (*)(const pixel_t *pSrc, ptrdiff_t nSrcPitch, const pixel_t *pRef, ptrdiff_t nRefPitch, int nPrecision);
-typedef int (Distorsion)(const Byte *pSrc, ptrdiff_t nSrcPitch, const Byte *pRef, ptrdiff_t nRefPitch, int nPrecision);
-typedef int (Distorsion16)(const Word *pSrc, ptrdiff_t nSrcPitch, const Word *pRef, ptrdiff_t nRefPitch, int nPrecision);
-typedef float (Distorsion_f)(const Float *pSrc, ptrdiff_t nSrcPitch, const Float *pRef, ptrdiff_t nRefPitch, int nPrecision);
+typedef int (Distorsion)(const uint8_t *pSrc, ptrdiff_t nSrcPitch, const uint8_t *pRef, ptrdiff_t nRefPitch, int nPrecision);
+typedef int (Distorsion16)(const uint16_t *pSrc, ptrdiff_t nSrcPitch, const uint16_t *pRef, ptrdiff_t nRefPitch, int nPrecision);
+typedef float (Distorsion_f)(const float *pSrc, ptrdiff_t nSrcPitch, const float *pRef, ptrdiff_t nRefPitch, int nPrecision);
 
 template<int nBlockSizeX, int nBlockSizeY> 
-int sad(const Byte *pSrc, ptrdiff_t nSrcPitch, const Byte *pRef, ptrdiff_t nRefPitch, int nPrecision)
+int sad(const uint8_t *pSrc, ptrdiff_t nSrcPitch, const uint8_t *pRef, ptrdiff_t nRefPitch, int nPrecision)
 {
   // pitches are already bit_depth corrected
    int nSad = 0;
@@ -23,7 +23,7 @@ int sad(const Byte *pSrc, ptrdiff_t nSrcPitch, const Byte *pRef, ptrdiff_t nRefP
 }
 
 template<int nBlockSizeX, int nBlockSizeY>
-int sad16(const Word *pSrc, ptrdiff_t nSrcPitch, const Word *pRef, ptrdiff_t nRefPitch, int nPrecision)
+int sad16(const uint16_t *pSrc, ptrdiff_t nSrcPitch, const uint16_t *pRef, ptrdiff_t nRefPitch, int nPrecision)
 {
   // pitches are already bit_depth corrected
   int nSad = 0;
@@ -49,7 +49,7 @@ float sad32(const float *pSrc, ptrdiff_t nSrcPitch, const float *pRef, ptrdiff_t
 }
 
 template<Distorsion distorsion, int nBlockSizeX, int nBlockSizeY> 
-void generic_c(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdiff_t nSrcPitch, const Byte *pRef, ptrdiff_t nRefPitch, int nWidth, int nHeight, int nX, int nY, int nMinimum, int nMaximum, int nPrecision)
+void generic_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, const uint8_t *pRef, ptrdiff_t nRefPitch, int nWidth, int nHeight, int nX, int nY, int nMinimum, int nMaximum, int nPrecision)
 {
  
    int x, y;
@@ -61,7 +61,7 @@ void generic_c(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdiff_t nSrc
    for ( y = 0; y < nHeight - nBlockSizeY * nPrecision + nPrecision; y++, pRef += nRefPitch, pDst += nDstPitch )
    {
       for ( x = 0; x < nWidth - nBlockSizeX * nPrecision + nPrecision; x++ )
-         pDst[x] = clip<Byte, int>( (distorsion( pSrc, nSrcPitch, &pRef[x], nRefPitch, nPrecision ) - nMinimum) * max_pixel_value / (nMaximum - nMinimum) );
+         pDst[x] = clip<uint8_t, int>( (distorsion( pSrc, nSrcPitch, &pRef[x], nRefPitch, nPrecision ) - nMinimum) * max_pixel_value / (nMaximum - nMinimum) );
 
       for ( ; x < nWidth; x++ )
          pDst[x] = pDst[nWidth - nBlockSizeX * nPrecision + nPrecision - 1];
@@ -71,11 +71,11 @@ void generic_c(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdiff_t nSrc
 }
 
 template<Distorsion16 distorsion, int nBlockSizeX, int nBlockSizeY, int bits_per_pixel>
-void generic16_c(Word *pDst, ptrdiff_t nDstPitch, const Word *pSrc, ptrdiff_t nSrcPitch, const Word *pRef, ptrdiff_t nRefPitch, int nWidth, int nHeight, int nX, int nY, int nMinimum, int nMaximum, int nPrecision)
+void generic16_c(uint16_t *pDst, ptrdiff_t nDstPitch, const uint16_t *pSrc, ptrdiff_t nSrcPitch, const uint16_t *pRef, ptrdiff_t nRefPitch, int nWidth, int nHeight, int nX, int nY, int nMinimum, int nMaximum, int nPrecision)
 {
-  nSrcPitch /= sizeof(Word);
-  nDstPitch /= sizeof(Word);
-  nRefPitch /= sizeof(Word);
+  nSrcPitch /= sizeof(uint16_t);
+  nDstPitch /= sizeof(uint16_t);
+  nRefPitch /= sizeof(uint16_t);
 
   int x, y;
 
@@ -86,21 +86,21 @@ void generic16_c(Word *pDst, ptrdiff_t nDstPitch, const Word *pSrc, ptrdiff_t nS
   for (y = 0; y < nHeight - nBlockSizeY * nPrecision + nPrecision; y++, pRef += nRefPitch, pDst += nDstPitch)
   {
     for (x = 0; x < nWidth - nBlockSizeX * nPrecision + nPrecision; x++)
-      pDst[x] = clip<Word, int>((distorsion(pSrc, nSrcPitch, &pRef[x], nRefPitch, nPrecision) - nMinimum) * max_pixel_value / (nMaximum - nMinimum));
+      pDst[x] = clip<uint16_t, int>((distorsion(pSrc, nSrcPitch, &pRef[x], nRefPitch, nPrecision) - nMinimum) * max_pixel_value / (nMaximum - nMinimum));
 
     for (; x < nWidth; x++)
       pDst[x] = pDst[nWidth - nBlockSizeX * nPrecision + nPrecision - 1];
   }
   for (y = 0; y < nBlockSizeY * nPrecision - nPrecision; y++)
-    memcpy(&pDst[y * nDstPitch], pDst - nDstPitch, nWidth * sizeof(Word));
+    memcpy(&pDst[y * nDstPitch], pDst - nDstPitch, nWidth * sizeof(uint16_t));
 }
 
 template<Distorsion_f distorsion, int nBlockSizeX, int nBlockSizeY>
-void generic_f_c(Float *pDst, ptrdiff_t nDstPitch, const Float *pSrc, ptrdiff_t nSrcPitch, const Float *pRef, ptrdiff_t nRefPitch, int nWidth, int nHeight, int nX, int nY, Float nMinimum, Float nMaximum, int nPrecision)
+void generic_f_c(float *pDst, ptrdiff_t nDstPitch, const float *pSrc, ptrdiff_t nSrcPitch, const float *pRef, ptrdiff_t nRefPitch, int nWidth, int nHeight, int nX, int nY, float nMinimum, float nMaximum, int nPrecision)
 {
-  nSrcPitch /= sizeof(Float);
-  nDstPitch /= sizeof(Float);
-  nRefPitch /= sizeof(Float);
+  nSrcPitch /= sizeof(float);
+  nDstPitch /= sizeof(float);
+  nRefPitch /= sizeof(float);
 
   int x, y;
 
@@ -115,7 +115,7 @@ void generic_f_c(Float *pDst, ptrdiff_t nDstPitch, const Float *pSrc, ptrdiff_t 
       pDst[x] = pDst[nWidth - nBlockSizeX * nPrecision + nPrecision - 1];
   }
   for (y = 0; y < nBlockSizeY * nPrecision - nPrecision; y++)
-    memcpy(&pDst[y * nDstPitch], pDst - nDstPitch, nWidth * sizeof(Float));
+    memcpy(&pDst[y * nDstPitch], pDst - nDstPitch, nWidth * sizeof(float));
 }
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Gradient {

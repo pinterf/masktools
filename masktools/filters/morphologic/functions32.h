@@ -7,7 +7,7 @@
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Morphologic {
 
-typedef Float (Operator32)(Float, Float, Float, Float, Float, Float, Float, Float, Float, Float); // last is nMaxDeviation
+typedef float (Operator32)(float, float, float, float, float, float, float, float, float, float); // last is nMaxDeviation
 
 enum Directions {
     Vertical = 1,
@@ -17,7 +17,7 @@ enum Directions {
 };
 
 template<Border borderMode, Operator32 op>
-void process_line_morpho_32_c(Float *pDst, const Float *pSrcp, const Float *pSrc, const Float *pSrcn, Float maxDeviation, int width, int height, ptrdiff_t srcPitch, ptrdiff_t dstPitch) {
+void process_line_morpho_32_c(float *pDst, const float *pSrcp, const float *pSrc, const float *pSrcn, float maxDeviation, int width, int height, ptrdiff_t srcPitch, ptrdiff_t dstPitch) {
     UNUSED(dstPitch); UNUSED(srcPitch); UNUSED(height);
 
     const int leftOffset = borderMode == Border::Left ? 0 : 1;
@@ -25,25 +25,25 @@ void process_line_morpho_32_c(Float *pDst, const Float *pSrcp, const Float *pSrc
 
     for (int x = 0; x < width; ++x) {
         pDst[x] = op(
-            reinterpret_cast<const Float*>(pSrcp)[x-leftOffset],
-            reinterpret_cast<const Float*>(pSrcp)[x],
-            reinterpret_cast<const Float*>(pSrcp)[x+rightOffset],
-            reinterpret_cast<const Float*>(pSrc)[x-leftOffset],
-            reinterpret_cast<const Float*>(pSrc)[x],
-            reinterpret_cast<const Float*>(pSrc)[x+rightOffset],
-            reinterpret_cast<const Float*>(pSrcn)[x-leftOffset],
-            reinterpret_cast<const Float*>(pSrcn)[x],
-            reinterpret_cast<const Float*>(pSrcn)[x+rightOffset],
+            reinterpret_cast<const float*>(pSrcp)[x-leftOffset],
+            reinterpret_cast<const float*>(pSrcp)[x],
+            reinterpret_cast<const float*>(pSrcp)[x+rightOffset],
+            reinterpret_cast<const float*>(pSrc)[x-leftOffset],
+            reinterpret_cast<const float*>(pSrc)[x],
+            reinterpret_cast<const float*>(pSrc)[x+rightOffset],
+            reinterpret_cast<const float*>(pSrcn)[x-leftOffset],
+            reinterpret_cast<const float*>(pSrcn)[x],
+            reinterpret_cast<const float*>(pSrcn)[x+rightOffset],
             maxDeviation);
     }
 }
 
 template<class T>
 struct MorphologicProcessor {
-    typedef void (ProcessLineC)(T *pDst, const T *pSrcp, const T *pSrc, const T *pSrcn, Float maxDeviation, int width, int height, ptrdiff_t srcPitch, ptrdiff_t dstPitch);
+    typedef void (ProcessLineC)(T *pDst, const T *pSrcp, const T *pSrc, const T *pSrcn, float maxDeviation, int width, int height, ptrdiff_t srcPitch, ptrdiff_t dstPitch);
 
     template<ProcessLineC process_line_left, ProcessLineC process_line, ProcessLineC process_line_right>
-    static void generic_32_c(T *pDst, ptrdiff_t nDstPitch, const T *pSrc, ptrdiff_t nSrcPitch, Float nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight)
+    static void generic_32_c(T *pDst, ptrdiff_t nDstPitch, const T *pSrc, ptrdiff_t nSrcPitch, float nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight)
     {
         const T *pSrcp = pSrc - nSrcPitch;
         const T *pSrcn = pSrc + nSrcPitch;
@@ -91,7 +91,7 @@ struct MorphologicProcessor {
 
 
 template<class T>
-void generic_custom_32_c(Float *pDst, ptrdiff_t nDstPitch, const Float *pSrc, ptrdiff_t nSrcPitch, Float nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight)
+void generic_custom_32_c(float *pDst, ptrdiff_t nDstPitch, const float *pSrc, ptrdiff_t nSrcPitch, float nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight)
 {
     for ( int j = 0; j < nHeight; j++ )
     {

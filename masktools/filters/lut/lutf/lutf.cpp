@@ -4,7 +4,7 @@
 using namespace Filtering;
 
 template<bool realtime, class T>
-static void frame_c(Byte *dstp, ptrdiff_t dst_pitch, const Byte *srcp, ptrdiff_t src_pitch, const Byte *lutp, Parser::Context *ctx, int width, int height)
+static void frame_c(uint8_t *dstp, ptrdiff_t dst_pitch, const uint8_t *srcp, ptrdiff_t src_pitch, const uint8_t *lutp, Parser::Context *ctx, int width, int height)
 {
     T processor("");
 
@@ -21,13 +21,13 @@ static void frame_c(Byte *dstp, ptrdiff_t dst_pitch, const Byte *srcp, ptrdiff_t
 
     // lutf: treat it as if the first frame was constant, result of avg/min/max, etc...
     if (realtime) {
-      const Byte X = processor.finalize();
+      const uint8_t X = processor.finalize();
       // no 2D lut needed, X is constant
       // speedwise (expr = "x ymin - ymax ymin - / range_max *")
       // real lut: 180fps, 
       // realtime, compute_byte(X,srcp[i]) for each pixels: 6.3fps
       // realtime, miniLut: 173 fps
-      Byte miniLut[256];
+      uint8_t miniLut[256];
       for(int i=0; i<256;i++)
         miniLut[i] = ctx->compute_byte_xy(X, i);
       for (int j = 0; j < height; j++) {
@@ -39,7 +39,7 @@ static void frame_c(Byte *dstp, ptrdiff_t dst_pitch, const Byte *srcp, ptrdiff_t
       }
     }
     else {
-      const Byte *lut = lutp + (processor.finalize() << 8);
+      const uint8_t *lut = lutp + (processor.finalize() << 8);
 
       for (int j = 0; j < height; j++) {
         for (int i = 0; i < width; i++) {
@@ -52,7 +52,7 @@ static void frame_c(Byte *dstp, ptrdiff_t dst_pitch, const Byte *srcp, ptrdiff_t
 }
 
 template<bool realtime, int bits_per_pixel, class T>
-static void frame16_c(Word *dstp, ptrdiff_t dst_pitch, const Word *srcp, ptrdiff_t src_pitch, const Word *lutp, Parser::Context *ctx, int width, int height)
+static void frame16_c(uint16_t *dstp, ptrdiff_t dst_pitch, const uint16_t *srcp, ptrdiff_t src_pitch, const uint16_t *lutp, Parser::Context *ctx, int width, int height)
 {
   dst_pitch /= sizeof(uint16_t);
   src_pitch /= sizeof(uint16_t);
@@ -70,17 +70,17 @@ static void frame16_c(Word *dstp, ptrdiff_t dst_pitch, const Word *srcp, ptrdiff
 
   dstp -= dst_pitch * height;
 
-  const Word max_pixel_value = (1 << bits_per_pixel) - 1;
+  const uint16_t max_pixel_value = (1 << bits_per_pixel) - 1;
 
   // lutf: treat it as if the first frame was constant, result of avg/min/max, etc...
   if (realtime) {
-    const Word X = processor.finalize();
+    const uint16_t X = processor.finalize();
     // no 2D lut needed, X is constant
     // speedwise (expr = "x ymin - ymax ymin - / range_max *")
     // real lut: 180fps, 
     // realtime, compute_byte(X,srcp[i]) for each pixels: 6.3fps
     // realtime, miniLut: 173 fps
-    Word miniLut[65536]; // full 16, anti overflow
+    uint16_t miniLut[65536]; // full 16, anti overflow
     const int real_buf_size = (1 << bits_per_pixel);
     for (int i = 0; i < real_buf_size; i++)
       miniLut[i] = ctx->compute_word_xy<bits_per_pixel>(X, i);
@@ -96,7 +96,7 @@ static void frame16_c(Word *dstp, ptrdiff_t dst_pitch, const Word *srcp, ptrdiff
     }
   }
   else {
-    const Word *lut = lutp + (min(processor.finalize(),max_pixel_value) << bits_per_pixel);
+    const uint16_t *lut = lutp + (min(processor.finalize(),max_pixel_value) << bits_per_pixel);
 
     for (int j = 0; j < height; j++) {
       for (int i = 0; i < width; i++) {
@@ -110,10 +110,10 @@ static void frame16_c(Word *dstp, ptrdiff_t dst_pitch, const Word *srcp, ptrdiff
 
 
 template<class T>
-static void frame32_c(Float *dstp, ptrdiff_t dst_pitch, const Float *srcp, ptrdiff_t src_pitch, Parser::Context *ctx, int width, int height, bool chroma)
+static void frame32_c(float *dstp, ptrdiff_t dst_pitch, const float *srcp, ptrdiff_t src_pitch, Parser::Context *ctx, int width, int height, bool chroma)
 {
-  dst_pitch /= sizeof(Float);
-  src_pitch /= sizeof(Float);
+  dst_pitch /= sizeof(float);
+  src_pitch /= sizeof(float);
 
   T processor("");
 
@@ -129,7 +129,7 @@ static void frame32_c(Float *dstp, ptrdiff_t dst_pitch, const Float *srcp, ptrdi
   dstp -= dst_pitch * height;
 
   // lutf: treat it as if the first frame was constant, result of avg/min/max, etc...
-  const Float X = processor.finalize();
+  const float X = processor.finalize();
 
   // always full realtime
   for (int j = 0; j < height; j++) {

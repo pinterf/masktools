@@ -8,7 +8,7 @@ using namespace Filtering;
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Mask { namespace Edge {
 
 template<int bits_per_pixel>
-inline Word convolution(Word a11, Word a21, Word a31, Word a12, Word a22, Word a32, Word a13, Word a23, Word a33, const Short matrix[10], int nLowThreshold, int nHighThreshold)
+inline uint16_t convolution(uint16_t a11, uint16_t a21, uint16_t a31, uint16_t a12, uint16_t a22, uint16_t a32, uint16_t a13, uint16_t a23, uint16_t a33, const int16_t matrix[10], int nLowThreshold, int nHighThreshold)
 {
    return threshold16<bits_per_pixel>(abs((a11 * matrix[0] + a21 * matrix[1] + a31 * matrix[2] + 
                                     a12 * matrix[3] + a22 * matrix[4] + a32 * matrix[5] +
@@ -16,28 +16,28 @@ inline Word convolution(Word a11, Word a21, Word a31, Word a12, Word a22, Word a
 }
 
 template<int bits_per_pixel>
-inline Word sobel(Word a11, Word a21, Word a31, Word a12, Word a22, Word a32, Word a13, Word a23, Word a33, const Short matrix[10], int nLowThreshold, int nHighThreshold)
+inline uint16_t sobel(uint16_t a11, uint16_t a21, uint16_t a31, uint16_t a12, uint16_t a22, uint16_t a32, uint16_t a13, uint16_t a23, uint16_t a33, const int16_t matrix[10], int nLowThreshold, int nHighThreshold)
 {
    UNUSED(a11); UNUSED(a13); UNUSED(a22); UNUSED(a31); UNUSED(a33); UNUSED(matrix); 
    return threshold16<bits_per_pixel>(abs( (int)a32 + a23 - a12 - a21 ) >> 1, nLowThreshold, nHighThreshold);
 }
 
 template<int bits_per_pixel>
-inline Word roberts(Word a11, Word a21, Word a31, Word a12, Word a22, Word a32, Word a13, Word a23, Word a33, const Short matrix[10], int nLowThreshold, int nHighThreshold)
+inline uint16_t roberts(uint16_t a11, uint16_t a21, uint16_t a31, uint16_t a12, uint16_t a22, uint16_t a32, uint16_t a13, uint16_t a23, uint16_t a33, const int16_t matrix[10], int nLowThreshold, int nHighThreshold)
 {
    UNUSED(a11); UNUSED(a12); UNUSED(a13); UNUSED(a21); UNUSED(a31); UNUSED(a33); UNUSED(matrix); 
    return threshold16<bits_per_pixel>(abs( ((int)a22 << 1) - a32 - a23 ) >> 1, nLowThreshold, nHighThreshold);
 }
 
 template<int bits_per_pixel>
-inline Word laplace(Word a11, Word a21, Word a31, Word a12, Word a22, Word a32, Word a13, Word a23, Word a33, const Short matrix[10], int nLowThreshold, int nHighThreshold)
+inline uint16_t laplace(uint16_t a11, uint16_t a21, uint16_t a31, uint16_t a12, uint16_t a22, uint16_t a32, uint16_t a13, uint16_t a23, uint16_t a33, const int16_t matrix[10], int nLowThreshold, int nHighThreshold)
 {
    UNUSED(matrix); 
    return threshold16<bits_per_pixel>(abs( ((int)a22 << 3) - a32 - a23 - a11 - a21 - a31 - a12 - a13 - a33 ) >> 3, nLowThreshold, nHighThreshold);
 }
 
 template<int bits_per_pixel>
-inline Word morpho(Word a11, Word a21, Word a31, Word a12, Word a22, Word a32, Word a13, Word a23, Word a33, const Short matrix[10], int nLowThreshold, int nHighThreshold)
+inline uint16_t morpho(uint16_t a11, uint16_t a21, uint16_t a31, uint16_t a12, uint16_t a22, uint16_t a32, uint16_t a13, uint16_t a23, uint16_t a33, const int16_t matrix[10], int nLowThreshold, int nHighThreshold)
 {
    int nMin = a11, nMax = a11;
 
@@ -64,7 +64,7 @@ inline Word morpho(Word a11, Word a21, Word a31, Word a12, Word a22, Word a32, W
 }
 
 template<int bits_per_pixel>
-inline Word cartoon(Word a11, Word a21, Word a31, Word a12, Word a22, Word a32, Word a13, Word a23, Word a33, const Short matrix[10], int nLowThreshold, int nHighThreshold)
+inline uint16_t cartoon(uint16_t a11, uint16_t a21, uint16_t a31, uint16_t a12, uint16_t a22, uint16_t a32, uint16_t a13, uint16_t a23, uint16_t a33, const int16_t matrix[10], int nLowThreshold, int nHighThreshold)
 {
    int val = ((int)a21 << 1) - a22 - a31;
 
@@ -74,7 +74,7 @@ inline Word cartoon(Word a11, Word a21, Word a31, Word a12, Word a22, Word a32, 
 }
 
 template<int bits_per_pixel>
-inline Word prewitt(Word a11, Word a21, Word a31, Word a12, Word a22, Word a32, Word a13, Word a23, Word a33, const Short matrix[10], int nLowThreshold, int nHighThreshold)
+inline uint16_t prewitt(uint16_t a11, uint16_t a21, uint16_t a31, uint16_t a12, uint16_t a22, uint16_t a32, uint16_t a13, uint16_t a23, uint16_t a33, const int16_t matrix[10], int nLowThreshold, int nHighThreshold)
 {
    const int p90 = a11 + a21 + a31 - a13 - a23 - a33;
    const int p180 = a11 + a12 + a13 - a31 - a32 - a33;
@@ -91,7 +91,7 @@ inline Word prewitt(Word a11, Word a21, Word a31, Word a12, Word a22, Word a32, 
 }
 
 template<int bits_per_pixel>
-inline Word half_prewitt(Word a11, Word a21, Word a31, Word a12, Word a22, Word a32, Word a13, Word a23, Word a33, const Short matrix[10], int nLowThreshold, int nHighThreshold)
+inline uint16_t half_prewitt(uint16_t a11, uint16_t a21, uint16_t a31, uint16_t a12, uint16_t a22, uint16_t a32, uint16_t a13, uint16_t a23, uint16_t a33, const int16_t matrix[10], int nLowThreshold, int nHighThreshold)
 {
    const int p90 = a11 + 2 * a21 + a31 - a13 - 2 * a23 - a33;
    const int p180 = a11 + 2 * a12 + a13 - a31 - 2 * a32 - a33;
@@ -103,9 +103,9 @@ inline Word half_prewitt(Word a11, Word a21, Word a31, Word a12, Word a22, Word 
 }
 
 class Thresholds {
-   Word nMinThreshold, nMaxThreshold;
+   uint16_t nMinThreshold, nMaxThreshold;
 public:
-   Thresholds(Word nMinThreshold, Word nMaxThreshold) :
+   Thresholds(uint16_t nMinThreshold, uint16_t nMaxThreshold) :
    nMinThreshold(nMinThreshold), nMaxThreshold(nMaxThreshold)
    {
    }
@@ -113,14 +113,14 @@ public:
    int minpitch() const { return 0; }
    int maxpitch() const { return 0; }
    void nextRow() { }
-   Word min(int x) const { UNUSED(x); return nMinThreshold; }
-   Word max(int x) const { UNUSED(x); return nMaxThreshold; }
+   uint16_t min(int x) const { UNUSED(x); return nMinThreshold; }
+   uint16_t max(int x) const { UNUSED(x); return nMaxThreshold; }
 };
 
 template<Filters::Mask::Operator op>
-void mask16_t(Word *pDst, ptrdiff_t nDstPitch, const Word *pSrc, ptrdiff_t nSrcPitch, const Short matrix[10], int nLowThreshold, int nHighThreshold, int nWidth, int nHeight)
+void mask16_t(uint16_t *pDst, ptrdiff_t nDstPitch, const uint16_t *pSrc, ptrdiff_t nSrcPitch, const int16_t matrix[10], int nLowThreshold, int nHighThreshold, int nWidth, int nHeight)
 {
-   Thresholds thresholds(static_cast<Word>(nLowThreshold), static_cast<Word>(nHighThreshold));
+   Thresholds thresholds(static_cast<uint16_t>(nLowThreshold), static_cast<uint16_t>(nHighThreshold));
 
    Filters::Mask::generic16_c<op, Thresholds>(pDst, nDstPitch, pSrc, nSrcPitch, thresholds, matrix, nWidth, nHeight);
 }
@@ -180,7 +180,7 @@ static MT_FORCEINLINE __m128i simd_abs_diff_epi32(__m128i a, __m128i b) {
 }
 
 template<CpuFlags flags, int bits_per_pixel, Border borderMode, MemoryMode mem_mode>
-static MT_FORCEINLINE void process_line_convolution_sse2(Byte *pDst, const Byte *pSrcp, const Byte *pSrc, const Byte *pSrcn, const Short matrix[10], const __m128i &lowThresh, const __m128i &highThresh, int width) {
+static MT_FORCEINLINE void process_line_convolution_sse2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m128i &lowThresh, const __m128i &highThresh, int width) {
     UNUSED(pSrcp);
 #pragma warning(disable: 4310)
     auto vHalf = _mm_set1_epi16(short(1 << (bits_per_pixel -1 )));
@@ -279,7 +279,7 @@ static MT_FORCEINLINE void process_line_convolution_sse2(Byte *pDst, const Byte 
 }
 
 template<CpuFlags flags, int bits_per_pixel, Border borderMode, MemoryMode mem_mode>
-static MT_FORCEINLINE void process_line_sobel_sse2(Byte *pDst, const Byte *pSrcp, const Byte *pSrc, const Byte *pSrcn, const Short matrix[10], const __m128i &lowThresh, const __m128i &highThresh, int width) {
+static MT_FORCEINLINE void process_line_sobel_sse2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m128i &lowThresh, const __m128i &highThresh, int width) {
     UNUSED(matrix);
 #pragma warning(disable: 4310)
     auto vHalf = _mm_set1_epi16(short(1 << (bits_per_pixel - 1)));
@@ -327,7 +327,7 @@ static MT_FORCEINLINE void process_line_sobel_sse2(Byte *pDst, const Byte *pSrcp
 }
 
 template<CpuFlags flags, int bits_per_pixel, Border borderMode, MemoryMode mem_mode>
-static MT_FORCEINLINE void process_line_roberts_sse2(Byte *pDst, const Byte *pSrcp, const Byte *pSrc, const Byte *pSrcn, const Short matrix[10], const __m128i &lowThresh, const __m128i &highThresh, int width) {
+static MT_FORCEINLINE void process_line_roberts_sse2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m128i &lowThresh, const __m128i &highThresh, int width) {
     UNUSED(pSrcp);
     UNUSED(matrix);
 #pragma warning(disable: 4310)
@@ -371,7 +371,7 @@ static MT_FORCEINLINE void process_line_roberts_sse2(Byte *pDst, const Byte *pSr
 }
 
 template<CpuFlags flags, int bits_per_pixel, Border borderMode, MemoryMode mem_mode>
-static MT_FORCEINLINE void process_line_laplace_sse2(Byte *pDst, const Byte *pSrcp, const Byte *pSrc, const Byte *pSrcn, const Short matrix[10], const __m128i &lowThresh, const __m128i &highThresh, int width) {
+static MT_FORCEINLINE void process_line_laplace_sse2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m128i &lowThresh, const __m128i &highThresh, int width) {
     UNUSED(pSrcp);
     UNUSED(matrix);
 #pragma warning(disable: 4310)
@@ -453,7 +453,7 @@ static MT_FORCEINLINE void process_line_laplace_sse2(Byte *pDst, const Byte *pSr
 }
 
 template<CpuFlags flags, int bits_per_pixel, Border borderMode, MemoryMode mem_mode>
-static MT_FORCEINLINE void process_line_morpho_sse2(Byte *pDst, const Byte *pSrcp, const Byte *pSrc, const Byte *pSrcn, const Short matrix[10], const __m128i &lowThresh, const __m128i &highThresh, int width) {
+static MT_FORCEINLINE void process_line_morpho_sse2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m128i &lowThresh, const __m128i &highThresh, int width) {
     UNUSED(matrix);
 #pragma warning(disable: 4310)
     auto vHalf = _mm_set1_epi16(short(1 << (bits_per_pixel -1 )));
@@ -499,7 +499,7 @@ static MT_FORCEINLINE void process_line_morpho_sse2(Byte *pDst, const Byte *pSrc
 }
 
 template<CpuFlags flags, int bits_per_pixel, Border borderMode, MemoryMode mem_mode>
-static MT_FORCEINLINE void process_line_cartoon_sse2(Byte *pDst, const Byte *pSrcp, const Byte *pSrc, const Byte *pSrcn, const Short matrix[10], const __m128i &lowThresh, const __m128i &highThresh, int width) {
+static MT_FORCEINLINE void process_line_cartoon_sse2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m128i &lowThresh, const __m128i &highThresh, int width) {
     UNUSED(matrix); UNUSED(pSrcn);
 #pragma warning(disable: 4310)
     auto vHalf = _mm_set1_epi16(short(1 << (bits_per_pixel -1 )));
@@ -539,7 +539,7 @@ static MT_FORCEINLINE void process_line_cartoon_sse2(Byte *pDst, const Byte *pSr
 }
 
 template<CpuFlags flags, int bits_per_pixel, Border borderMode, MemoryMode mem_mode>
-static MT_FORCEINLINE void process_line_prewitt_sse2(Byte *pDst, const Byte *pSrcp, const Byte *pSrc, const Byte *pSrcn, const Short matrix[10], const __m128i &lowThresh, const __m128i &highThresh, int width) {
+static MT_FORCEINLINE void process_line_prewitt_sse2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m128i &lowThresh, const __m128i &highThresh, int width) {
     UNUSED(matrix);
 #pragma warning(disable: 4310)
     auto vHalf = _mm_set1_epi16(short(1 << (bits_per_pixel -1 )));
@@ -636,7 +636,7 @@ static MT_FORCEINLINE void process_line_prewitt_sse2(Byte *pDst, const Byte *pSr
 }
 
 template<CpuFlags flags, int bits_per_pixel, Border borderMode, MemoryMode mem_mode>
-static MT_FORCEINLINE void process_line_half_prewitt_sse2(Byte *pDst, const Byte *pSrcp, const Byte *pSrc, const Byte *pSrcn, const Short matrix[10], const __m128i &lowThresh, const __m128i &highThresh, int width) {
+static MT_FORCEINLINE void process_line_half_prewitt_sse2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m128i &lowThresh, const __m128i &highThresh, int width) {
     UNUSED(matrix);
 #pragma warning(disable: 4310)
     auto vHalf = _mm_set1_epi16(short(1 << (bits_per_pixel -1 )));

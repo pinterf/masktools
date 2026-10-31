@@ -13,7 +13,7 @@ struct Coordinates {
 typedef std::vector<Coordinates> CoordinatesList;
 
 template<typename pixel_t, int bits_per_pixel, bool corners>
-static void expand_mask(pixel_t* pDst, ptrdiff_t nDstPitch, const pixel_t* pSrc2, ptrdiff_t nSrc2Pitch, Byte* pTemp, int x, int y, int nWidth, int nHeight, CoordinatesList& coordinates)
+static void expand_mask(pixel_t* pDst, ptrdiff_t nDstPitch, const pixel_t* pSrc2, ptrdiff_t nSrc2Pitch, uint8_t* pTemp, int x, int y, int nWidth, int nHeight, CoordinatesList& coordinates)
 {
     //CoordinatesList coordinates;
     coordinates.clear();
@@ -61,8 +61,8 @@ static void expand_mask(pixel_t* pDst, ptrdiff_t nDstPitch, const pixel_t* pSrc2
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Mask { namespace Hysteresis {
 template<typename pixel_t, int bits_per_pixel, bool corners>
-void hysteresis_c(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc1, ptrdiff_t nSrc1Pitch,
-  const Byte *pSrc2, ptrdiff_t nSrc2Pitch, Byte *pTemp, int width, int height)
+void hysteresis_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
+  const uint8_t *pSrc2, ptrdiff_t nSrc2Pitch, uint8_t *pTemp, int width, int height)
 {
 
   memset(pDst, 0, nDstPitch * height); // dstPitch is byte size
@@ -84,30 +84,30 @@ void hysteresis_c(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc1, ptrdiff_t 
   }
 }
 
-template void hysteresis_c<Byte, 8, true>(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc1, ptrdiff_t nSrc1Pitch, const Byte *pSrc2, ptrdiff_t nSrc2Pitch, Byte *pTemp, int width, int height);
-template void hysteresis_c<Word, 10, true>(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc1, ptrdiff_t nSrc1Pitch, const Byte *pSrc2, ptrdiff_t nSrc2Pitch, Byte *pTemp, int width, int height);
-template void hysteresis_c<Word, 12, true>(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc1, ptrdiff_t nSrc1Pitch, const Byte *pSrc2, ptrdiff_t nSrc2Pitch, Byte *pTemp, int width, int height);
-template void hysteresis_c<Word, 14, true>(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc1, ptrdiff_t nSrc1Pitch, const Byte *pSrc2, ptrdiff_t nSrc2Pitch, Byte *pTemp, int width, int height);
-template void hysteresis_c<Word, 16, true>(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc1, ptrdiff_t nSrc1Pitch, const Byte *pSrc2, ptrdiff_t nSrc2Pitch, Byte *pTemp, int width, int height);
-template void hysteresis_c<Float, 0, true>(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc1, ptrdiff_t nSrc1Pitch, const Byte *pSrc2, ptrdiff_t nSrc2Pitch, Byte *pTemp, int width, int height);
-template void hysteresis_c<Byte, 8, false>(Byte* pDst, ptrdiff_t nDstPitch, const Byte* pSrc1, ptrdiff_t nSrc1Pitch, const Byte* pSrc2, ptrdiff_t nSrc2Pitch, Byte* pTemp, int width, int height);
-template void hysteresis_c<Word, 10, false>(Byte* pDst, ptrdiff_t nDstPitch, const Byte* pSrc1, ptrdiff_t nSrc1Pitch, const Byte* pSrc2, ptrdiff_t nSrc2Pitch, Byte* pTemp, int width, int height);
-template void hysteresis_c<Word, 12, false>(Byte* pDst, ptrdiff_t nDstPitch, const Byte* pSrc1, ptrdiff_t nSrc1Pitch, const Byte* pSrc2, ptrdiff_t nSrc2Pitch, Byte* pTemp, int width, int height);
-template void hysteresis_c<Word, 14, false>(Byte* pDst, ptrdiff_t nDstPitch, const Byte* pSrc1, ptrdiff_t nSrc1Pitch, const Byte* pSrc2, ptrdiff_t nSrc2Pitch, Byte* pTemp, int width, int height);
-template void hysteresis_c<Word, 16, false>(Byte* pDst, ptrdiff_t nDstPitch, const Byte* pSrc1, ptrdiff_t nSrc1Pitch, const Byte* pSrc2, ptrdiff_t nSrc2Pitch, Byte* pTemp, int width, int height);
-template void hysteresis_c<Float, 0, false>(Byte* pDst, ptrdiff_t nDstPitch, const Byte* pSrc1, ptrdiff_t nSrc1Pitch, const Byte* pSrc2, ptrdiff_t nSrc2Pitch, Byte* pTemp, int width, int height);
+template void hysteresis_c<uint8_t, 8, true>(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch, const uint8_t *pSrc2, ptrdiff_t nSrc2Pitch, uint8_t *pTemp, int width, int height);
+template void hysteresis_c<uint16_t, 10, true>(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch, const uint8_t *pSrc2, ptrdiff_t nSrc2Pitch, uint8_t *pTemp, int width, int height);
+template void hysteresis_c<uint16_t, 12, true>(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch, const uint8_t *pSrc2, ptrdiff_t nSrc2Pitch, uint8_t *pTemp, int width, int height);
+template void hysteresis_c<uint16_t, 14, true>(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch, const uint8_t *pSrc2, ptrdiff_t nSrc2Pitch, uint8_t *pTemp, int width, int height);
+template void hysteresis_c<uint16_t, 16, true>(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch, const uint8_t *pSrc2, ptrdiff_t nSrc2Pitch, uint8_t *pTemp, int width, int height);
+template void hysteresis_c<float, 0, true>(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch, const uint8_t *pSrc2, ptrdiff_t nSrc2Pitch, uint8_t *pTemp, int width, int height);
+template void hysteresis_c<uint8_t, 8, false>(uint8_t* pDst, ptrdiff_t nDstPitch, const uint8_t* pSrc1, ptrdiff_t nSrc1Pitch, const uint8_t* pSrc2, ptrdiff_t nSrc2Pitch, uint8_t* pTemp, int width, int height);
+template void hysteresis_c<uint16_t, 10, false>(uint8_t* pDst, ptrdiff_t nDstPitch, const uint8_t* pSrc1, ptrdiff_t nSrc1Pitch, const uint8_t* pSrc2, ptrdiff_t nSrc2Pitch, uint8_t* pTemp, int width, int height);
+template void hysteresis_c<uint16_t, 12, false>(uint8_t* pDst, ptrdiff_t nDstPitch, const uint8_t* pSrc1, ptrdiff_t nSrc1Pitch, const uint8_t* pSrc2, ptrdiff_t nSrc2Pitch, uint8_t* pTemp, int width, int height);
+template void hysteresis_c<uint16_t, 14, false>(uint8_t* pDst, ptrdiff_t nDstPitch, const uint8_t* pSrc1, ptrdiff_t nSrc1Pitch, const uint8_t* pSrc2, ptrdiff_t nSrc2Pitch, uint8_t* pTemp, int width, int height);
+template void hysteresis_c<uint16_t, 16, false>(uint8_t* pDst, ptrdiff_t nDstPitch, const uint8_t* pSrc1, ptrdiff_t nSrc1Pitch, const uint8_t* pSrc2, ptrdiff_t nSrc2Pitch, uint8_t* pTemp, int width, int height);
+template void hysteresis_c<float, 0, false>(uint8_t* pDst, ptrdiff_t nDstPitch, const uint8_t* pSrc1, ptrdiff_t nSrc1Pitch, const uint8_t* pSrc2, ptrdiff_t nSrc2Pitch, uint8_t* pTemp, int width, int height);
 
-Processor *hysteresis_8_c = &hysteresis_c<Byte, 8, true>;
-Processor *hysteresis_10_c = &hysteresis_c<Word, 10, true>;
-Processor *hysteresis_12_c = &hysteresis_c<Word, 12, true>;
-Processor *hysteresis_14_c = &hysteresis_c<Word, 14, true>;
-Processor *hysteresis_16_c = &hysteresis_c<Word, 16, true>;
-Processor *hysteresis_32_c = &hysteresis_c<Float, 0, true>; // float: bit_per_pixel n/a
-Processor* hysteresis_8_nocorner_c = &hysteresis_c<Byte, 8, false>;
-Processor* hysteresis_10_nocorner_c = &hysteresis_c<Word, 10, false>;
-Processor* hysteresis_12_nocorner_c = &hysteresis_c<Word, 12, false>;
-Processor* hysteresis_14_nocorner_c = &hysteresis_c<Word, 14, false>;
-Processor* hysteresis_16_nocorner_c = &hysteresis_c<Word, 16, false>;
-Processor* hysteresis_32_nocorner_c = &hysteresis_c<Float, 0, false>; // float: bit_per_pixel n/a
+Processor *hysteresis_8_c = &hysteresis_c<uint8_t, 8, true>;
+Processor *hysteresis_10_c = &hysteresis_c<uint16_t, 10, true>;
+Processor *hysteresis_12_c = &hysteresis_c<uint16_t, 12, true>;
+Processor *hysteresis_14_c = &hysteresis_c<uint16_t, 14, true>;
+Processor *hysteresis_16_c = &hysteresis_c<uint16_t, 16, true>;
+Processor *hysteresis_32_c = &hysteresis_c<float, 0, true>; // float: bit_per_pixel n/a
+Processor* hysteresis_8_nocorner_c = &hysteresis_c<uint8_t, 8, false>;
+Processor* hysteresis_10_nocorner_c = &hysteresis_c<uint16_t, 10, false>;
+Processor* hysteresis_12_nocorner_c = &hysteresis_c<uint16_t, 12, false>;
+Processor* hysteresis_14_nocorner_c = &hysteresis_c<uint16_t, 14, false>;
+Processor* hysteresis_16_nocorner_c = &hysteresis_c<uint16_t, 16, false>;
+Processor* hysteresis_32_nocorner_c = &hysteresis_c<float, 0, false>; // float: bit_per_pixel n/a
 
 } } } } }

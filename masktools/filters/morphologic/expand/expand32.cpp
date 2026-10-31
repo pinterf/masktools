@@ -3,11 +3,11 @@
 
 using namespace Filtering;
 
-typedef Float (local_maximum_f)(Float a1, Float a2, Float a3, Float a4, Float a5, Float a6, Float a7, Float a8, Float a9);
+typedef float (local_maximum_f)(float a1, float a2, float a3, float a4, float a5, float a6, float a7, float a8, float a9);
 
-static inline Float maximum_square(Float a1, Float a2, Float a3, Float a4, Float a5, Float a6, Float a7, Float a8, Float a9)
+static inline float maximum_square(float a1, float a2, float a3, float a4, float a5, float a6, float a7, float a8, float a9)
 {
-    Float nMax = a1;
+    float nMax = a1;
     if ( a2 > nMax ) nMax = a2;
     if ( a3 > nMax ) nMax = a3;
     if ( a4 > nMax ) nMax = a4;
@@ -19,9 +19,9 @@ static inline Float maximum_square(Float a1, Float a2, Float a3, Float a4, Float
     return nMax;
 }
 
-static inline Float maximum_horizontal(Float a1, Float a2, Float a3, Float a4, Float a5, Float a6, Float a7, Float a8, Float a9)
+static inline float maximum_horizontal(float a1, float a2, float a3, float a4, float a5, float a6, float a7, float a8, float a9)
 {
-    Float nMax = a4;
+    float nMax = a4;
 
     UNUSED(a1); UNUSED(a2); UNUSED(a3); UNUSED(a7); UNUSED(a8); UNUSED(a9); 
 
@@ -30,9 +30,9 @@ static inline Float maximum_horizontal(Float a1, Float a2, Float a3, Float a4, F
     return nMax;
 }
 
-static inline Float maximum_vertical(Float a1, Float a2, Float a3, Float a4, Float a5, Float a6, Float a7, Float a8, Float a9)
+static inline float maximum_vertical(float a1, float a2, float a3, float a4, float a5, float a6, float a7, float a8, float a9)
 {
-    Float nMax = a2;
+    float nMax = a2;
 
     UNUSED(a1); UNUSED(a3); UNUSED(a4); UNUSED(a6); UNUSED(a7); UNUSED(a9); 
 
@@ -41,9 +41,9 @@ static inline Float maximum_vertical(Float a1, Float a2, Float a3, Float a4, Flo
     return nMax;
 }
 
-static inline Float maximum_both(Float a1, Float a2, Float a3, Float a4, Float a5, Float a6, Float a7, Float a8, Float a9)
+static inline float maximum_both(float a1, float a2, float a3, float a4, float a5, float a6, float a7, float a8, float a9)
 {
-    Float nMax = a2;
+    float nMax = a2;
 
     UNUSED(a1); UNUSED(a3); UNUSED(a7); UNUSED(a9); 
 
@@ -55,9 +55,9 @@ static inline Float maximum_both(Float a1, Float a2, Float a3, Float a4, Float a
 }
 
 template<local_maximum_f Maximum>
-static inline Float maximumThresholded(Float a1, Float a2, Float a3, Float a4, Float a5, Float a6, Float a7, Float a8, Float a9, Float nMaxDeviation)
+static inline float maximumThresholded(float a1, float a2, float a3, float a4, float a5, float a6, float a7, float a8, float a9, float nMaxDeviation)
 {
-    Float nMaximum = Maximum(a1, a2, a3, a4, a5, a6, a7, a8, a9);
+    float nMaximum = Maximum(a1, a2, a3, a4, a5, a6, a7, a8, a9);
     if ( nMaximum - a5 > nMaxDeviation ) nMaximum = a5 + nMaxDeviation;
     return nMaximum;
 }
@@ -65,35 +65,35 @@ static inline Float maximumThresholded(Float a1, Float a2, Float a3, Float a4, F
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Morphologic { namespace Expand {
 
     class NewValue32 {
-        Float nMax;
-        Float nMaxDeviation;
-        Float nValue;
+        float nMax;
+        float nMaxDeviation;
+        float nValue;
     public:
-        NewValue32(Float nValue, Float nMaxDeviation) : nMax(-1.0), nMaxDeviation(nMaxDeviation), nValue(nValue) { }
-        void add(Float _nValue) { if ( _nValue > nMax ) nMax = _nValue; }
-        Float finalize() const { return nMax < 0 ? nValue : (nMax - nValue > nMaxDeviation ? nValue + nMaxDeviation : nMax); }
+        NewValue32(float nValue, float nMaxDeviation) : nMax(-1.0), nMaxDeviation(nMaxDeviation), nValue(nValue) { }
+        void add(float _nValue) { if ( _nValue > nMax ) nMax = _nValue; }
+        float finalize() const { return nMax < 0 ? nValue : (nMax - nValue > nMaxDeviation ? nValue + nMaxDeviation : nMax); }
     };
 
 
-Processor32 *expand32_square_c = &MorphologicProcessor<Float>::generic_32_c<
+Processor32 *expand32_square_c = &MorphologicProcessor<float>::generic_32_c<
     process_line_morpho_32_c<Border::Left, maximumThresholded<::maximum_square>>,
     process_line_morpho_32_c<Border::None, maximumThresholded<::maximum_square>>,
     process_line_morpho_32_c<Border::Right, maximumThresholded<::maximum_square>>
     >;
 
-Processor32 *expand32_horizontal_c = &MorphologicProcessor<Float>::generic_32_c<
+Processor32 *expand32_horizontal_c = &MorphologicProcessor<float>::generic_32_c<
     process_line_morpho_32_c<Border::Left, maximumThresholded<::maximum_horizontal>>,
     process_line_morpho_32_c<Border::None, maximumThresholded<::maximum_horizontal>>,
     process_line_morpho_32_c<Border::Right, maximumThresholded<::maximum_horizontal>>
     >;
 
-Processor32 *expand32_vertical_c = &MorphologicProcessor<Float>::generic_32_c<
+Processor32 *expand32_vertical_c = &MorphologicProcessor<float>::generic_32_c<
     process_line_morpho_32_c<Border::Left, maximumThresholded<::maximum_vertical>>,
     process_line_morpho_32_c<Border::None, maximumThresholded<::maximum_vertical>>,
     process_line_morpho_32_c<Border::Right, maximumThresholded<::maximum_vertical>>
     >;
 
-Processor32 *expand32_both_c = &MorphologicProcessor<Float>::generic_32_c<
+Processor32 *expand32_both_c = &MorphologicProcessor<float>::generic_32_c<
     process_line_morpho_32_c<Border::Left, maximumThresholded<::maximum_both>>,
     process_line_morpho_32_c<Border::None, maximumThresholded<::maximum_both>>,
     process_line_morpho_32_c<Border::Right, maximumThresholded<::maximum_both>>

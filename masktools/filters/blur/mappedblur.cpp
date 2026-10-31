@@ -5,7 +5,7 @@ using namespace Filtering;
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Blur {
 
-inline Byte convolution_all_c(Byte a11, Byte a21, Byte a31, Byte a12, Byte a22, Byte a32, Byte a13, Byte a23, Byte a33, const Short matrix[10], int nLowThreshold, int nHighThreshold)
+inline uint8_t convolution_all_c(uint8_t a11, uint8_t a21, uint8_t a31, uint8_t a12, uint8_t a22, uint8_t a32, uint8_t a13, uint8_t a23, uint8_t a33, const int16_t matrix[10], int nLowThreshold, int nHighThreshold)
 {
    int nSum = a22 * matrix[4];
 
@@ -20,10 +20,10 @@ inline Byte convolution_all_c(Byte a11, Byte a21, Byte a31, Byte a12, Byte a22, 
    if ( abs(a23 - a22) < nLowThreshold ) nSum += a23 * matrix[7]; else nSum += a22 * matrix[7];
    if ( abs(a33 - a22) < nLowThreshold ) nSum += a33 * matrix[8]; else nSum += a22 * matrix[8];
 
-   return clip<Byte, int>((nSum + matrix[9] / 2)/ matrix[9], 0, 255);
+   return clip<uint8_t, int>((nSum + matrix[9] / 2)/ matrix[9], 0, 255);
 }
 
-inline Byte convolution_below_c(Byte a11, Byte a21, Byte a31, Byte a12, Byte a22, Byte a32, Byte a13, Byte a23, Byte a33, const Short matrix[10], int nLowThreshold, int nHighThreshold)
+inline uint8_t convolution_below_c(uint8_t a11, uint8_t a21, uint8_t a31, uint8_t a12, uint8_t a22, uint8_t a32, uint8_t a13, uint8_t a23, uint8_t a33, const int16_t matrix[10], int nLowThreshold, int nHighThreshold)
 {
    int nSum = a22 * matrix[4];
    int nSumCoeff = matrix[4];
@@ -39,15 +39,15 @@ inline Byte convolution_below_c(Byte a11, Byte a21, Byte a31, Byte a12, Byte a22
    if ( abs(a23 - a22) < nLowThreshold ) { nSum += a23 * matrix[7]; nSumCoeff += matrix[7]; }
    if ( abs(a33 - a22) < nLowThreshold ) { nSum += a33 * matrix[8]; nSumCoeff += matrix[8]; }
 
-   if ( nSumCoeff ) return clip<Byte, int>((nSum + nSumCoeff / 2) / nSumCoeff, 0, 255);
+   if ( nSumCoeff ) return clip<uint8_t, int>((nSum + nSumCoeff / 2) / nSumCoeff, 0, 255);
    else return a22;
 }
 
 class Thresholds {
-   const Byte *pThreshold;
+   const uint8_t *pThreshold;
    ptrdiff_t nPitch;
 public:
-   Thresholds(const Byte *pThreshold, ptrdiff_t nPitch) :
+   Thresholds(const uint8_t *pThreshold, ptrdiff_t nPitch) :
    pThreshold(pThreshold), nPitch(nPitch)
    {
    }
@@ -55,12 +55,12 @@ public:
    ptrdiff_t minpitch() const { return nPitch; }
    ptrdiff_t maxpitch() const { return nPitch; }
    void nextRow() { pThreshold += nPitch; }
-   Byte min(int x) const { return pThreshold[x]; }
-   Byte max(int x) const { return pThreshold[x]; }
+   uint8_t min(int x) const { return pThreshold[x]; }
+   uint8_t max(int x) const { return pThreshold[x]; }
 };
 
 template<Filters::Mask::Operator op>
-void mask_t(Byte *pDst, ptrdiff_t nDstPitch, const Byte *pSrc, ptrdiff_t nSrcPitch, const Byte *pMask, ptrdiff_t nMaskPitch, const Short matrix[10], int nWidth, int nHeight)
+void mask_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, const uint8_t *pMask, ptrdiff_t nMaskPitch, const int16_t matrix[10], int nWidth, int nHeight)
 {
    Thresholds thresholds(pMask, nMaskPitch);
    Filters::Mask::generic_c<op, Thresholds>(pDst, nDstPitch, pSrc, nSrcPitch, thresholds, matrix, nWidth, nHeight);

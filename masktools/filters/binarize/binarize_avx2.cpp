@@ -3,27 +3,27 @@
 
 using namespace Filtering;
 
-typedef Byte (Operator)(Byte, Byte);
+typedef uint8_t (Operator)(uint8_t, uint8_t);
 
-inline Byte binarize_upper_base_avx2(Byte x, Byte t) { return x > t ? 0 : 255; }
-inline Byte binarize_lower_base_avx2(Byte x, Byte t) { return x > t ? 255 : 0; }
+inline uint8_t binarize_upper_base_avx2(uint8_t x, uint8_t t) { return x > t ? 0 : 255; }
+inline uint8_t binarize_lower_base_avx2(uint8_t x, uint8_t t) { return x > t ? 255 : 0; }
 
-inline Byte binarize_0_x_base_avx2(Byte x, Byte t) { return x > t ? 0 : x; }
-inline Byte binarize_t_x_base_avx2(Byte x, Byte t) { return x > t ? t : x; }
-inline Byte binarize_x_0_base_avx2(Byte x, Byte t) { return x > t ? x : 0; }
-inline Byte binarize_x_t_base_avx2(Byte x, Byte t) { return x > t ? x : t; }
+inline uint8_t binarize_0_x_base_avx2(uint8_t x, uint8_t t) { return x > t ? 0 : x; }
+inline uint8_t binarize_t_x_base_avx2(uint8_t x, uint8_t t) { return x > t ? t : x; }
+inline uint8_t binarize_x_0_base_avx2(uint8_t x, uint8_t t) { return x > t ? x : 0; }
+inline uint8_t binarize_x_t_base_avx2(uint8_t x, uint8_t t) { return x > t ? x : t; }
 
-inline Byte binarize_t_0_base_avx2(Byte x, Byte t) { return x > t ? t : 0; }
-inline Byte binarize_0_t_base_avx2(Byte x, Byte t) { return x > t ? 0 : t; }
+inline uint8_t binarize_t_0_base_avx2(uint8_t x, uint8_t t) { return x > t ? t : 0; }
+inline uint8_t binarize_0_t_base_avx2(uint8_t x, uint8_t t) { return x > t ? 0 : t; }
 
-inline Byte binarize_x_255_base_avx2(Byte x, Byte t) { return x > t ? x : 255; }
-inline Byte binarize_t_255_base_avx2(Byte x, Byte t) { return x > t ? t : 255; }
-inline Byte binarize_255_x_base_avx2(Byte x, Byte t) { return x > t ? 255 : x; }
-inline Byte binarize_255_t_base_avx2(Byte x, Byte t) { return x > t ? 255 : t; }
+inline uint8_t binarize_x_255_base_avx2(uint8_t x, uint8_t t) { return x > t ? x : 255; }
+inline uint8_t binarize_t_255_base_avx2(uint8_t x, uint8_t t) { return x > t ? t : 255; }
+inline uint8_t binarize_255_x_base_avx2(uint8_t x, uint8_t t) { return x > t ? 255 : x; }
+inline uint8_t binarize_255_t_base_avx2(uint8_t x, uint8_t t) { return x > t ? 255 : t; }
 
 
 template <Operator op>
-void binarize_avx2_t(Byte *pDst, ptrdiff_t nDstPitch, Byte nThreshold, int nWidth, int nHeight)
+void binarize_avx2_t(uint8_t *pDst, ptrdiff_t nDstPitch, uint8_t nThreshold, int nWidth, int nHeight)
 {
    for ( int j = 0; j < nHeight; j++, pDst += nDstPitch )
       for ( int i = 0; i < nWidth; i++ )
@@ -90,9 +90,9 @@ static MT_FORCEINLINE __m256i binarize_255_t_avx2_op(__m256i x, __m256i t, __m25
 }
 
 template<MemoryMode mem_mode, decltype(binarize_upper_avx2_op) op, decltype(binarize_upper_base_avx2) op_c>
-void binarize_avx2_t(Byte *dstp, ptrdiff_t dst_pitch, Byte threshold, int width, int height)
+void binarize_avx2_t(uint8_t *dstp, ptrdiff_t dst_pitch, uint8_t threshold, int width, int height)
 {
-    auto t = _mm256_set1_epi8(Byte(threshold));
+    auto t = _mm256_set1_epi8(uint8_t(threshold));
     auto t128 = _mm256_add_epi8(t, _mm256_set1_epi32(0x80808080));
     int mod32_width = (width / 32) * 32;
     int mod64_width = (width / 64) * 64;
