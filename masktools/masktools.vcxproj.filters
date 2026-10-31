@@ -545,6 +545,9 @@
     <ClInclude Include="common\base\filter.h">
       <Filter>common\base</Filter>
     </ClInclude>
+    <ClInclude Include="common\base\stacked.h">
+      <Filter>common\base</Filter>
+    </ClInclude>
     <ClInclude Include="common\clip\inputconfig.h">
       <Filter>common\clip</Filter>
     </ClInclude>

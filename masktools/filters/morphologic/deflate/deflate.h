@@ -36,9 +36,6 @@ public:
       processors.push_back(Filtering::Processor<Processor>(deflate_asse2, Constraint(CPU_SSE2, MODULO_NONE, MODULO_NONE, ALIGNMENT_16, 17), 2));
 #endif
     }
-    else if (_isStacked) {
-      stackedProcessors.push_back(Filtering::Processor<StackedProcessor>(deflate_stacked_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0));
-    }
     else if (_bits_per_pixel <= 16) {
       processors16.push_back(Filtering::Processor<Processor16>(deflate_16_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0));
 #ifdef INTEL_INTRINSICS

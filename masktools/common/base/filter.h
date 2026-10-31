@@ -7,6 +7,7 @@
 #include "../../../common/utils/utils.h"
 #include "../../common/params/params.h"
 #include "../../common/clip/inputconfig.h"
+#include "stacked.h"
 
 namespace Filtering { namespace MaskTools { 
 
@@ -204,6 +205,8 @@ public:
     bool expr_clamp_float_UV; // v2.2.20: new along with avs+ 3.5
     String expr_list[4];
 
+    bool isStacked; // stacked 16 bit (MSB/LSB halves of an 8 bit clip): processed as native 16 bit, see stacked.h
+
     Filter(const Parameters &parameters, FilterProcessingType processingType, CpuFlags _flags) :
         parameters(parameters),
         flags(_flags),
@@ -211,7 +214,8 @@ public:
         nXOffset(parameters["offx"].toInt()),
         nYOffset(parameters["offy"].toInt()),
         nCoreWidth(parameters["w"].toInt()),
-        nCoreHeight((parameters["stacked"].is_defined() && parameters["stacked"].toBool() && parameters["h"].toInt()>=0) ? (2 * parameters["h"].toInt()) : parameters["h"].toInt())
+        nCoreHeight((parameters["stacked"].is_defined() && parameters["stacked"].toBool() && parameters["h"].toInt()>=0) ? (2 * parameters["h"].toInt()) : parameters["h"].toInt()),
+        isStacked(parameters["stacked"].is_defined() && parameters["stacked"].toBool())
     {
         for (auto &param: parameters) {
             if (param.getType() == TYPE_CLIP) {
@@ -413,97 +417,26 @@ public:
 
     void process_plane(int n, const Plane<uint8_t> &output_plane, int nPlane, const Constraint constraints[4], const Frame<const uint8_t> frames[4])
     {
-        bool isStacked = parameters["stacked"].is_defined() && parameters["stacked"].toBool();
-
+        // stacked clips arrive here as native 16 bit planes (process_stacked)
         switch (operators[nPlane].getMode())
         {
         case COPY:
-          if (isStacked) {
-            // in two parts, there may be sub-window
-            // msb
-            Functions::copy_plane(output_plane.data(), output_plane.pitch(),
-              frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
-              output_plane.width(), output_plane.height() / 2);
-            // lsb
-            Functions::copy_plane(output_plane.data() + output_plane.pitch() * output_plane.origheight() / 2, output_plane.pitch(),
-              frames[0].plane(nPlane).data() + frames[0].plane(nPlane).pitch() * frames[0].plane(nPlane).origheight() / 2, frames[0].plane(nPlane).pitch(),
-              output_plane.width(), output_plane.height() / 2);
-          }
-          else {
-            Functions::copy_plane(output_plane.data(), output_plane.pitch(),
-              frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
-              output_plane.width()*output_plane.pixelsize(), output_plane.height()); // rowsize = width*pixelsize
-          }
-          break;
         case COPY_SECOND:
-            if (isStacked) {
-              // msb
-              Functions::copy_plane(output_plane.data(), output_plane.pitch(),
-                frames[1].plane(nPlane).data(), frames[1].plane(nPlane).pitch(),
-                output_plane.width(), output_plane.height() / 2);
-              // lsb
-              Functions::copy_plane(output_plane.data() + output_plane.pitch() * output_plane.origheight() / 2, output_plane.pitch(),
-                frames[1].plane(nPlane).data() + frames[1].plane(nPlane).pitch() * frames[1].plane(nPlane).origheight() / 2, frames[1].plane(nPlane).pitch(),
-                output_plane.width(), output_plane.height() / 2);
-            } else {
-              Functions::copy_plane(output_plane.data(), output_plane.pitch(),
-                frames[1].plane(nPlane).data(), frames[1].plane(nPlane).pitch(),
-                output_plane.width()*output_plane.pixelsize(), output_plane.height());
-            }
-            break;
         case COPY_THIRD:
-            if (isStacked) {
-              // msb
-              Functions::copy_plane(output_plane.data(), output_plane.pitch(),
-                frames[2].plane(nPlane).data(), frames[2].plane(nPlane).pitch(),
-                output_plane.width(), output_plane.height() / 2);
-              // lsb
-              Functions::copy_plane(output_plane.data() + output_plane.pitch() * output_plane.origheight() / 2, output_plane.pitch(),
-                frames[2].plane(nPlane).data() + frames[2].plane(nPlane).pitch() * frames[2].plane(nPlane).origheight() / 2, frames[2].plane(nPlane).pitch(),
-                output_plane.width(), output_plane.height() / 2);
-            }
-            else {
-              Functions::copy_plane(output_plane.data(), output_plane.pitch(),
-                frames[2].plane(nPlane).data(), frames[2].plane(nPlane).pitch(),
-                output_plane.width()*output_plane.pixelsize(), output_plane.height());
-            }
-            break;
         case COPY_FOURTH:
-          if (isStacked) {
-            // msb
+        {
+            const int src = operators[nPlane].getMode() == COPY ? 0 : operators[nPlane].getMode() == COPY_SECOND ? 1 : operators[nPlane].getMode() == COPY_THIRD ? 2 : 3;
             Functions::copy_plane(output_plane.data(), output_plane.pitch(),
-              frames[3].plane(nPlane).data(), frames[3].plane(nPlane).pitch(),
-              output_plane.width(), output_plane.height() / 2);
-            // lsb
-            Functions::copy_plane(output_plane.data() + output_plane.pitch() * output_plane.origheight() / 2, output_plane.pitch(),
-              frames[3].plane(nPlane).data() + frames[3].plane(nPlane).pitch() * frames[3].plane(nPlane).origheight() / 2, frames[3].plane(nPlane).pitch(),
-              output_plane.width(), output_plane.height() / 2);
-          }
-          else {
-            Functions::copy_plane(output_plane.data(), output_plane.pitch(),
-              frames[3].plane(nPlane).data(), frames[3].plane(nPlane).pitch(),
-              output_plane.width()*output_plane.pixelsize(), output_plane.height());
-          }
-          break;
+              frames[src].plane(nPlane).data(), frames[src].plane(nPlane).pitch(),
+              output_plane.width()*output_plane.pixelsize(), output_plane.height()); // rowsize = width*pixelsize
+            break;
+        }
         case MEMSET:
             switch (output_plane.pixelsize()) {
             case 1:
-              if (isStacked) {
-                // in two parts, there may be sub-window
-                uint16_t val = static_cast<uint16_t>(operators[nPlane].value());
-                // msb
-                Functions::memset_plane(output_plane.data(), output_plane.pitch(),
-                  output_plane.width(), output_plane.height()/2,
-                  static_cast<uint8_t>(val >> 8));
-                // lsb
-                Functions::memset_plane(output_plane.data() + output_plane.pitch() * output_plane.origheight() / 2, output_plane.pitch(),
-                  output_plane.width(), output_plane.height() / 2,
-                  static_cast<uint8_t>(val & 0xFF));
-              } else {
-                Functions::memset_plane(output_plane.data(), output_plane.pitch(),
-                  output_plane.width(), output_plane.height(), // memset needs real width
-                  static_cast<uint8_t>(operators[nPlane].value()));
-              }
+              Functions::memset_plane(output_plane.data(), output_plane.pitch(),
+                output_plane.width(), output_plane.height(), // memset needs real width
+                static_cast<uint8_t>(operators[nPlane].value()));
               break;
             case 2: // 16 bit
               Functions::memset_plane_16(output_plane.data(), output_plane.pitch(),
@@ -546,6 +479,11 @@ public:
           env->copyFrameProps(tmp_videoframes[0], dst);
       }
 
+      if (isStacked) {
+        process_stacked(n, output, frames, clipcount);
+        return output_frame;
+      }
+
       for (int i = 0; i < plane_counts[C]; i++) {
         constraints[i] = Constraint(flags, output.plane(i));
       }
@@ -561,6 +499,37 @@ public:
       }
 
       return output_frame;
+    }
+
+    // stacked 16 bit: the planes converted to native 16 bit, processed, the output converted back
+    void process_stacked(int n, const Frame<uint8_t> &output, const Frame<const uint8_t> frames[4], int clipcount)
+    {
+      NativePlaneBuffer out_buf[4], in_buf[4][4];
+      Plane<uint8_t> out_native[4];
+      Frame<const uint8_t> frames_native[4];
+      Constraint constraints[4];
+
+      const int planecount = plane_counts[C];
+      for (int i = 0; i < planecount; i++) {
+        const Plane<uint8_t> &o = output.plane(i);
+        // the output too: in place filters and the "none" mode keep its content
+        out_native[i] = out_buf[i].from_stacked(Plane<const uint8_t>(o.data(), o.pitch(), o.width(), o.height(), o.pixelsize(), o.origheight()));
+        constraints[i] = Constraint(flags, out_native[i]);
+      }
+      for (int i = 0; i < clipcount; i++) {
+        Plane<const uint8_t> planes[4];
+        const int pc = plane_counts[frames[i].colorspace()];
+        for (int j = 0; j < pc; j++) {
+          Plane<uint8_t> p = in_buf[i][j].from_stacked(frames[i].plane(j));
+          planes[j] = Plane<const uint8_t>(p.data(), p.pitch(), p.width(), p.height(), p.pixelsize(), p.origheight());
+          constraints[j] = Constraint(constraints[j], planes[j]);
+        }
+        frames_native[i] = Frame<const uint8_t>(planes, frames[i].colorspace());
+      }
+      for (int i = 0; i < planecount; i++) {
+        process_plane(n, out_native[i], i, constraints, frames_native);
+        NativePlaneBuffer::to_stacked(out_native[i], output.plane(i));
+      }
     }
 
     ClipArray &get_childs() { return childs; }

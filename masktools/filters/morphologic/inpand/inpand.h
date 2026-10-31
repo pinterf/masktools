@@ -82,9 +82,6 @@ public:
         processors.push_back(Filtering::Processor<Processor>(inpand_square_asse2, Constraint(CPU_SSE2, MODULO_NONE, MODULO_NONE, ALIGNMENT_16, 17), 4));
 #endif
       }
-      else if (_isStacked) {
-        stackedProcessors.push_back(Filtering::Processor<StackedProcessor>(inpand_square_stacked_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0));
-      }
       else if (_bits_per_pixel <= 16) {
         processors16.push_back(Filtering::Processor<Processor16>(inpand_square_16_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0));
 #ifdef INTEL_INTRINSICS
@@ -106,9 +103,6 @@ public:
         processors.push_back(Filtering::Processor<Processor>(inpand_horizontal_sse2, Constraint(CPU_SSE2, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 17), 3));
         processors.push_back(Filtering::Processor<Processor>(inpand_horizontal_asse2, Constraint(CPU_SSE2, MODULO_NONE, MODULO_NONE, ALIGNMENT_16, 17), 4));
 #endif
-      }
-      else if (_isStacked) {
-        stackedProcessors.push_back(Filtering::Processor<StackedProcessor>(inpand_horizontal_stacked_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0));
       }
       else if (_bits_per_pixel <= 16) {
         processors16.push_back(Filtering::Processor<Processor16>(inpand_horizontal_16_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0));
@@ -132,9 +126,6 @@ public:
         processors.push_back(Filtering::Processor<Processor>(inpand_vertical_asse2, Constraint(CPU_SSE2, MODULO_NONE, MODULO_NONE, ALIGNMENT_16, 16), 4));
 #endif
       }
-      else if (_isStacked) {
-        stackedProcessors.push_back(Filtering::Processor<StackedProcessor>(inpand_vertical_stacked_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0));
-      }
       else if (_bits_per_pixel <= 16) {
         processors16.push_back(Filtering::Processor<Processor16>(inpand_vertical_16_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0));
 #ifdef INTEL_INTRINSICS
@@ -157,9 +148,6 @@ public:
         processors.push_back(Filtering::Processor<Processor>(inpand_both_asse2, Constraint(CPU_SSE2, MODULO_NONE, MODULO_NONE, ALIGNMENT_16, 17), 4));
 #endif
       }
-      else if (_isStacked) {
-        stackedProcessors.push_back(Filtering::Processor<StackedProcessor>(inpand_both_stacked_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0));
-      }
       else if (_bits_per_pixel <= 16) {
         processors16.push_back(Filtering::Processor<Processor16>(inpand_both_16_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0));
 #ifdef INTEL_INTRINSICS
@@ -177,9 +165,6 @@ public:
     {
       if (_bits_per_pixel == 8) {
         processors.push_back(Filtering::Processor<Processor>(inpand_custom_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0));
-      }
-      else if (_isStacked) {
-        stackedProcessors.push_back(Filtering::Processor<StackedProcessor>(inpand_custom_stacked_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0));
       }
       else if (_bits_per_pixel <= 16) {
         processors16.push_back(Filtering::Processor<Processor16>(inpand_custom_16_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0));

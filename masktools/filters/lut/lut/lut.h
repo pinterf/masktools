@@ -312,10 +312,7 @@ public:
             processor16 = lut14_c;
             break;
           case 16:
-            if (isStacked)
-              processor16 = lut16_stacked_c;
-            else
-              processor16 = lut16_c;
+            processor16 = lut16_c; // stacked too: processed as native 16 bit
             break;
           }
         }

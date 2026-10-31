@@ -246,13 +246,7 @@ public:
     else if (bits_per_pixel <= 16) {
       /* 16 bit */
 #define SET_MODE(mode, needSSE4) \
-    if (isStacked) { \
-        processors16.push_back( Filtering::Processor<Processor16>( mode##_stacked_c, Constraint( CPU_NONE, 1, 1, 1, 1 ), 0 ) ); \
-        if(needSSE4) \
-          MT_X86(processors16.push_back( Filtering::Processor<Processor16>( mode##_stacked_sse2, Constraint( CPU_SSE4_1 , 1, 1, 1, 1 ), 1 ) )); \
-        else \
-          MT_X86(processors16.push_back( Filtering::Processor<Processor16>( mode##_stacked_sse2, Constraint( CPU_SSE2 , 1, 1, 1, 1 ), 1 ) )); \
-    } else { \
+    { \
         processors16.push_back( Filtering::Processor<Processor16>( mode##_native_c, Constraint( CPU_NONE, 1, 1, 1, 1 ), 0 ) ); \
         if(needSSE4) \
           MT_X86(processors16.push_back( Filtering::Processor<Processor16>( mode##_native_sse2, Constraint( CPU_SSE4_1 , 1, 1, 1, 1 ), 1 ) )); \

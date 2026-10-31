@@ -307,6 +307,7 @@
     <ClInclude Include="..\common\utils\utils.h" />
     <ClInclude Include="common\16bit.h" />
     <ClInclude Include="common\base\filter.h" />
+    <ClInclude Include="common\base\stacked.h" />
     <ClInclude Include="common\clip\inputconfig.h" />
     <ClInclude Include="common\common.h" />
     <ClInclude Include="common\mt_resource.h" />

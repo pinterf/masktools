@@ -171,11 +171,8 @@ public:
      else if (bits_per_pixel <= 16) {
 
 #define SET_MODE(mode) \
-    if (isStacked) { \
-        processors16.push_back( Filtering::Processor<Processor16>( binarize_##mode##_stacked_16_c, Constraint( CPU_NONE, 1, 1, 1, 1 ), 0 ) ); \
-        MT_X86(processors16.push_back( Filtering::Processor<Processor16>( binarize_##mode##_stacked_16_sse2, Constraint( CPU_SSE2 , 1, 1, 1, 1 ), 1 ) )); \
-    } else { \
-        switch(bit_depths[C]) { \
+    { \
+        switch(bits_per_pixel) { /* stacked: 16 */ \
         case 10: processors16.push_back(Filtering::Processor<Processor16>(binarize_##mode##_native_10_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0)); \
                  MT_X86(processors16.push_back( Filtering::Processor<Processor16>( binarize_##mode##_native_10_sse2, Constraint( CPU_SSE2 , 1, 1, 1, 1 ), 1 ) )); \
                  break; \

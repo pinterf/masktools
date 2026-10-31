@@ -38,11 +38,6 @@ protected:
           frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
           nMaxDeviations[nPlane], coordinates_list, coordinates_count, dst.width(), dst.height());
       }
-      else if (isStacked) {
-        stackedProcessors.best_processor(constraints[nPlane])(dst.data(), dst.pitch(),
-          frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
-          nMaxDeviations[nPlane], coordinates_list, coordinates_count, dst.width(), dst.height() / 2, dst.origheight()); // stacked: /2
-      }
       else if(bits_per_pixel <= 16) {
         processors16.best_processor(constraints[nPlane])(reinterpret_cast<uint16_t*>((uint8_t*)dst.data()), dst.pitch() / sizeof(uint16_t), /* /2: word sized */
           reinterpret_cast<const uint16_t*>((const uint8_t*)(frames[0].plane(nPlane).data())), frames[0].plane(nPlane).pitch() / sizeof(uint16_t),
