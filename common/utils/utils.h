@@ -13,6 +13,7 @@
 #include <cstring>
 #include <cctype>
 #include <cmath>
+#include <cstdint>
 
 
 #ifdef _WIN32
