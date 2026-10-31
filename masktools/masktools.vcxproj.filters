@@ -264,7 +264,16 @@
     <ClCompile Include="filters\mask\motion\motionmask16.cpp">
       <Filter>filters\mask\motion</Filter>
     </ClCompile>
+    <ClCompile Include="filters\mask\motion\motionmask16_sse2.cpp">
+      <Filter>filters\mask\motion</Filter>
+    </ClCompile>
     <ClCompile Include="filters\mask\motion\motionmask32.cpp">
+      <Filter>filters\mask\motion</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\mask\motion\motionmask32_sse2.cpp">
+      <Filter>filters\mask\motion</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\mask\motion\motionmask_sse2.cpp">
       <Filter>filters\mask\motion</Filter>
     </ClCompile>
     <ClCompile Include="filters\merge\merge.cpp">
@@ -510,6 +519,15 @@
       <Filter>filters\mask\hysteresis</Filter>
     </ClInclude>
     <ClInclude Include="filters\mask\motion\motionmask.h">
+      <Filter>filters\mask\motion</Filter>
+    </ClInclude>
+    <ClInclude Include="filters\mask\motion\motionmask16_c.h">
+      <Filter>filters\mask\motion</Filter>
+    </ClInclude>
+    <ClInclude Include="filters\mask\motion\motionmask32_c.h">
+      <Filter>filters\mask\motion</Filter>
+    </ClInclude>
+    <ClInclude Include="filters\mask\motion\motionmask_c.h">
       <Filter>filters\mask\motion</Filter>
     </ClInclude>
     <ClInclude Include="filters\merge\merge.h">

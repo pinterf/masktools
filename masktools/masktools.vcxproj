@@ -186,7 +186,10 @@
     <ClCompile Include="filters\mask\hysteresis\hysteresis.cpp" />
     <ClCompile Include="filters\mask\motion\motionmask.cpp" />
     <ClCompile Include="filters\mask\motion\motionmask16.cpp" />
+    <ClCompile Include="filters\mask\motion\motionmask16_sse2.cpp" />
     <ClCompile Include="filters\mask\motion\motionmask32.cpp" />
+    <ClCompile Include="filters\mask\motion\motionmask32_sse2.cpp" />
+    <ClCompile Include="filters\mask\motion\motionmask_sse2.cpp" />
     <ClCompile Include="filters\merge\merge.cpp" />
     <ClCompile Include="filters\merge\merge16.cpp" />
     <ClCompile Include="filters\merge\merge16_avx2.cpp">
@@ -286,6 +289,9 @@
     <ClInclude Include="filters\mask\functions_avx2.h" />
     <ClInclude Include="filters\mask\hysteresis\hysteresis.h" />
     <ClInclude Include="filters\mask\motion\motionmask.h" />
+    <ClInclude Include="filters\mask\motion\motionmask16_c.h" />
+    <ClInclude Include="filters\mask\motion\motionmask32_c.h" />
+    <ClInclude Include="filters\mask\motion\motionmask_c.h" />
     <ClInclude Include="filters\merge\merge.h" />
     <ClInclude Include="filters\merge\merge16.h" />
     <ClInclude Include="filters\morphologic\deflate\deflate.h" />
