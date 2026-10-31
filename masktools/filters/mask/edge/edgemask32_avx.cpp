@@ -1,10 +1,16 @@
 #include "edgemask.h"
+
+#ifdef INTEL_INTRINSICS
+
 #include "../functions32_avx.h"
 #include "../../../common/simd_avx.h"
 
 using namespace Filtering;
 
+
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Mask { namespace Edge {
+
+namespace {
 
 // remark: for float mask is 0.0 or 1.0, done in threshold<float, float>
 /*
@@ -426,6 +432,8 @@ static MT_FORCEINLINE void process_line_half_prewitt_avx(uint8_t *pDst, const ui
     }
 }
 
+} // namespace
+
 using namespace Filters::Mask;
 
 #define DEFINE_AVX_VERSIONS(name) \
@@ -454,3 +462,5 @@ DEFINE_ALL_VERSIONS(cartoon)
 
 
 } } } } }
+
+#endif // INTEL_INTRINSICS

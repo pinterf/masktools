@@ -246,13 +246,28 @@
     <ClCompile Include="filters\mask\edge\edgemask16_avx2.cpp">
       <Filter>filters\mask\edge</Filter>
     </ClCompile>
+    <ClCompile Include="filters\mask\edge\edgemask16_sse2.cpp">
+      <Filter>filters\mask\edge</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\mask\edge\edgemask16_sse41.cpp">
+      <Filter>filters\mask\edge</Filter>
+    </ClCompile>
     <ClCompile Include="filters\mask\edge\edgemask32.cpp">
       <Filter>filters\mask\edge</Filter>
     </ClCompile>
     <ClCompile Include="filters\mask\edge\edgemask32_avx.cpp">
       <Filter>filters\mask\edge</Filter>
     </ClCompile>
+    <ClCompile Include="filters\mask\edge\edgemask32_sse2.cpp">
+      <Filter>filters\mask\edge</Filter>
+    </ClCompile>
     <ClCompile Include="filters\mask\edge\edgemask_avx2.cpp">
+      <Filter>filters\mask\edge</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\mask\edge\edgemask_sse2.cpp">
+      <Filter>filters\mask\edge</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\mask\edge\edgemask_ssse3.cpp">
       <Filter>filters\mask\edge</Filter>
     </ClCompile>
     <ClCompile Include="filters\mask\hysteresis\hysteresis.cpp">
@@ -539,6 +554,15 @@
     <ClInclude Include="filters\mask\edge\edgemask.h">
       <Filter>filters\mask\edge</Filter>
     </ClInclude>
+    <ClInclude Include="filters\mask\edge\edgemask16_sse.h">
+      <Filter>filters\mask\edge</Filter>
+    </ClInclude>
+    <ClInclude Include="filters\mask\edge\edgemask32_sse.h">
+      <Filter>filters\mask\edge</Filter>
+    </ClInclude>
+    <ClInclude Include="filters\mask\edge\edgemask_sse.h">
+      <Filter>filters\mask\edge</Filter>
+    </ClInclude>
     <ClInclude Include="filters\mask\functions.h">
       <Filter>filters\mask</Filter>
     </ClInclude>
@@ -548,13 +572,22 @@
     <ClInclude Include="filters\mask\functions16_avx2.h">
       <Filter>filters\mask</Filter>
     </ClInclude>
+    <ClInclude Include="filters\mask\functions16_sse.h">
+      <Filter>filters\mask</Filter>
+    </ClInclude>
     <ClInclude Include="filters\mask\functions32.h">
       <Filter>filters\mask</Filter>
     </ClInclude>
     <ClInclude Include="filters\mask\functions32_avx.h">
       <Filter>filters\mask</Filter>
     </ClInclude>
+    <ClInclude Include="filters\mask\functions32_sse.h">
+      <Filter>filters\mask</Filter>
+    </ClInclude>
     <ClInclude Include="filters\mask\functions_avx2.h">
+      <Filter>filters\mask</Filter>
+    </ClInclude>
+    <ClInclude Include="filters\mask\functions_sse.h">
       <Filter>filters\mask</Filter>
     </ClInclude>
     <ClInclude Include="filters\mask\hysteresis\hysteresis.h">

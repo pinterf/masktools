@@ -1,0 +1,30 @@
+#include "edgemask.h"
+
+#ifdef INTEL_INTRINSICS
+
+#include "edgemask32_sse.h"
+
+namespace Filtering { namespace MaskTools { namespace Filters { namespace Mask { namespace Edge {
+
+using namespace Filters::Mask;
+
+#define DEFINE_SSE2_VERSIONS(name) \
+Processor32 *name##_32_sse2 = &generic32_sse2< \
+    process_line_##name##_sse2<CPU_SSE2, Border::Left, MemoryMode::SSE2_UNALIGNED>, \
+    process_line_##name##_sse2<CPU_SSE2, Border::None, MemoryMode::SSE2_UNALIGNED>, \
+    process_line_##name##_sse2<CPU_SSE2, Border::Right, MemoryMode::SSE2_UNALIGNED> \
+>;
+
+DEFINE_SSE2_VERSIONS(sobel)
+DEFINE_SSE2_VERSIONS(roberts)
+DEFINE_SSE2_VERSIONS(laplace)
+DEFINE_SSE2_VERSIONS(prewitt)
+DEFINE_SSE2_VERSIONS(half_prewitt)
+DEFINE_SSE2_VERSIONS(convolution)
+DEFINE_SSE2_VERSIONS(morpho)
+DEFINE_SSE2_VERSIONS(cartoon)
+#undef DEFINE_SSE2_VERSIONS
+
+} } } } }
+
+#endif // INTEL_INTRINSICS

@@ -1,10 +1,16 @@
 #include "edgemask.h"
+
+#ifdef INTEL_INTRINSICS
+
 #include "../functions_avx2.h"
 #include "../../../common/simd_avx2.h"
 
 using namespace Filtering;
 
+
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Mask { namespace Edge {
+
+namespace {
 
 inline uint8_t convolution(uint8_t a11, uint8_t a21, uint8_t a31, uint8_t a12, uint8_t a22, uint8_t a32, uint8_t a13, uint8_t a23, uint8_t a33, const int16_t matrix[10], int nLowThreshold, int nHighThreshold)
 {
@@ -645,6 +651,8 @@ static MT_FORCEINLINE void process_line_half_prewitt_avx2(uint8_t *pDst, const u
     }
 }
 
+} // namespace
+
 using namespace Filters::Mask;
 
 
@@ -668,3 +676,5 @@ DEFINE_AVX2_VERSIONS(cartoon)
 #undef DEFINE_AVX2_VERSIONS
 
 } } } } }
+
+#endif // INTEL_INTRINSICS
