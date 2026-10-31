@@ -15,7 +15,8 @@ static MT_FORCEINLINE uint8_t nop(uint8_t a, uint8_t b) { UNUSED(b); return a; }
 
 static MT_FORCEINLINE uint8_t _and(uint8_t a, uint8_t b, uint8_t th1, uint8_t th2) { UNUSED(th1); UNUSED(th2); return a & b; }
 static MT_FORCEINLINE uint8_t _or(uint8_t a, uint8_t b, uint8_t th1, uint8_t th2) { UNUSED(th1); UNUSED(th2); return a | b; }
-static MT_FORCEINLINE uint8_t andn(uint8_t a, uint8_t b, uint8_t th1, uint8_t th2) { UNUSED(th1); UNUSED(th2); return a & ~b; }
+// "andn" is ~a & b: the operand order of the x86 andnot (pandn), what the SIMD versions always did
+static MT_FORCEINLINE uint8_t andn(uint8_t a, uint8_t b, uint8_t th1, uint8_t th2) { UNUSED(th1); UNUSED(th2); return ~a & b; }
 static MT_FORCEINLINE uint8_t _xor(uint8_t a, uint8_t b, uint8_t th1, uint8_t th2) { UNUSED(th1); UNUSED(th2); return a ^ b; }
 
 template <decltype(add) opa, decltype(add) opb>

@@ -21,7 +21,8 @@ static MT_FORCEINLINE uint16_t nop16_c(uint16_t a, uint16_t b) { UNUSED(b); retu
 
 static MT_FORCEINLINE uint16_t and16_c(uint16_t a, uint16_t b, uint16_t th1, uint16_t th2) { UNUSED(th1); UNUSED(th2); return a & b; }
 static MT_FORCEINLINE uint16_t or16_c(uint16_t a, uint16_t b, uint16_t th1, uint16_t th2) { UNUSED(th1); UNUSED(th2); return a | b; }
-static MT_FORCEINLINE uint16_t andn16_c(uint16_t a, uint16_t b, uint16_t th1, uint16_t th2) { UNUSED(th1); UNUSED(th2); return a & ~b; }
+// "andn" is ~a & b: the operand order of the x86 andnot (pandn), what the SIMD versions always did
+static MT_FORCEINLINE uint16_t andn16_c(uint16_t a, uint16_t b, uint16_t th1, uint16_t th2) { UNUSED(th1); UNUSED(th2); return ~a & b; }
 static MT_FORCEINLINE uint16_t xor16_c(uint16_t a, uint16_t b, uint16_t th1, uint16_t th2) { UNUSED(th1); UNUSED(th2); return a ^ b; }
 
 template <decltype(nop16_c) opa, decltype(nop16_c) opb>

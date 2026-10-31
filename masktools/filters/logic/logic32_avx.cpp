@@ -21,7 +21,7 @@ static MT_FORCEINLINE float cast_to_float(uint32_t x)
 // not much sense on float, but for the sake of generality
 static MT_FORCEINLINE float _and(float a, float b, float th1, float th2) { UNUSED(th1); UNUSED(th2); return cast_to_float(CAST_U32(a) & CAST_U32(b)); }
 static MT_FORCEINLINE float _or (float a, float b, float th1, float th2) { UNUSED(th1); UNUSED(th2); return cast_to_float(CAST_U32(a) | CAST_U32(b)); }
-static MT_FORCEINLINE float andn(float a, float b, float th1, float th2) { UNUSED(th1); UNUSED(th2); return cast_to_float(CAST_U32(a) & ~CAST_U32(b)); }
+static MT_FORCEINLINE float andn(float a, float b, float th1, float th2) { UNUSED(th1); UNUSED(th2); return cast_to_float(~CAST_U32(a) & CAST_U32(b)); }
 static MT_FORCEINLINE float _xor(float a, float b, float th1, float th2) { UNUSED(th1); UNUSED(th2); return cast_to_float(CAST_U32(a) ^ CAST_U32(b)); }
 
 template <decltype(add) opa, decltype(add) opb>
