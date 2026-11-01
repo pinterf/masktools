@@ -6,7 +6,7 @@
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Binarize {
 
 typedef void(Processor)(uint8_t *pDst, ptrdiff_t nDstPitch, uint8_t nThreshold, int nWidth, int nHeight);
-typedef void(Processor16)(uint8_t *pDst, ptrdiff_t nDstPitch, uint16_t nThreshold, int nWidth, int nHeight, int nOrigHeight);
+typedef void(Processor16)(uint8_t *pDst, ptrdiff_t nDstPitch, uint16_t nThreshold, int nWidth, int nHeight, int bits_per_pixel);
 typedef void(Processor32)(uint8_t *pDst, ptrdiff_t nDstPitch, float nThreshold, int nWidth, int nHeight);
 
 #define DEFINE_PROCESSOR(name) \
@@ -33,18 +33,9 @@ DEFINE_PROCESSOR(255_t);
 /* 16 bits */
 
 #define DEFINE_PROCESSOR(name) \
-extern Processor16 *binarize_##name##_native_10_c; \
-extern Processor16 *binarize_##name##_native_10_sse2; \
-extern Processor16 *binarize_##name##_native_12_c; \
-extern Processor16 *binarize_##name##_native_12_sse2; \
-extern Processor16 *binarize_##name##_native_14_c; \
-extern Processor16 *binarize_##name##_native_14_sse2; \
-extern Processor16 *binarize_##name##_native_16_c; \
-extern Processor16 *binarize_##name##_native_16_sse2; \
-extern Processor16 *binarize_##name##_native_10_neon; \
-extern Processor16 *binarize_##name##_native_12_neon; \
-extern Processor16 *binarize_##name##_native_14_neon; \
-extern Processor16 *binarize_##name##_native_16_neon;
+extern Processor16 *binarize_##name##_native_c; \
+extern Processor16 *binarize_##name##_native_sse2; \
+extern Processor16 *binarize_##name##_native_neon;
 
 DEFINE_PROCESSOR(upper);
 DEFINE_PROCESSOR(lower);
@@ -100,7 +91,7 @@ protected:
         if(bits_per_pixel == 8)
           processors.best_processor(constraints[nPlane])(dst.data(), dst.pitch(), (uint8_t)nThreshold, dst.width(), dst.height());
         else if(bits_per_pixel <= 16)
-          processors16.best_processor(constraints[nPlane])(dst.data(), dst.pitch(),(uint16_t)nThreshold, dst.width(), dst.height(), dst.origheight());
+          processors16.best_processor(constraints[nPlane])(dst.data(), dst.pitch(),(uint16_t)nThreshold, dst.width(), dst.height(), bits_per_pixel);
         else
           processors32.best_processor(constraints[nPlane])(dst.data(), dst.pitch(), nThreshold_f, dst.width(), dst.height());
     }
@@ -173,27 +164,10 @@ public:
      else if (bits_per_pixel <= 16) {
 
 #define SET_MODE(mode) \
-    { \
-        switch(bits_per_pixel) { /* stacked: 16 */ \
-        case 10: processors16.push_back(Filtering::Processor<Processor16>(binarize_##mode##_native_10_c, Constraint(CPU_NONE), 0)); \
-                 MT_X86(processors16.push_back( Filtering::Processor<Processor16>( binarize_##mode##_native_10_sse2, Constraint(CPU_SSE2), 1 ) )); \
-                 MT_NEON(processors16.push_back( Filtering::Processor<Processor16>( binarize_##mode##_native_10_neon, Constraint(CPU_NEON), 1 ) )); \
-                 break; \
-        case 12: processors16.push_back(Filtering::Processor<Processor16>(binarize_##mode##_native_12_c, Constraint(CPU_NONE), 0)); \
-                 MT_X86(processors16.push_back( Filtering::Processor<Processor16>( binarize_##mode##_native_12_sse2, Constraint(CPU_SSE2), 1 ) )); \
-                 MT_NEON(processors16.push_back( Filtering::Processor<Processor16>( binarize_##mode##_native_12_neon, Constraint(CPU_NEON), 1 ) )); \
-                 break; \
-        case 14: processors16.push_back(Filtering::Processor<Processor16>(binarize_##mode##_native_14_c, Constraint(CPU_NONE), 0)); \
-                 MT_X86(processors16.push_back( Filtering::Processor<Processor16>( binarize_##mode##_native_14_sse2, Constraint(CPU_SSE2), 1 ) )); \
-                 MT_NEON(processors16.push_back( Filtering::Processor<Processor16>( binarize_##mode##_native_14_neon, Constraint(CPU_NEON), 1 ) )); \
-                 break; \
-        case 16: processors16.push_back(Filtering::Processor<Processor16>(binarize_##mode##_native_16_c, Constraint(CPU_NONE), 0)); \
-                 MT_X86(processors16.push_back( Filtering::Processor<Processor16>( binarize_##mode##_native_16_sse2, Constraint(CPU_SSE2), 1 ) )); \
-                 MT_NEON(processors16.push_back( Filtering::Processor<Processor16>( binarize_##mode##_native_16_neon, Constraint(CPU_NEON), 1 ) )); \
-                 break; \
-        }\
-    }
-       if (isMode("0 x")) { SET_MODE(0_x); } // e.g. binarize_0_x_10_native_c instead of binarize_0_x_native_c
+    processors16.push_back(Filtering::Processor<Processor16>(binarize_##mode##_native_c, Constraint(CPU_NONE), 0)); \
+    MT_X86(processors16.push_back(Filtering::Processor<Processor16>(binarize_##mode##_native_sse2, Constraint(CPU_SSE2), 1))); \
+    MT_NEON(processors16.push_back(Filtering::Processor<Processor16>(binarize_##mode##_native_neon, Constraint(CPU_NEON), 1)));
+       if (isMode("0 x")) { SET_MODE(0_x); }
        else if (isMode("t x")) { SET_MODE(t_x); }
        else if (isMode("x 0")) { SET_MODE(x_0); }
        else if (isMode("x t")) { SET_MODE(x_t); }

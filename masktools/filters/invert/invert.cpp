@@ -2,10 +2,9 @@
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Invert {
 
-template<int bits_per_pixel>
-void invert16_t_c(uint8_t *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight)
+void invert16_c(uint8_t *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight, int bits_per_pixel)
 {
-  uint16_t max_pixel_value_mask = (1 << bits_per_pixel) - 1;
+  const uint16_t max_pixel_value_mask = uint16_t((1 << bits_per_pixel) - 1);
   for (int j = 0; j < nHeight; j++)
   {
     for (int i = 0; i < nWidth; i++)
@@ -14,7 +13,7 @@ void invert16_t_c(uint8_t *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight)
   }
 }
 
-void invert_c(uint8_t *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight)
+void invert_c(uint8_t *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight, int)
 {
    for ( int j = 0; j < nHeight; j++ )
    {
@@ -24,7 +23,7 @@ void invert_c(uint8_t *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight)
    }
 }
 
-void invert32_c(uint8_t *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight)
+void invert32_c(uint8_t *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight, int)
 {
   for (int j = 0; j < nHeight; j++)
   {
@@ -33,17 +32,5 @@ void invert32_c(uint8_t *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight)
     pDst += nDstPitch;
   }
 }
-
-
-template void invert16_t_c<10>(uint8_t *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight);
-template void invert16_t_c<12>(uint8_t *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight);
-template void invert16_t_c<14>(uint8_t *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight);
-template void invert16_t_c<16>(uint8_t *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight);
-
-
-Processor *invert10_c = &invert16_t_c<10>;
-Processor *invert12_c = &invert16_t_c<12>;
-Processor *invert14_c = &invert16_t_c<14>;
-Processor *invert16_c = &invert16_t_c<16>;
 
 } } } }

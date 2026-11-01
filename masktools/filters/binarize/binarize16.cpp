@@ -3,24 +3,17 @@
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Binarize {
 
-#define DEFINE_PROCESSORS(layout,bits_per_pixel) \
-Processor16 *binarize_upper_##layout##_##bits_per_pixel##_c = &binarize_##layout##_t<binarize_upper< bits_per_pixel >>; \
-Processor16 *binarize_lower_##layout##_##bits_per_pixel##_c = &binarize_##layout##_t<binarize_lower< bits_per_pixel >>; \
-Processor16 *binarize_0_x_##layout##_##bits_per_pixel##_c   = &binarize_##layout##_t<binarize_0_x< bits_per_pixel >>; \
-Processor16 *binarize_t_x_##layout##_##bits_per_pixel##_c   = &binarize_##layout##_t<binarize_t_x< bits_per_pixel >>; \
-Processor16 *binarize_x_0_##layout##_##bits_per_pixel##_c   = &binarize_##layout##_t<binarize_x_0< bits_per_pixel >>; \
-Processor16 *binarize_x_t_##layout##_##bits_per_pixel##_c   = &binarize_##layout##_t<binarize_x_t< bits_per_pixel >>; \
-Processor16 *binarize_t_0_##layout##_##bits_per_pixel##_c   = &binarize_##layout##_t<binarize_t_0< bits_per_pixel >>; \
-Processor16 *binarize_0_t_##layout##_##bits_per_pixel##_c   = &binarize_##layout##_t<binarize_0_t< bits_per_pixel >>; \
-Processor16 *binarize_x_255_##layout##_##bits_per_pixel##_c = &binarize_##layout##_t<binarize_x_255< bits_per_pixel >>; \
-Processor16 *binarize_t_255_##layout##_##bits_per_pixel##_c = &binarize_##layout##_t<binarize_t_255< bits_per_pixel >>; \
-Processor16 *binarize_255_x_##layout##_##bits_per_pixel##_c = &binarize_##layout##_t<binarize_255_x< bits_per_pixel >>; \
-Processor16 *binarize_255_t_##layout##_##bits_per_pixel##_c = &binarize_##layout##_t<binarize_255_t< bits_per_pixel >>; \
- \
-
-DEFINE_PROCESSORS(native,10)
-DEFINE_PROCESSORS(native,12)
-DEFINE_PROCESSORS(native,14)
-DEFINE_PROCESSORS(native,16)
+Processor16 *binarize_upper_native_c = &binarize_native_t<binarize_upper>;
+Processor16 *binarize_lower_native_c = &binarize_native_t<binarize_lower>;
+Processor16 *binarize_0_x_native_c   = &binarize_native_t<binarize_0_x>;
+Processor16 *binarize_t_x_native_c   = &binarize_native_t<binarize_t_x>;
+Processor16 *binarize_x_0_native_c   = &binarize_native_t<binarize_x_0>;
+Processor16 *binarize_x_t_native_c   = &binarize_native_t<binarize_x_t>;
+Processor16 *binarize_t_0_native_c   = &binarize_native_t<binarize_t_0>;
+Processor16 *binarize_0_t_native_c   = &binarize_native_t<binarize_0_t>;
+Processor16 *binarize_x_255_native_c = &binarize_native_t<binarize_x_255>;
+Processor16 *binarize_t_255_native_c = &binarize_native_t<binarize_t_255>;
+Processor16 *binarize_255_x_native_c = &binarize_native_t<binarize_255_x>;
+Processor16 *binarize_255_t_native_c = &binarize_native_t<binarize_255_t>;
 
 } } } }

@@ -10,7 +10,7 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Invert
 
 namespace {
 
-void invert8_neon_t(uint8_t *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight)
+void invert8_neon_t(uint8_t *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight, int)
 {
   const int wmod = nWidth / 16 * 16;
   for (int y = 0; y < nHeight; y++) {
@@ -22,23 +22,22 @@ void invert8_neon_t(uint8_t *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight)
   }
 }
 
-template<int bits_per_pixel>
-void invert16_neon_t(uint8_t *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight)
+void invert16_neon_t(uint8_t *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight, int bits_per_pixel)
 {
-  const uint16_t mx = (1 << bits_per_pixel) - 1;
-  const uint16x8_t vmx = vdupq_n_u16(mx);
+  const uint16_t max_pixel_value = uint16_t((1 << bits_per_pixel) - 1);
+  const uint16x8_t v_max_pixel_value = vdupq_n_u16(max_pixel_value);
   const int wmod = nWidth / 8 * 8;
   for (int y = 0; y < nHeight; y++) {
     uint16_t *d = reinterpret_cast<uint16_t *>(pDst);
     for (int x = 0; x < wmod; x += 8)
-      vst1q_u16(d + x, vsubq_u16(vmx, vld1q_u16(d + x)));
+      vst1q_u16(d + x, vsubq_u16(v_max_pixel_value, vld1q_u16(d + x)));
     for (int x = wmod; x < nWidth; x++)
-      d[x] = mx - d[x];
+      d[x] = max_pixel_value - d[x];
     pDst += nDstPitch;
   }
 }
 
-void invert32_neon_t(uint8_t *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight)
+void invert32_neon_t(uint8_t *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight, int)
 {
   const float32x4_t one = vdupq_n_f32(1.0f);
   const int wmod = nWidth / 4 * 4;
@@ -55,10 +54,7 @@ void invert32_neon_t(uint8_t *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight
 } // namespace
 
 Processor *invert_neon = &invert8_neon_t;
-Processor *invert10_neon = &invert16_neon_t<10>;
-Processor *invert12_neon = &invert16_neon_t<12>;
-Processor *invert14_neon = &invert16_neon_t<14>;
-Processor *invert16_neon = &invert16_neon_t<16>;
+Processor *invert16_neon = &invert16_neon_t;
 Processor *invert32_neon = &invert32_neon_t;
 
 } } } }
