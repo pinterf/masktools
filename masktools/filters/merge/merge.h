@@ -274,127 +274,127 @@ public:
       switch (bits_per_pixel) {
       case 8:
         /* add the processors */
-        processors.push_back(Filtering::Processor<Processor>(merge_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0));
+        processors.push_back(Filtering::Processor<Processor>(merge_c, Constraint(CPU_NONE), 0));
 #ifdef INTEL_INTRINSICS
-        processors.push_back(Filtering::Processor<Processor>(merge_sse2, Constraint(CPU_SSE2, 1, 1, 1, 1), 1));
-        processors.push_back(Filtering::Processor<Processor>(merge_sse4, Constraint(CPU_SSE4_1, 1, 1, 1, 1), 3));
-        processors.push_back(Filtering::Processor<Processor>(merge_avx2, Constraint(CPU_AVX2, 1, 1, 1, 1), 5));
+        processors.push_back(Filtering::Processor<Processor>(merge_sse2, Constraint(CPU_SSE2), 1));
+        processors.push_back(Filtering::Processor<Processor>(merge_sse4, Constraint(CPU_SSE4_1), 3));
+        processors.push_back(Filtering::Processor<Processor>(merge_avx2, Constraint(CPU_AVX2), 5));
 #endif
 #ifdef NEON_INTRINSICS
-        processors.push_back(Filtering::Processor<Processor>(merge_neon, Constraint(CPU_NEON, 1, 1, 1, 1), 1));
+        processors.push_back(Filtering::Processor<Processor>(merge_neon, Constraint(CPU_NEON), 1));
 #endif
 
         /* add the chroma processors */
         // they are used only for 420 and 422
         if (is420) {
           if (isTopLeft) {
-            chroma_processors.push_back(Filtering::Processor<Processor>(merge_luma_420_topleft_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0));
+            chroma_processors.push_back(Filtering::Processor<Processor>(merge_luma_420_topleft_c, Constraint(CPU_NONE), 0));
 #ifdef INTEL_INTRINSICS
-            chroma_processors.push_back(Filtering::Processor<Processor>(merge_luma_420_topleft_sse2, Constraint(CPU_SSE2, 1, 1, 1, 1), 1));
-            chroma_processors.push_back(Filtering::Processor<Processor>(merge_luma_420_topleft_sse4, Constraint(CPU_SSE4_1, 1, 1, 1, 1), 3));
+            chroma_processors.push_back(Filtering::Processor<Processor>(merge_luma_420_topleft_sse2, Constraint(CPU_SSE2), 1));
+            chroma_processors.push_back(Filtering::Processor<Processor>(merge_luma_420_topleft_sse4, Constraint(CPU_SSE4_1), 3));
 #endif
 
           } else if (isMpeg2) {
-            chroma_processors.push_back(Filtering::Processor<Processor>(merge_luma_420_mpeg2_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0));
+            chroma_processors.push_back(Filtering::Processor<Processor>(merge_luma_420_mpeg2_c, Constraint(CPU_NONE), 0));
 #ifdef INTEL_INTRINSICS
-            chroma_processors.push_back(Filtering::Processor<Processor>(merge_luma_420_mpeg2_sse2, Constraint(CPU_SSE2, 1, 1, 1, 1), 1));
-            chroma_processors.push_back(Filtering::Processor<Processor>(merge_luma_420_mpeg2_sse4, Constraint(CPU_SSE4_1, 1, 1, 1, 1), 3));
+            chroma_processors.push_back(Filtering::Processor<Processor>(merge_luma_420_mpeg2_sse2, Constraint(CPU_SSE2), 1));
+            chroma_processors.push_back(Filtering::Processor<Processor>(merge_luma_420_mpeg2_sse4, Constraint(CPU_SSE4_1), 3));
 #endif
-            /*chroma_processors.push_back(Filtering::Processor<Processor>(merge_luma_420_mpeg2_avx2, Constraint(CPU_AVX2, 1, 1, 1, 1), 5));*/
+            /*chroma_processors.push_back(Filtering::Processor<Processor>(merge_luma_420_mpeg2_avx2, Constraint(CPU_AVX2), 5));*/
           }
           else {
-            chroma_processors.push_back(Filtering::Processor<Processor>(merge_luma_420_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0));
+            chroma_processors.push_back(Filtering::Processor<Processor>(merge_luma_420_c, Constraint(CPU_NONE), 0));
 #ifdef INTEL_INTRINSICS
-            chroma_processors.push_back(Filtering::Processor<Processor>(merge_luma_420_sse2, Constraint(CPU_SSE2, 1, 1, 1, 1), 1));
-            chroma_processors.push_back(Filtering::Processor<Processor>(merge_luma_420_sse4, Constraint(CPU_SSE4_1, 1, 1, 1, 1), 3));
-            chroma_processors.push_back(Filtering::Processor<Processor>(merge_luma_420_avx2, Constraint(CPU_AVX2, 1, 1, 1, 1), 5));
+            chroma_processors.push_back(Filtering::Processor<Processor>(merge_luma_420_sse2, Constraint(CPU_SSE2), 1));
+            chroma_processors.push_back(Filtering::Processor<Processor>(merge_luma_420_sse4, Constraint(CPU_SSE4_1), 3));
+            chroma_processors.push_back(Filtering::Processor<Processor>(merge_luma_420_avx2, Constraint(CPU_AVX2), 5));
 #endif
 #ifdef NEON_INTRINSICS
-            chroma_processors.push_back(Filtering::Processor<Processor>(merge_luma_420_neon, Constraint(CPU_NEON, 1, 1, 1, 1), 1));
+            chroma_processors.push_back(Filtering::Processor<Processor>(merge_luma_420_neon, Constraint(CPU_NEON), 1));
 #endif
           }
         }
         else if (is422) { // 422
           if (isMpeg2) {
-            chroma_processors.push_back(Filtering::Processor<Processor>(merge_luma_422_mpeg2_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0));
+            chroma_processors.push_back(Filtering::Processor<Processor>(merge_luma_422_mpeg2_c, Constraint(CPU_NONE), 0));
 #ifdef INTEL_INTRINSICS
-            chroma_processors.push_back(Filtering::Processor<Processor>(merge_luma_422_mpeg2_sse2, Constraint(CPU_SSE2, 1, 1, 1, 1), 1));
-            chroma_processors.push_back(Filtering::Processor<Processor>(merge_luma_422_mpeg2_sse4, Constraint(CPU_SSE4_1, 1, 1, 1, 1), 3));
+            chroma_processors.push_back(Filtering::Processor<Processor>(merge_luma_422_mpeg2_sse2, Constraint(CPU_SSE2), 1));
+            chroma_processors.push_back(Filtering::Processor<Processor>(merge_luma_422_mpeg2_sse4, Constraint(CPU_SSE4_1), 3));
 #endif
-            /*chroma_processors.push_back(Filtering::Processor<Processor>(merge_luma_422_mpeg2_avx2, Constraint(CPU_AVX2, 1, 1, 1, 1), 5));*/
+            /*chroma_processors.push_back(Filtering::Processor<Processor>(merge_luma_422_mpeg2_avx2, Constraint(CPU_AVX2), 5));*/
           }
           else {
-            chroma_processors.push_back(Filtering::Processor<Processor>(merge_luma_422_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0));
+            chroma_processors.push_back(Filtering::Processor<Processor>(merge_luma_422_c, Constraint(CPU_NONE), 0));
 #ifdef INTEL_INTRINSICS
-            chroma_processors.push_back(Filtering::Processor<Processor>(merge_luma_422_sse2, Constraint(CPU_SSE2, 1, 1, 1, 1), 1));
-            chroma_processors.push_back(Filtering::Processor<Processor>(merge_luma_422_sse4, Constraint(CPU_SSE4_1, 1, 1, 1, 1), 3));
-            chroma_processors.push_back(Filtering::Processor<Processor>(merge_luma_422_avx2, Constraint(CPU_AVX2, 1, 1, 1, 1), 5));
+            chroma_processors.push_back(Filtering::Processor<Processor>(merge_luma_422_sse2, Constraint(CPU_SSE2), 1));
+            chroma_processors.push_back(Filtering::Processor<Processor>(merge_luma_422_sse4, Constraint(CPU_SSE4_1), 3));
+            chroma_processors.push_back(Filtering::Processor<Processor>(merge_luma_422_avx2, Constraint(CPU_AVX2), 5));
 #endif
 #ifdef NEON_INTRINSICS
-            chroma_processors.push_back(Filtering::Processor<Processor>(merge_luma_422_neon, Constraint(CPU_NEON, 1, 1, 1, 1), 1));
+            chroma_processors.push_back(Filtering::Processor<Processor>(merge_luma_422_neon, Constraint(CPU_NEON), 1));
 #endif
           }
         }
         else {
-          chroma_processors.push_back(Filtering::Processor<Processor>(merge_luma_411_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0));
+          chroma_processors.push_back(Filtering::Processor<Processor>(merge_luma_411_c, Constraint(CPU_NONE), 0));
 #ifdef INTEL_INTRINSICS
-          chroma_processors.push_back(Filtering::Processor<Processor>(merge_luma_411_sse2, Constraint(CPU_SSE2, 1, 1, 1, 1), 1));
-          chroma_processors.push_back(Filtering::Processor<Processor>(merge_luma_411_sse4, Constraint(CPU_SSE4_1, 1, 1, 1, 1), 3));
-          chroma_processors.push_back(Filtering::Processor<Processor>(merge_luma_411_avx2, Constraint(CPU_AVX2, 1, 1, 1, 1), 5));
+          chroma_processors.push_back(Filtering::Processor<Processor>(merge_luma_411_sse2, Constraint(CPU_SSE2), 1));
+          chroma_processors.push_back(Filtering::Processor<Processor>(merge_luma_411_sse4, Constraint(CPU_SSE4_1), 3));
+          chroma_processors.push_back(Filtering::Processor<Processor>(merge_luma_411_avx2, Constraint(CPU_AVX2), 5));
 #endif
 #ifdef NEON_INTRINSICS
-          chroma_processors.push_back(Filtering::Processor<Processor>(merge_luma_411_neon, Constraint(CPU_NEON, 1, 1, 1, 1), 1));
+          chroma_processors.push_back(Filtering::Processor<Processor>(merge_luma_411_neon, Constraint(CPU_NEON), 1));
 #endif
         }
         break;
       case 10: case 12: case 14: case 16:
 #define MAKE_16BIT_PROCESSORS(bits_per_pixel) \
           /* add the processors16 */ \
-          processors16.push_back( Filtering::Processor<Processor16>( merge16_##bits_per_pixel##_c, Constraint( CPU_NONE, 1, 1, 1, 1 ), 0 ) ); \
-          MT_X86(processors16.push_back( Filtering::Processor<Processor16>( merge16_##bits_per_pixel##_sse2, Constraint( CPU_SSE2, 1, 1, 1, 1 ), 1 ) )); \
-          MT_X86(processors16.push_back( Filtering::Processor<Processor16>( merge16_##bits_per_pixel##_sse4_1, Constraint( CPU_SSE4_1, 1, 1, 1, 1 ), 2 ) )); \
-          MT_X86(processors16.push_back( Filtering::Processor<Processor16>( merge16_##bits_per_pixel##_avx2, Constraint( CPU_AVX2, 1, 1, 1, 1 ), 3 ) )); \
-          MT_NEON(processors16.push_back( Filtering::Processor<Processor16>( merge16_##bits_per_pixel##_neon, Constraint( CPU_NEON, 1, 1, 1, 1 ), 1 ) )); \
+          processors16.push_back( Filtering::Processor<Processor16>( merge16_##bits_per_pixel##_c, Constraint(CPU_NONE), 0 ) ); \
+          MT_X86(processors16.push_back( Filtering::Processor<Processor16>( merge16_##bits_per_pixel##_sse2, Constraint(CPU_SSE2), 1 ) )); \
+          MT_X86(processors16.push_back( Filtering::Processor<Processor16>( merge16_##bits_per_pixel##_sse4_1, Constraint(CPU_SSE4_1), 2 ) )); \
+          MT_X86(processors16.push_back( Filtering::Processor<Processor16>( merge16_##bits_per_pixel##_avx2, Constraint(CPU_AVX2), 3 ) )); \
+          MT_NEON(processors16.push_back( Filtering::Processor<Processor16>( merge16_##bits_per_pixel##_neon, Constraint(CPU_NEON), 1 ) )); \
           /* add the chroma processors16 */ \
           /* used only for 420, 422 and 411 */ \
           if (is411) { /* no x86 SIMD so far: stacked YV411 */ \
-            chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_411_##bits_per_pixel##_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0)); \
-            MT_NEON(chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_411_##bits_per_pixel##_neon, Constraint(CPU_NEON, 1, 1, 1, 1), 1))); \
+            chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_411_##bits_per_pixel##_c, Constraint(CPU_NONE), 0)); \
+            MT_NEON(chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_411_##bits_per_pixel##_neon, Constraint(CPU_NEON), 1))); \
           } \
           else if (is420) { \
             if (isTopLeft) { \
-              chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_420_topleft_##bits_per_pixel##_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0)); \
-              MT_X86(chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_420_topleft_##bits_per_pixel##_sse2, Constraint(CPU_SSE2, 1, 1, 1, 1), 1))); \
-              MT_X86(chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_420_topleft_##bits_per_pixel##_sse4_1, Constraint(CPU_SSE4_1, 1, 1, 1, 1), 3))); \
+              chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_420_topleft_##bits_per_pixel##_c, Constraint(CPU_NONE), 0)); \
+              MT_X86(chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_420_topleft_##bits_per_pixel##_sse2, Constraint(CPU_SSE2), 1))); \
+              MT_X86(chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_420_topleft_##bits_per_pixel##_sse4_1, Constraint(CPU_SSE4_1), 3))); \
             } else if(isMpeg2) { \
-              chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_420_mpeg2_##bits_per_pixel##_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0)); \
-              MT_X86(chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_420_mpeg2_##bits_per_pixel##_sse2, Constraint(CPU_SSE2, 1, 1, 1, 1), 1))); \
-              MT_X86(chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_420_mpeg2_##bits_per_pixel##_ssse3, Constraint(CPU_SSSE3, 1, 1, 1, 1), 2))); \
-              MT_X86(chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_420_mpeg2_##bits_per_pixel##_sse4_1, Constraint(CPU_SSE4_1, 1, 1, 1, 1), 3))); \
-              /*chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_420_mpeg2_##bits_per_pixel##_avx2, Constraint(CPU_AVX2, 1, 1, 1, 1), 4));*/ \
+              chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_420_mpeg2_##bits_per_pixel##_c, Constraint(CPU_NONE), 0)); \
+              MT_X86(chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_420_mpeg2_##bits_per_pixel##_sse2, Constraint(CPU_SSE2), 1))); \
+              MT_X86(chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_420_mpeg2_##bits_per_pixel##_ssse3, Constraint(CPU_SSSE3), 2))); \
+              MT_X86(chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_420_mpeg2_##bits_per_pixel##_sse4_1, Constraint(CPU_SSE4_1), 3))); \
+              /*chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_420_mpeg2_##bits_per_pixel##_avx2, Constraint(CPU_AVX2), 4));*/ \
             } else { \
-              chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_420_##bits_per_pixel##_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0)); \
-              MT_X86(chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_420_##bits_per_pixel##_sse2, Constraint(CPU_SSE2, 1, 1, 1, 1), 1))); \
-              MT_X86(chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_420_##bits_per_pixel##_ssse3, Constraint(CPU_SSSE3, 1, 1, 1, 1), 2))); \
-              MT_X86(chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_420_##bits_per_pixel##_sse4_1, Constraint(CPU_SSE4_1, 1, 1, 1, 1), 3))); \
-              MT_X86(chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_420_##bits_per_pixel##_avx2, Constraint(CPU_AVX2, 1, 1, 1, 1), 4))); \
-              MT_NEON(chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_420_##bits_per_pixel##_neon, Constraint(CPU_NEON, 1, 1, 1, 1), 1))); \
+              chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_420_##bits_per_pixel##_c, Constraint(CPU_NONE), 0)); \
+              MT_X86(chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_420_##bits_per_pixel##_sse2, Constraint(CPU_SSE2), 1))); \
+              MT_X86(chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_420_##bits_per_pixel##_ssse3, Constraint(CPU_SSSE3), 2))); \
+              MT_X86(chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_420_##bits_per_pixel##_sse4_1, Constraint(CPU_SSE4_1), 3))); \
+              MT_X86(chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_420_##bits_per_pixel##_avx2, Constraint(CPU_AVX2), 4))); \
+              MT_NEON(chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_420_##bits_per_pixel##_neon, Constraint(CPU_NEON), 1))); \
             } \
           } \
           else { /* 422 */ \
             if(isMpeg2) { \
-              chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_422_mpeg2_##bits_per_pixel##_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0)); \
-              MT_X86(chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_422_mpeg2_##bits_per_pixel##_sse2, Constraint(CPU_SSE2, 1, 1, 1, 1), 1))); \
-              MT_X86(chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_422_mpeg2_##bits_per_pixel##_ssse3, Constraint(CPU_SSSE3, 1, 1, 1, 1), 2))); \
-              MT_X86(chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_422_mpeg2_##bits_per_pixel##_sse4_1, Constraint(CPU_SSE4_1, 1, 1, 1, 1), 3))); \
-              /*chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_422_##bits_per_pixel##_avx2, Constraint(CPU_AVX2, 1, 1, 1, 1), 4));*/ \
+              chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_422_mpeg2_##bits_per_pixel##_c, Constraint(CPU_NONE), 0)); \
+              MT_X86(chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_422_mpeg2_##bits_per_pixel##_sse2, Constraint(CPU_SSE2), 1))); \
+              MT_X86(chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_422_mpeg2_##bits_per_pixel##_ssse3, Constraint(CPU_SSSE3), 2))); \
+              MT_X86(chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_422_mpeg2_##bits_per_pixel##_sse4_1, Constraint(CPU_SSE4_1), 3))); \
+              /*chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_422_##bits_per_pixel##_avx2, Constraint(CPU_AVX2), 4));*/ \
             } else { \
-              chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_422_##bits_per_pixel##_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0)); \
-              MT_X86(chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_422_##bits_per_pixel##_sse2, Constraint(CPU_SSE2, 1, 1, 1, 1), 1))); \
-              MT_X86(chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_422_##bits_per_pixel##_ssse3, Constraint(CPU_SSSE3, 1, 1, 1, 1), 2))); \
-              MT_X86(chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_422_##bits_per_pixel##_sse4_1, Constraint(CPU_SSE4_1, 1, 1, 1, 1), 3))); \
-              MT_X86(chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_422_##bits_per_pixel##_avx2, Constraint(CPU_AVX2, 1, 1, 1, 1), 4))); \
-              MT_NEON(chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_422_##bits_per_pixel##_neon, Constraint(CPU_NEON, 1, 1, 1, 1), 1))); \
+              chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_422_##bits_per_pixel##_c, Constraint(CPU_NONE), 0)); \
+              MT_X86(chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_422_##bits_per_pixel##_sse2, Constraint(CPU_SSE2), 1))); \
+              MT_X86(chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_422_##bits_per_pixel##_ssse3, Constraint(CPU_SSSE3), 2))); \
+              MT_X86(chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_422_##bits_per_pixel##_sse4_1, Constraint(CPU_SSE4_1), 3))); \
+              MT_X86(chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_422_##bits_per_pixel##_avx2, Constraint(CPU_AVX2), 4))); \
+              MT_NEON(chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_422_##bits_per_pixel##_neon, Constraint(CPU_NEON), 1))); \
             } \
           }
 
@@ -412,54 +412,54 @@ public:
         break;
       case 32:
         /* add the processors */
-        processors32.push_back(Filtering::Processor<Processor32>(merge32_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0));
+        processors32.push_back(Filtering::Processor<Processor32>(merge32_c, Constraint(CPU_NONE), 0));
 #ifdef INTEL_INTRINSICS
-        processors32.push_back(Filtering::Processor<Processor32>(merge32_sse2, Constraint(CPU_SSE2, 1, 1, 1, 1), 1));
-        processors32.push_back(Filtering::Processor<Processor32>(merge32_avx2, Constraint(CPU_AVX2, 1, 1, 1, 1), 3));
+        processors32.push_back(Filtering::Processor<Processor32>(merge32_sse2, Constraint(CPU_SSE2), 1));
+        processors32.push_back(Filtering::Processor<Processor32>(merge32_avx2, Constraint(CPU_AVX2), 3));
 #endif
 #ifdef NEON_INTRINSICS
-        processors32.push_back(Filtering::Processor<Processor32>(merge32_neon, Constraint(CPU_NEON, 1, 1, 1, 1), 1));
+        processors32.push_back(Filtering::Processor<Processor32>(merge32_neon, Constraint(CPU_NEON), 1));
 #endif
 
         /* add the chroma processors */
         // they are used only for 420 and 422
         if (is420) {
           if (isTopLeft) {
-            chroma_processors32.push_back(Filtering::Processor<Processor32>(merge32_luma_420_topleft_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0)); \
+            chroma_processors32.push_back(Filtering::Processor<Processor32>(merge32_luma_420_topleft_c, Constraint(CPU_NONE), 0)); \
           } else if (isMpeg2) {
-            chroma_processors32.push_back(Filtering::Processor<Processor32>(merge32_luma_420_mpeg2_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0));
+            chroma_processors32.push_back(Filtering::Processor<Processor32>(merge32_luma_420_mpeg2_c, Constraint(CPU_NONE), 0));
 #ifdef INTEL_INTRINSICS
-            chroma_processors32.push_back(Filtering::Processor<Processor32>(merge32_luma_420_mpeg2_sse2, Constraint(CPU_SSE2, 1, 1, 1, 1), 1));
-            chroma_processors32.push_back(Filtering::Processor<Processor32>(merge32_luma_420_mpeg2_avx2, Constraint(CPU_AVX2, 1, 1, 1, 1), 3));
+            chroma_processors32.push_back(Filtering::Processor<Processor32>(merge32_luma_420_mpeg2_sse2, Constraint(CPU_SSE2), 1));
+            chroma_processors32.push_back(Filtering::Processor<Processor32>(merge32_luma_420_mpeg2_avx2, Constraint(CPU_AVX2), 3));
 #endif
           }
           else {
-            chroma_processors32.push_back(Filtering::Processor<Processor32>(merge32_luma_420_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0));
+            chroma_processors32.push_back(Filtering::Processor<Processor32>(merge32_luma_420_c, Constraint(CPU_NONE), 0));
 #ifdef INTEL_INTRINSICS
-            chroma_processors32.push_back(Filtering::Processor<Processor32>(merge32_luma_420_sse2, Constraint(CPU_SSE2, 1, 1, 1, 1), 1));
-            chroma_processors32.push_back(Filtering::Processor<Processor32>(merge32_luma_420_avx2, Constraint(CPU_AVX2, 1, 1, 1, 1), 3));
+            chroma_processors32.push_back(Filtering::Processor<Processor32>(merge32_luma_420_sse2, Constraint(CPU_SSE2), 1));
+            chroma_processors32.push_back(Filtering::Processor<Processor32>(merge32_luma_420_avx2, Constraint(CPU_AVX2), 3));
 #endif
 #ifdef NEON_INTRINSICS
-            chroma_processors32.push_back(Filtering::Processor<Processor32>(merge32_luma_420_neon, Constraint(CPU_NEON, 1, 1, 1, 1), 1));
+            chroma_processors32.push_back(Filtering::Processor<Processor32>(merge32_luma_420_neon, Constraint(CPU_NEON), 1));
 #endif
           }
         }
         else if (is422) { // 422
           if (isMpeg2) {
-            chroma_processors32.push_back(Filtering::Processor<Processor32>(merge32_luma_422_mpeg2_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0));
+            chroma_processors32.push_back(Filtering::Processor<Processor32>(merge32_luma_422_mpeg2_c, Constraint(CPU_NONE), 0));
 #ifdef INTEL_INTRINSICS
-            chroma_processors32.push_back(Filtering::Processor<Processor32>(merge32_luma_422_mpeg2_sse2, Constraint(CPU_SSE2, 1, 1, 1, 1), 1));
-            chroma_processors32.push_back(Filtering::Processor<Processor32>(merge32_luma_422_mpeg2_avx2, Constraint(CPU_AVX2, 1, 1, 1, 1), 3));
+            chroma_processors32.push_back(Filtering::Processor<Processor32>(merge32_luma_422_mpeg2_sse2, Constraint(CPU_SSE2), 1));
+            chroma_processors32.push_back(Filtering::Processor<Processor32>(merge32_luma_422_mpeg2_avx2, Constraint(CPU_AVX2), 3));
 #endif
           }
           else {
-            chroma_processors32.push_back(Filtering::Processor<Processor32>(merge32_luma_422_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0));
+            chroma_processors32.push_back(Filtering::Processor<Processor32>(merge32_luma_422_c, Constraint(CPU_NONE), 0));
 #ifdef INTEL_INTRINSICS
-            chroma_processors32.push_back(Filtering::Processor<Processor32>(merge32_luma_422_sse2, Constraint(CPU_SSE2, 1, 1, 1, 1), 1));
-            chroma_processors32.push_back(Filtering::Processor<Processor32>(merge32_luma_422_avx2, Constraint(CPU_AVX2, 1, 1, 1, 1), 3));
+            chroma_processors32.push_back(Filtering::Processor<Processor32>(merge32_luma_422_sse2, Constraint(CPU_SSE2), 1));
+            chroma_processors32.push_back(Filtering::Processor<Processor32>(merge32_luma_422_avx2, Constraint(CPU_AVX2), 3));
 #endif
 #ifdef NEON_INTRINSICS
-            chroma_processors32.push_back(Filtering::Processor<Processor32>(merge32_luma_422_neon, Constraint(CPU_NEON, 1, 1, 1, 1), 1));
+            chroma_processors32.push_back(Filtering::Processor<Processor32>(merge32_luma_422_neon, Constraint(CPU_NEON), 1));
 #endif
           }
         }

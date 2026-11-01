@@ -143,38 +143,38 @@ public:
       if ( isFloat )
          if ( isSaturate )
            switch (bits_per_pixel) {
-           case 8: processors.push_back(Filtering::Processor<Processor>(convolution_f_s_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0)); break;
-           case 10: processors16.push_back(Filtering::Processor<Processor16>(convolution_f_s_10_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0)); break;
-           case 12: processors16.push_back(Filtering::Processor<Processor16>(convolution_f_s_12_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0)); break;
-           case 14: processors16.push_back(Filtering::Processor<Processor16>(convolution_f_s_14_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0)); break;
-           case 16: processors16.push_back(Filtering::Processor<Processor16>(convolution_f_s_16_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0)); break;
-           case 32: processors32.push_back(Filtering::Processor<Processor32>(convolution_f_s_32_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0)); break;
+           case 8: processors.push_back(Filtering::Processor<Processor>(convolution_f_s_c, Constraint(CPU_NONE), 0)); break;
+           case 10: processors16.push_back(Filtering::Processor<Processor16>(convolution_f_s_10_c, Constraint(CPU_NONE), 0)); break;
+           case 12: processors16.push_back(Filtering::Processor<Processor16>(convolution_f_s_12_c, Constraint(CPU_NONE), 0)); break;
+           case 14: processors16.push_back(Filtering::Processor<Processor16>(convolution_f_s_14_c, Constraint(CPU_NONE), 0)); break;
+           case 16: processors16.push_back(Filtering::Processor<Processor16>(convolution_f_s_16_c, Constraint(CPU_NONE), 0)); break;
+           case 32: processors32.push_back(Filtering::Processor<Processor32>(convolution_f_s_32_c, Constraint(CPU_NONE), 0)); break;
            }
          else
            switch (bits_per_pixel) {
-           case 8:  processors.push_back(Filtering::Processor<Processor>(convolution_f_m_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0)); break;
-           case 10:  processors16.push_back(Filtering::Processor<Processor16>(convolution_f_m_10_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0)); break;
-           case 12:  processors16.push_back(Filtering::Processor<Processor16>(convolution_f_m_12_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0)); break;
-           case 14:  processors16.push_back(Filtering::Processor<Processor16>(convolution_f_m_14_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0)); break;
-           case 16:  processors16.push_back(Filtering::Processor<Processor16>(convolution_f_m_16_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0)); break;
-           case 32:  processors32.push_back(Filtering::Processor<Processor32>(convolution_f_m_32_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0)); break;
+           case 8:  processors.push_back(Filtering::Processor<Processor>(convolution_f_m_c, Constraint(CPU_NONE), 0)); break;
+           case 10:  processors16.push_back(Filtering::Processor<Processor16>(convolution_f_m_10_c, Constraint(CPU_NONE), 0)); break;
+           case 12:  processors16.push_back(Filtering::Processor<Processor16>(convolution_f_m_12_c, Constraint(CPU_NONE), 0)); break;
+           case 14:  processors16.push_back(Filtering::Processor<Processor16>(convolution_f_m_14_c, Constraint(CPU_NONE), 0)); break;
+           case 16:  processors16.push_back(Filtering::Processor<Processor16>(convolution_f_m_16_c, Constraint(CPU_NONE), 0)); break;
+           case 32:  processors32.push_back(Filtering::Processor<Processor32>(convolution_f_m_32_c, Constraint(CPU_NONE), 0)); break;
            }
       else
          if ( isSaturate )
            switch (bits_per_pixel) {
-           case 8: processors.push_back(Filtering::Processor<Processor>(convolution_i_s_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0)); break;
-           case 10: processors16.push_back(Filtering::Processor<Processor16>(convolution_i_s_10_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0)); break;
-           case 12: processors16.push_back(Filtering::Processor<Processor16>(convolution_i_s_12_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0)); break;
-           case 14: processors16.push_back(Filtering::Processor<Processor16>(convolution_i_s_14_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0)); break;
-           case 16: processors16.push_back(Filtering::Processor<Processor16>(convolution_i_s_16_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0)); break;
+           case 8: processors.push_back(Filtering::Processor<Processor>(convolution_i_s_c, Constraint(CPU_NONE), 0)); break;
+           case 10: processors16.push_back(Filtering::Processor<Processor16>(convolution_i_s_10_c, Constraint(CPU_NONE), 0)); break;
+           case 12: processors16.push_back(Filtering::Processor<Processor16>(convolution_i_s_12_c, Constraint(CPU_NONE), 0)); break;
+           case 14: processors16.push_back(Filtering::Processor<Processor16>(convolution_i_s_14_c, Constraint(CPU_NONE), 0)); break;
+           case 16: processors16.push_back(Filtering::Processor<Processor16>(convolution_i_s_16_c, Constraint(CPU_NONE), 0)); break;
            }
          else
            switch (bits_per_pixel) {
-           case 8: processors.push_back(Filtering::Processor<Processor>(convolution_i_m_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0)); break;
-           case 10: processors16.push_back(Filtering::Processor<Processor16>(convolution_i_m_10_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0)); break;
-           case 12: processors16.push_back(Filtering::Processor<Processor16>(convolution_i_m_12_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0)); break;
-           case 14: processors16.push_back(Filtering::Processor<Processor16>(convolution_i_m_14_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0)); break;
-           case 16: processors16.push_back(Filtering::Processor<Processor16>(convolution_i_m_16_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0)); break;
+           case 8: processors.push_back(Filtering::Processor<Processor>(convolution_i_m_c, Constraint(CPU_NONE), 0)); break;
+           case 10: processors16.push_back(Filtering::Processor<Processor16>(convolution_i_m_10_c, Constraint(CPU_NONE), 0)); break;
+           case 12: processors16.push_back(Filtering::Processor<Processor16>(convolution_i_m_12_c, Constraint(CPU_NONE), 0)); break;
+           case 14: processors16.push_back(Filtering::Processor<Processor16>(convolution_i_m_14_c, Constraint(CPU_NONE), 0)); break;
+           case 16: processors16.push_back(Filtering::Processor<Processor16>(convolution_i_m_16_c, Constraint(CPU_NONE), 0)); break;
            }
    }
 

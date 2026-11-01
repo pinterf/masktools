@@ -63,12 +63,12 @@ public:
       if (parameters["distorsion"].toString() == "sad")
       {
         switch (bits_per_pixel) {
-        case 8: processors.push_back(Filtering::Processor<Processor>(sad_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0)); break;
-        case 10: processors16.push_back(Filtering::Processor<Processor16>(sad_10_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0)); break;
-        case 12: processors16.push_back(Filtering::Processor<Processor16>(sad_12_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0)); break;
-        case 14: processors16.push_back(Filtering::Processor<Processor16>(sad_14_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0)); break;
-        case 16: processors16.push_back(Filtering::Processor<Processor16>(sad_16_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0)); break;
-        case 32: processors32.push_back(Filtering::Processor<Processor32>(sad_32_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0)); break;
+        case 8: processors.push_back(Filtering::Processor<Processor>(sad_c, Constraint(CPU_NONE), 0)); break;
+        case 10: processors16.push_back(Filtering::Processor<Processor16>(sad_10_c, Constraint(CPU_NONE), 0)); break;
+        case 12: processors16.push_back(Filtering::Processor<Processor16>(sad_12_c, Constraint(CPU_NONE), 0)); break;
+        case 14: processors16.push_back(Filtering::Processor<Processor16>(sad_14_c, Constraint(CPU_NONE), 0)); break;
+        case 16: processors16.push_back(Filtering::Processor<Processor16>(sad_16_c, Constraint(CPU_NONE), 0)); break;
+        case 32: processors32.push_back(Filtering::Processor<Processor32>(sad_32_c, Constraint(CPU_NONE), 0)); break;
         }
         if (bits_per_pixel <= 16) {
           nMinimum = parameters["min"].is_defined() ? parameters["min"].toInt() : 0;

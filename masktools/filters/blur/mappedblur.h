@@ -109,44 +109,44 @@ public:
       if (parameters["mode"].toString() == "replace") {
         switch (bits_per_pixel) {
         case 8:
-          processors.push_back(Filtering::Processor<Processor>(mapped_all_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0));
+          processors.push_back(Filtering::Processor<Processor>(mapped_all_c, Constraint(CPU_NONE), 0));
           break;
         case 10:
-          processors16.push_back(Filtering::Processor<Processor16>(mapped_all_10_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0));
+          processors16.push_back(Filtering::Processor<Processor16>(mapped_all_10_c, Constraint(CPU_NONE), 0));
           break;
         case 12:
-          processors16.push_back(Filtering::Processor<Processor16>(mapped_all_12_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0));
+          processors16.push_back(Filtering::Processor<Processor16>(mapped_all_12_c, Constraint(CPU_NONE), 0));
           break;
         case 14:
-          processors16.push_back(Filtering::Processor<Processor16>(mapped_all_14_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0));
+          processors16.push_back(Filtering::Processor<Processor16>(mapped_all_14_c, Constraint(CPU_NONE), 0));
           break;
         case 16:
-          processors16.push_back(Filtering::Processor<Processor16>(mapped_all_16_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0));
+          processors16.push_back(Filtering::Processor<Processor16>(mapped_all_16_c, Constraint(CPU_NONE), 0));
           break;
         case 32:
-          processors32.push_back(Filtering::Processor<Processor32>(mapped_all_32_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0));
+          processors32.push_back(Filtering::Processor<Processor32>(mapped_all_32_c, Constraint(CPU_NONE), 0));
           break;
         }
       }
       else if (parameters["mode"].toString() == "dump") {
         switch (bits_per_pixel) {
         case 8:
-          processors.push_back(Filtering::Processor<Processor>(mapped_below_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0));
+          processors.push_back(Filtering::Processor<Processor>(mapped_below_c, Constraint(CPU_NONE), 0));
           break;
         case 10:
-          processors16.push_back(Filtering::Processor<Processor16>(mapped_below_10_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0));
+          processors16.push_back(Filtering::Processor<Processor16>(mapped_below_10_c, Constraint(CPU_NONE), 0));
           break;
         case 12:
-          processors16.push_back(Filtering::Processor<Processor16>(mapped_below_12_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0));
+          processors16.push_back(Filtering::Processor<Processor16>(mapped_below_12_c, Constraint(CPU_NONE), 0));
           break;
         case 14:
-          processors16.push_back(Filtering::Processor<Processor16>(mapped_below_14_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0));
+          processors16.push_back(Filtering::Processor<Processor16>(mapped_below_14_c, Constraint(CPU_NONE), 0));
           break;
         case 16:
-          processors16.push_back(Filtering::Processor<Processor16>(mapped_below_16_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0));
+          processors16.push_back(Filtering::Processor<Processor16>(mapped_below_16_c, Constraint(CPU_NONE), 0));
           break;
         case 32:
-          processors32.push_back(Filtering::Processor<Processor32>(mapped_below_32_c, Constraint(CPU_NONE, 1, 1, 1, 1), 0));
+          processors32.push_back(Filtering::Processor<Processor32>(mapped_below_32_c, Constraint(CPU_NONE), 0));
           break;
         }
       }

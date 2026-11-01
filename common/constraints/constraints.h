@@ -38,33 +38,20 @@ typedef enum {
 
 Modulo toModulo(int64_t n);
 
-typedef enum {
-
-   ALIGNMENT_NONE = 0,
-   ALIGNMENT_2    = 1,
-   ALIGNMENT_4    = 3,
-   ALIGNMENT_8    = 7,
-   ALIGNMENT_16   = 15,
-   ALIGNMENT_32   = 31,
-
-} Alignment;
-
-Alignment toAlignment(int64_t n);
-
+// Registration: Constraint(flags), Constraint(flags, nMinimumWidth) or Constraint(flags, MODULO_x, nMinimumWidth);
+// a processor is used for a plane when the flags are available, the plane width is a multiple of moduloX and at
+// least nMinimumWidth (the kernel's prerequisite, commented there when non-trivial).
 class Constraint {
 
    CpuFlags    flags;
    Modulo      moduloX;
-   Modulo      moduloY;
-   Alignment   alignment;
    int         nMinimumWidth;
 
 public:
 
    Constraint();
-   Constraint(CpuFlags flags, Modulo moduloX, Modulo moduloY, Alignment alignment, int nMinimumWidth = 16);
-   Constraint(CpuFlags flags, int nWidth, int nHeight, const uint8_t *pAddress, ptrdiff_t nPitch);
-   Constraint(CpuFlags flags, int nWidth, int nHeight, int64_t nAddress, ptrdiff_t nPitch);
+   explicit Constraint(CpuFlags flags, int nMinimumWidth = 1);
+   Constraint(CpuFlags flags, Modulo moduloX, int nMinimumWidth);
    Constraint(CpuFlags flags, const Plane<const uint8_t> &plane);
    Constraint(CpuFlags flags, const Plane<uint8_t> &plane);
    Constraint(const Constraint &constraint, const Plane<const uint8_t> &plane);
@@ -83,7 +70,7 @@ class Processor {
 public:
 
     Processor() : processor(NULL), nSpeed(-1) { }
-    Processor(P *processor) : processor(processor), nSpeed(0), constraint(CPU_NONE, 1, 1, 1, 1) { }
+    Processor(P *processor) : processor(processor), nSpeed(0), constraint(CPU_NONE) { }
     Processor(P *processor, const Constraint &constraint, int nSpeed) : processor(processor), nSpeed(nSpeed), constraint(constraint) { }
     bool respect(const Constraint &_constraint) const { return this->constraint.respect(_constraint); }
     int speed() const { return nSpeed; }
