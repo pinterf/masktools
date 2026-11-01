@@ -138,22 +138,6 @@ public:
          vcoeffs.pop_front();
       }
 
-      for (int i = 0; i < 4; i++)
-      {
-        if (operators[i] == PROCESS) {
-          if (nWidth / width_ratios[i][C] < nHorizontal)
-          {
-            error = "Plane width should be at least the horizontal element count";
-            return;
-          }
-          if (nHeight / height_ratios[i][C] < nVertical)
-          {
-            error = "Plane height should be at least the vertical element count";
-            return;
-          }
-        }
-      }
-
       /* adds the processor */
       bool isSaturate = parameters["saturate"].toBool();
       if ( isFloat )

@@ -1,58 +1,38 @@
 #include "convolution.h"
+#include <algorithm>
+#include <vector>
 
 using namespace Filtering;
 
 // returns either int or float (depending on the convolution parameters)
 // regardless of the bit depths
 // bit depth is templated to pixel_t
+// vectors[x] = sum of horizontal[i] * pSrc[x - nHorizontal / 2 + i], the edge pixels repeated outside the row
+// (any width, also below the kernel size)
 template<class Type, class pixel_t>
-class Left {
-   const pixel_t *pSrc;
-public:
-   Left(const pixel_t *pSrc) : pSrc(pSrc) { }
-   inline Type get(int nX, int nOffset) { if ( nX + nOffset < 0 ) return pSrc[0]; else return pSrc[nX + nOffset]; }
-};
-
-template<class Type, class pixel_t>
-class Right {
-   const pixel_t *pSrc;
-   int nWidth;
-public:
-   Right(const pixel_t *pSrc, int nWidth) : pSrc(pSrc), nWidth(nWidth) { }
-   inline Type get(int nX, int nOffset) { if ( nX + nOffset >= nWidth ) return pSrc[nWidth-1]; else return pSrc[nX + nOffset]; }
-};
-
-template<class Type, class pixel_t>
-class Center {
-   const pixel_t *pSrc;
-public:
-   Center(const pixel_t *pSrc) : pSrc(pSrc) { }
-   inline Type get(int nX, int nOffset) { return pSrc[nX + nOffset]; }
-};
-
-template<class Type, class PixelFetcher>
-Type compute_horizontal_vector_t(PixelFetcher &pf, const Type *horizontal, const int nHorizontal, int nOffset)
+void compute_line_t(const pixel_t* pSrc, const Type* horizontal, const int nHorizontal, int nWidth, Type* vectors)
 {
-   Type nSum = 0;
-   for ( int i = 0; i < nHorizontal; i++ )
-      nSum += pf.get(i, nOffset) * horizontal[i];
-   return nSum;
-}
-
-template<class Type, class pixel_t>
-void compute_line_t(const pixel_t *pSrc, const Type *horizontal, const int nHorizontal, int nWidth, Type *vectors)
-{
-   Left<Type, pixel_t> left(pSrc);
-   for ( int i = -(nHorizontal / 2); i < 0; i++ )
-      vectors[i + nHorizontal / 2] = compute_horizontal_vector_t<Type, Left<Type, pixel_t> >(left, horizontal, nHorizontal, i);
-
-   Center<Type, pixel_t> center(pSrc);
-   for ( int i = 0; i < nWidth - nHorizontal; i++ )
-      vectors[i + nHorizontal / 2] = compute_horizontal_vector_t<Type, Center<Type, pixel_t> >(center, horizontal, nHorizontal, i);
-
-   Right<Type, pixel_t> right(pSrc, nWidth);
-   for ( int i = nWidth - nHorizontal; i < nWidth - (nHorizontal / 2); i++ )
-      vectors[i + nHorizontal / 2] = compute_horizontal_vector_t<Type, Right<Type, pixel_t> >(right, horizontal, nHorizontal, i);
+  const int r = nHorizontal / 2;
+  const int x0 = std::min(r, nWidth);
+  const int x1 = std::max(x0, nWidth - (nHorizontal - 1 - r));
+  auto edge = [&](int x) {
+    Type nSum = 0;
+    for (int i = 0; i < nHorizontal; i++) {
+      const int xx = std::min(std::max(x - r + i, 0), nWidth - 1);
+      nSum += Type(pSrc[xx]) * horizontal[i];
+    }
+    return nSum;
+    };
+  for (int x = 0; x < x0; x++)
+    vectors[x] = edge(x);
+  for (int x = x0; x < x1; x++) {
+    Type nSum = 0;
+    for (int i = 0; i < nHorizontal; i++)
+      nSum += Type(pSrc[x - r + i]) * horizontal[i];
+    vectors[x] = nSum;
+  }
+  for (int x = x1; x < nWidth; x++)
+    vectors[x] = edge(x);
 }
 
 template<class Type, class pixel_t, int bits_per_pixel>
@@ -82,35 +62,18 @@ struct MIRROR {
 
 template<class Type, class SaturateOp, class pixel_t, int bits_per_pixel>
 class HorizontalVectors {
-   Type **horizontals;
-   Type **uncircled_horizontals;
+   std::vector<std::vector<Type>> horizontals;
+   std::vector<Type *> uncircled_horizontals;
    int nVertical;
    int nIdx;
 public:
-   HorizontalVectors() : horizontals(NULL), uncircled_horizontals(NULL) {}
-   HorizontalVectors(int nWidth, int nVertical) : nVertical(nVertical), nIdx(0)
-   {
-      horizontals = new Type*[nVertical];
-      for ( int i = 0; i < nVertical; i++ )
-         horizontals[i] = new Type[nWidth];
-      uncircled_horizontals = new Type*[nVertical];
-   }
-   ~HorizontalVectors()
-   {
-      if ( horizontals )
-      {
-         for ( int i = 0; i < nVertical; i++ )
-            if ( horizontals[i] )
-               delete[] horizontals[i];
-         delete[] horizontals;
-      }
-   }
+   HorizontalVectors(int nWidth, int nVertical) : horizontals(nVertical, std::vector<Type>(nWidth)), uncircled_horizontals(nVertical), nVertical(nVertical), nIdx(0) {}
    Type *get_line(int _nIdx)
    {
       if ( _nIdx + this->nIdx < nVertical )
-         return horizontals[_nIdx + this->nIdx];
+         return horizontals[_nIdx + this->nIdx].data();
       else
-         return horizontals[_nIdx + this->nIdx - nVertical];
+         return horizontals[_nIdx + this->nIdx - nVertical].data();
    }
    void next_line()
    {
@@ -156,51 +119,38 @@ Type compute_norm_t(const Type *horizontal, const Type *vertical, int nHorizonta
 
 
 template<class Type, class SaturateOp, class pixel_t, int bits_per_pixel>
-void convolution_t(pixel_t *pDst, ptrdiff_t nDstPitch, const pixel_t *pSrc, ptrdiff_t nSrcPitch, 
-                   void *_horizontal, void *_vertical, void *_total, const int nHorizontal, const int nVertical,
-                   int nWidth, int nHeight)
+void convolution_t(pixel_t* pDst, ptrdiff_t nDstPitch, const pixel_t* pSrc, ptrdiff_t nSrcPitch,
+  void* _horizontal, void* _vertical, void* _total, const int nHorizontal, const int nVertical,
+  int nWidth, int nHeight)
 {
-   nDstPitch /= sizeof(pixel_t);
-   nSrcPitch /= sizeof(pixel_t);
+  nDstPitch /= sizeof(pixel_t);
+  nSrcPitch /= sizeof(pixel_t);
 
-   const Type *horizontal = static_cast<const Type*>(_horizontal);
-   const Type *vertical   = static_cast<const Type*>(_vertical);
+  const Type* horizontal = static_cast<const Type*>(_horizontal);
+  const Type* vertical = static_cast<const Type*>(_vertical);
 
-   HorizontalVectors<Type, SaturateOp, pixel_t, bits_per_pixel> *horizontals = NULL;
-   const Type nNormalization = _total ? *static_cast<const Type*>(_total) : compute_norm_t<Type>(horizontal, vertical, nHorizontal, nVertical);
+  if (nWidth <= 0 || nHeight <= 0)
+    return;
 
-   if ( !horizontals )
-      horizontals = new HorizontalVectors<Type, SaturateOp, pixel_t, bits_per_pixel>(nWidth, nVertical);
+  const Type nNormalization = _total ? *static_cast<const Type*>(_total) : compute_norm_t<Type>(horizontal, vertical, nHorizontal, nVertical);
 
-   for ( int i = 0; i < nVertical / 2; i++ )
-      compute_line_t<Type, pixel_t>(pSrc, horizontal, nHorizontal, nWidth, horizontals->get_line(i));
+  HorizontalVectors<Type, SaturateOp, pixel_t, bits_per_pixel> horizontals(nWidth, nVertical);
 
-   for ( int i = nVertical / 2; i < nVertical - 1; i++ )
-   {
-      compute_line_t<Type, pixel_t>(pSrc, horizontal, nHorizontal, nWidth, horizontals->get_line(i));
-      pSrc += nSrcPitch;
-   }
+  // line j of the window of output row y: source row y - nVertical / 2 + j, the edge rows repeated outside
+  // the plane (any height, also below the kernel size)
+  const int r = nVertical / 2;
+  auto row = [&](int y) { return pSrc + std::min(std::max(y, 0), nHeight - 1) * nSrcPitch; };
 
-   for ( int i = 0; i < nHeight - (nVertical / 2); i++ )
-   {
-      compute_line_t<Type, pixel_t>(pSrc, horizontal, nHorizontal, nWidth, horizontals->get_line(nVertical-1));
-      horizontals->compute_verticals(pDst, vertical, nWidth, nNormalization);
-      horizontals->next_line();
-      pSrc += nSrcPitch;
-      pDst += nDstPitch;
-   }
+  for (int j = 0; j < nVertical - 1; j++)
+    compute_line_t<Type, pixel_t>(row(j - r), horizontal, nHorizontal, nWidth, horizontals.get_line(j));
 
-   pSrc -= nSrcPitch;
-
-   for ( int i = nHeight - (nVertical / 2); i < nHeight; i++ )
-   {
-      compute_line_t<Type, pixel_t>(pSrc, horizontal, nHorizontal, nWidth, horizontals->get_line(nVertical-1));
-      horizontals->compute_verticals(pDst, vertical, nWidth, nNormalization);
-      horizontals->next_line();
-      pDst += nDstPitch;
-   }
-
-   delete horizontals;
+  for (int y = 0; y < nHeight; y++)
+  {
+    compute_line_t<Type, pixel_t>(row(y - r + nVertical - 1), horizontal, nHorizontal, nWidth, horizontals.get_line(nVertical - 1));
+    horizontals.compute_verticals(pDst, vertical, nWidth, nNormalization);
+    horizontals.next_line();
+    pDst += nDstPitch;
+  }
 }
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Convolution {
