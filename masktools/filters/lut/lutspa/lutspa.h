@@ -69,8 +69,9 @@ public:
               continue;
           }
 
-         const int w = i ? nCoreWidthUV : nCoreWidth;
-         const int h = i ? nCoreHeightUV : nCoreHeight;
+         const bool is_chroma = i == 1 || i == 2;
+         const int w = is_chroma ? nCoreWidthUV : nCoreWidth;
+         const int h = is_chroma ? nCoreHeightUV : nCoreHeight;
          if ( parameters[expr_strs[i]].is_defined() ) 
             parser.parse_strict(parameters[expr_strs[i]].toString(), Parser::SYMBOL_SEPARATORS);
          else

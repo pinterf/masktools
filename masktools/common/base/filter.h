@@ -239,6 +239,19 @@ public:
         if (nXOffset + nCoreWidth  > nWidth  || nCoreWidth  < 0) nCoreWidth = nWidth - nXOffset;
         if (nYOffset + nCoreHeight > nHeight || nCoreHeight < 0) nCoreHeight = nHeight - nYOffset;
 
+        // Snap the window to the subsampling grid the same way Frame::offset does,
+        // so that nCoreWidth/nCoreHeight are the real luma window sizes.
+        if (plane_counts[C] > 1) {
+            const int rw = width_ratios[2][C];
+            const int rh = height_ratios[2][C];
+            const int x1 = (nXOffset + nCoreWidth) / rw * rw;
+            const int y1 = (nYOffset + nCoreHeight) / rh * rh;
+            nXOffset = nXOffset / rw * rw;
+            nYOffset = nYOffset / rh * rh;
+            nCoreWidth = x1 - nXOffset;
+            nCoreHeight = y1 - nYOffset;
+        }
+
         String scalemode = parameters["paramscale"].toString();
         const bool fullscale = planes_isRGB[C];
         const int bits_per_pixel = bit_depths[C];
@@ -480,12 +493,13 @@ public:
       }
 
       if (isStacked) {
-        process_stacked(n, output, frames, clipcount);
+        if (output.plane(0).width() > 0 && output.plane(0).height() > 0)
+          process_stacked(n, output, frames, clipcount);
         return output_frame;
       }
 
       for (int i = 0; i < plane_counts[C]; i++) {
-        constraints[i] = Constraint(flags, output.plane(i));
+        constraints[i] = Constraint(plane_flags(output.plane(i)), output.plane(i));
       }
 
       for (int i = 0; i < clipcount; i++) {
@@ -495,10 +509,20 @@ public:
       }
 
       for (int i = 0; i < plane_counts[C]; i++) {
+        // a window snapped to the subsampling can be empty (e.g. YV12 offx=0, w=1): nothing to process
+        if (output.plane(i).width() <= 0 || output.plane(i).height() <= 0)
+          continue;
         process_plane(n, output.plane(i), i, constraints, frames);
       }
 
       return output_frame;
+    }
+
+    // Planes narrower or lower than 2 pixels go to the C processors: the SIMD
+    // neighbourhood kernels (3x3 etc.) assume at least 2 rows and columns.
+    CpuFlags plane_flags(const Plane<uint8_t> &plane) const
+    {
+      return plane.width() < 2 || plane.height() < 2 ? CpuFlags(CPU_NONE) : flags;
     }
 
     // stacked 16 bit: the planes converted to native 16 bit, processed, the output converted back
@@ -514,7 +538,7 @@ public:
         const Plane<uint8_t> &o = output.plane(i);
         // the output too: in place filters and the "none" mode keep its content
         out_native[i] = out_buf[i].from_stacked(Plane<const uint8_t>(o.data(), o.pitch(), o.width(), o.height(), o.pixelsize(), o.origheight()));
-        constraints[i] = Constraint(flags, out_native[i]);
+        constraints[i] = Constraint(plane_flags(out_native[i]), out_native[i]);
       }
       for (int i = 0; i < clipcount; i++) {
         Plane<const uint8_t> planes[4];
@@ -527,6 +551,8 @@ public:
         frames_native[i] = Frame<const uint8_t>(planes, frames[i].colorspace());
       }
       for (int i = 0; i < planecount; i++) {
+        if (out_native[i].width() <= 0 || out_native[i].height() <= 0)
+          continue;
         process_plane(n, out_native[i], i, constraints, frames_native);
         NativePlaneBuffer::to_stacked(out_native[i], output.plane(i));
       }

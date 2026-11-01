@@ -121,6 +121,7 @@ static MT_FORCEINLINE void process_line_xxpand_vertical(uint8_t *pDst, const uin
     }
 }
 
+// nHeight >= 2: separate top and bottom row passes (smaller planes go to C, filter.h plane_flags)
 template<decltype(_mm_max_epu8) op, Limit limit>
 static void xxpand_sse2_vertical(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight) {
     const uint8_t *pSrcp = pSrc - nSrcPitch;
@@ -259,6 +260,7 @@ static void xxpand_sse2_square(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t
         limit_by_source_sse2<limit>(pDst, nDstPitch, pSrc, nSrcPitch, nMaxDeviation, nWidth, nHeight);
 }
 
+// nHeight >= 2: separate top and bottom row passes (smaller planes go to C, filter.h plane_flags)
 template<ProcessLineSse2 process_line_left, ProcessLineSse2 process_line, ProcessLineSse2 process_line_right>
 static void generic_sse2(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight) {
     const uint8_t *pSrcp = pSrc - nSrcPitch;

@@ -127,6 +127,7 @@ static MT_FORCEINLINE void process_line_xxpand_vertical_16(uint8_t *pDst, const 
   }
 }
 
+// nHeight >= 2: separate top and bottom row passes (smaller planes go to C, filter.h plane_flags)
 template<decltype(_mm_max_epu16) op, Limit16 limit>
 static void xxpand_sse4_vertical_16(uint16_t *pDst16, ptrdiff_t nDstPitch, const uint16_t *pSrc16, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, int nOrigHeight) {
   // back to byte level
@@ -279,6 +280,7 @@ static void xxpand_sse4_square_16(uint16_t *pDst, ptrdiff_t nDstPitch, const uin
     limit_by_source_sse4_16<limit>(pDst, nDstPitch, pSrc, nSrcPitch, nMaxDeviation, nWidth, nHeight);
 }
 
+// nHeight >= 2: separate top and bottom row passes (smaller planes go to C, filter.h plane_flags)
 template<ProcessLine16Sse4 process_line_left, ProcessLine16Sse4 process_line, ProcessLine16Sse4 process_line_right>
 static void generic_sse4_16(uint16_t *pDst16, ptrdiff_t nDstPitch, const uint16_t *pSrc16, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, int nOrigHeight) {
   // back to byte level

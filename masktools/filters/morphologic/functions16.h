@@ -49,46 +49,33 @@ struct MorphologicProcessor {
     template<ProcessLineC process_line_left, ProcessLineC process_line, ProcessLineC process_line_right>
     static void generic_16_c(T *pDst, ptrdiff_t nDstPitch, const T *pSrc, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, int nOrigHeight)
     {
-        const T *pSrcp = pSrc - nSrcPitch;
-        const T *pSrcn = pSrc + nSrcPitch;
-
         UNUSED(nCoordinates); UNUSED(pCoordinates);
 
-        /* top-left */
-        process_line_left(pDst, pSrc, pSrc, pSrcn, nMaxDeviation, 1, nHeight, nSrcPitch, nDstPitch, nOrigHeight);
-
-        /* top */
-        process_line(pDst + 1, pSrc+1, pSrc+1, pSrcn+1, nMaxDeviation, nWidth - 2, nHeight, nSrcPitch, nDstPitch, nOrigHeight);
-
-        /* top-right */
-        process_line_right(pDst + nWidth - 1, pSrc + nWidth - 1, pSrc + nWidth - 1, pSrcn + nWidth - 1, nMaxDeviation, 1, nHeight, nSrcPitch, nDstPitch, nOrigHeight);
-
-        pDst  += nDstPitch;
-        pSrcp += nSrcPitch;
-        pSrc  += nSrcPitch;
-        pSrcn += nSrcPitch;
-
-        for ( int y = 1; y < nHeight - 1; y++ )
+        // rows and columns are clamped at the plane edges: a plane can be 1 pixel wide or high
+        for ( int y = 0; y < nHeight; y++ )
         {
-            /* left */
-            process_line_left(pDst, pSrcp, pSrc, pSrcn, nMaxDeviation, 1, nHeight, nSrcPitch, nDstPitch, nOrigHeight);
-            /* center */
-            process_line(pDst + 1, pSrcp+1, pSrc+1, pSrcn+1, nMaxDeviation, nWidth - 2, nHeight, nSrcPitch, nDstPitch, nOrigHeight);
-            /* right */
-            process_line_right(pDst + nWidth - 1, pSrcp + nWidth - 1, pSrc + nWidth - 1, pSrcn + nWidth - 1, nMaxDeviation, 1, nHeight, nSrcPitch, nDstPitch, nOrigHeight);
+            const T *pSrcp = y > 0 ? pSrc - nSrcPitch : pSrc;
+            const T *pSrcn = y < nHeight - 1 ? pSrc + nSrcPitch : pSrc;
 
-            pDst  += nDstPitch;
-            pSrcp += nSrcPitch;
-            pSrc  += nSrcPitch;
-            pSrcn += nSrcPitch;
+            if ( nWidth == 1 )
+            {
+                // the left border line reads x and x+1: give it the pixel twice
+                const T p[2] = { pSrcp[0], pSrcp[0] }, c[2] = { pSrc[0], pSrc[0] }, n[2] = { pSrcn[0], pSrcn[0] };
+                process_line_left(pDst, p, c, n, nMaxDeviation, 1, nHeight, nSrcPitch, nDstPitch, nOrigHeight);
+            }
+            else
+            {
+                /* left */
+                process_line_left(pDst, pSrcp, pSrc, pSrcn, nMaxDeviation, 1, nHeight, nSrcPitch, nDstPitch, nOrigHeight);
+                /* center */
+                process_line(pDst + 1, pSrcp+1, pSrc+1, pSrcn+1, nMaxDeviation, nWidth - 2, nHeight, nSrcPitch, nDstPitch, nOrigHeight);
+                /* right */
+                process_line_right(pDst + nWidth - 1, pSrcp + nWidth - 1, pSrc + nWidth - 1, pSrcn + nWidth - 1, nMaxDeviation, 1, nHeight, nSrcPitch, nDstPitch, nOrigHeight);
+            }
+
+            pDst += nDstPitch;
+            pSrc += nSrcPitch;
         }
-
-        /* bottom-left */
-        process_line_left(pDst, pSrcp, pSrc, pSrc, nMaxDeviation, 1, nHeight, nSrcPitch, nDstPitch, nOrigHeight);
-        /* bottom */
-        process_line(pDst + 1, pSrcp+1, pSrc+1, pSrc+1, nMaxDeviation, nWidth - 2, nHeight, nSrcPitch, nDstPitch, nOrigHeight);
-        /* bottom-right */
-        process_line_right(pDst + nWidth - 1, pSrcp + nWidth - 1, pSrc + nWidth - 1, pSrc + nWidth - 1, nMaxDeviation, 1, nHeight, nSrcPitch, nDstPitch, nOrigHeight);
     }
 };
 

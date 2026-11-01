@@ -20,53 +20,30 @@ enum Directions {
 template<Operator op>
 void generic_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight)
 {
-   const uint8_t *pSrcp = pSrc - nSrcPitch;
-   const uint8_t *pSrcn = pSrc + nSrcPitch;
-
-   UNUSED(nCoordinates); UNUSED(pCoordinates);
-
-   /* top-left */
-   pDst[0] = op(pSrc[0], pSrc[0], pSrc[1], pSrc[0], pSrc[0], pSrc[1], pSrcn[0], pSrcn[0], pSrcn[1], nMaxDeviation);
-
-   /* top */
-   for ( int x = 1; x < nWidth - 1; x++ )
-      pDst[x] = op(pSrc[x-1], pSrc[x], pSrc[x+1], pSrc[x-1], pSrc[x], pSrc[x+1], pSrcn[x-1], pSrcn[x], pSrcn[x+1], nMaxDeviation);
-
-   /* top-right */
-   pDst[nWidth-1] = op(pSrc[nWidth-2], pSrc[nWidth-1], pSrc[nWidth-1], pSrc[nWidth-2], pSrc[nWidth-1], pSrc[nWidth-1], pSrcn[nWidth-2], pSrcn[nWidth-1], pSrcn[nWidth-1], nMaxDeviation);
-
-   pDst  += nDstPitch;
-   pSrcp += nSrcPitch;
-   pSrc  += nSrcPitch;
-   pSrcn += nSrcPitch;
-
-   for ( int y = 1; y < nHeight - 1; y++ )
+   // rows and columns are clamped at the plane edges: a plane can be 1 pixel wide or high
+   for ( int y = 0; y < nHeight; y++ )
    {
-      /* left */
-      pDst[0] = op(pSrcp[0], pSrcp[0], pSrcp[1], pSrc[0], pSrc[0], pSrc[1], pSrcn[0], pSrcn[0], pSrcn[1], nMaxDeviation);
+      const uint8_t *pSrcp = y > 0 ? pSrc - nSrcPitch : pSrc;
+      const uint8_t *pSrcn = y < nHeight - 1 ? pSrc + nSrcPitch : pSrc;
 
-      /* center */
-      for ( int x = 1; x < nWidth - 1; x++ )
-         pDst[x] = op(pSrcp[x-1], pSrcp[x], pSrcp[x+1], pSrc[x-1], pSrc[x], pSrc[x+1], pSrcn[x-1], pSrcn[x], pSrcn[x+1], nMaxDeviation);
+      if ( nWidth == 1 )
+         pDst[0] = op(pSrcp[0], pSrcp[0], pSrcp[0], pSrc[0], pSrc[0], pSrc[0], pSrcn[0], pSrcn[0], pSrcn[0], nMaxDeviation);
+      else
+      {
+         /* left */
+         pDst[0] = op(pSrcp[0], pSrcp[0], pSrcp[1], pSrc[0], pSrc[0], pSrc[1], pSrcn[0], pSrcn[0], pSrcn[1], nMaxDeviation);
 
-      /* right */
-      pDst[nWidth-1] = op(pSrcp[nWidth-2], pSrcp[nWidth-1], pSrcp[nWidth-1], pSrc[nWidth-2], pSrc[nWidth-1], pSrc[nWidth-1], pSrcn[nWidth-2], pSrcn[nWidth-1], pSrcn[nWidth-1], nMaxDeviation);
+         /* center */
+         for ( int x = 1; x < nWidth - 1; x++ )
+            pDst[x] = op(pSrcp[x-1], pSrcp[x], pSrcp[x+1], pSrc[x-1], pSrc[x], pSrc[x+1], pSrcn[x-1], pSrcn[x], pSrcn[x+1], nMaxDeviation);
 
-      pDst  += nDstPitch;
-      pSrcp += nSrcPitch;
-      pSrc  += nSrcPitch;
-      pSrcn += nSrcPitch;
+         /* right */
+         pDst[nWidth-1] = op(pSrcp[nWidth-2], pSrcp[nWidth-1], pSrcp[nWidth-1], pSrc[nWidth-2], pSrc[nWidth-1], pSrc[nWidth-1], pSrcn[nWidth-2], pSrcn[nWidth-1], pSrcn[nWidth-1], nMaxDeviation);
+      }
+
+      pDst += nDstPitch;
+      pSrc += nSrcPitch;
    }
-
-   /* bottom-left */
-   pDst[0] = op(pSrcp[0], pSrcp[0], pSrcp[1], pSrc[0], pSrc[0], pSrc[1], pSrc[0], pSrc[0], pSrc[1], nMaxDeviation);
-
-   /* bottom */
-   for ( int x = 1; x < nWidth - 1; x++ )
-      pDst[x] = op(pSrcp[x-1], pSrcp[x], pSrcp[x+1], pSrc[x-1], pSrc[x], pSrc[x+1], pSrc[x-1], pSrc[x], pSrc[x+1], nMaxDeviation);
-
-   /* bottom-right */
-   pDst[nWidth-1] = op(pSrcp[nWidth-2], pSrcp[nWidth-1], pSrcp[nWidth-1], pSrc[nWidth-2], pSrc[nWidth-1], pSrc[nWidth-1], pSrc[nWidth-2], pSrc[nWidth-1], pSrc[nWidth-1], nMaxDeviation);
 }
 
 /* Horizontal mt_xxpand */
