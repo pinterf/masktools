@@ -22,9 +22,9 @@ extern ProcessorCtx32 *processors_realtime_32_array[NUM_MODES][NUM_MODES];
 
 class Lutsx : public MaskTools::Filter
 {
-   std::pair<bool, uint8_t*> luts[4+1];
+   std::pair<bool, uint8_t*> luts[4+1] = {};
 
-   int *pCoordinates;
+   int *pCoordinates = nullptr;
    int nCoordinates;
 
    ProcessorList<Processor> processors;
@@ -215,6 +215,7 @@ public:
 
    ~Lutsx()
    {
+       delete[] pCoordinates;
        for (int i = 0; i < 4+1; ++i) {
            if (luts[i].first) {
                delete[] luts[i].second;

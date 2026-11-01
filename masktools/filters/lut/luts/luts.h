@@ -40,7 +40,7 @@ extern Processor32 *processors_weight_realtime_32_array[NUM_MODES];
 
 class Luts : public MaskTools::Filter
 {
-   int *pCoordinates;
+   int *pCoordinates = nullptr;
    int nCoordinates;
 
    ProcessorList<Processor> processors;

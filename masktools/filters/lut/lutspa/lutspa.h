@@ -12,7 +12,7 @@ Processor lut_c;
 
 class Lutspa : public MaskTools::Filter
 {
-   uint8_t *luts[4];
+   uint8_t *luts[4] = {};
    int bits_per_pixel;
    int pixelsize;
 
