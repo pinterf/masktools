@@ -12,7 +12,6 @@ typedef void(Processor32)(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSr
 
 Processor average_c;
 extern Processor *average_sse2;
-extern Processor *average_asse2;
 
 /* 16 bits */
 
@@ -21,7 +20,6 @@ Processor16 average16_native_sse2;
 
 Processor32 average32_c;
 extern Processor32 *average32_sse2;
-extern Processor32 *average32_asse2;
 
 
 #ifdef NEON_INTRINSICS
@@ -76,7 +74,6 @@ public:
 #endif
 #ifdef INTEL_INTRINSICS
         processors.push_back(Filtering::Processor<Processor>(average_sse2, Constraint(CPU_SSE2, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 1), 1));
-        processors.push_back(Filtering::Processor<Processor>(average_asse2, Constraint(CPU_SSE2, MODULO_NONE, MODULO_NONE, ALIGNMENT_16, 16), 2));
 #endif
       }else if(bits_per_pixel <= 16)
       {
@@ -95,7 +92,6 @@ public:
 #endif
 #ifdef INTEL_INTRINSICS
         processors32.push_back(Filtering::Processor<Processor32>(average32_sse2, Constraint(CPU_SSE2, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 1), 1));
-        processors32.push_back(Filtering::Processor<Processor32>(average32_asse2, Constraint(CPU_SSE2, MODULO_NONE, MODULO_NONE, ALIGNMENT_16, 16), 2));
 #endif
       }
     }

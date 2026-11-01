@@ -237,15 +237,10 @@ namespace {
 } // namespace
 
    Processor32 *merge32_sse2 = merge32_sse2_t<MemoryMode::SSE2_UNALIGNED>;
-   Processor32 *merge32_asse2 = merge32_sse2_t<MemoryMode::SSE2_ALIGNED>;
    Processor32 *merge32_luma_420_sse2 = merge32_luma_420_sse2_t<MemoryMode::SSE2_UNALIGNED>;
-   Processor32 *merge32_luma_420_asse2 = merge32_luma_420_sse2_t<MemoryMode::SSE2_ALIGNED>;
    Processor32 *merge32_luma_420_mpeg2_sse2 = merge32_luma_420_mpeg2_sse2_t<MemoryMode::SSE2_UNALIGNED>;
-   Processor32 *merge32_luma_420_mpeg2_asse2 = merge32_luma_420_mpeg2_sse2_t<MemoryMode::SSE2_ALIGNED>;
    Processor32 *merge32_luma_422_sse2 = merge32_luma_422_sse2_t<MemoryMode::SSE2_UNALIGNED>;
-   Processor32 *merge32_luma_422_asse2 = merge32_luma_422_sse2_t<MemoryMode::SSE2_ALIGNED>;
    Processor32 *merge32_luma_422_mpeg2_sse2 = merge32_luma_422_mpeg2_sse2_t<MemoryMode::SSE2_UNALIGNED>;
-   Processor32 *merge32_luma_422_mpeg2_asse2 = merge32_luma_422_mpeg2_sse2_t<MemoryMode::SSE2_ALIGNED>;
 
 } } } }
 

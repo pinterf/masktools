@@ -118,17 +118,13 @@ Processor16 *expand_both_16_avx2_c = &MorphologicProcessor<uint16_t>::generic_16
     >;
 
 DEFINE_AVX2_VERSIONS(avx2, MemoryMode::SSE2_UNALIGNED)
-DEFINE_AVX2_VERSIONS(aavx2, MemoryMode::SSE2_ALIGNED)
 #undef DEFINE_AVX2_VERSIONS
 
 Processor16 *expand_vertical_avx2_16 = &xxpand_avx2_vertical_16<expand_operator_avx2_16, limit_up_16_avx2, MemoryMode::SSE2_UNALIGNED>;
-Processor16 *expand_vertical_aavx2_16 = &xxpand_avx2_vertical_16<expand_operator_avx2_16, limit_up_16_avx2, MemoryMode::SSE2_ALIGNED>;
 
 Processor16 *expand_horizontal_avx2_16 = &xxpand_avx2_horizontal_16<expand_operator_avx2_16, limit_up_16_avx2, MemoryMode::SSE2_UNALIGNED, expand_c_horizontal_core_16_avx2>;
-Processor16 *expand_horizontal_aavx2_16 = &xxpand_avx2_horizontal_16<expand_operator_avx2_16, limit_up_16_avx2, MemoryMode::SSE2_ALIGNED, expand_c_horizontal_core_16_avx2>;
 
 Processor16 *expand_square_avx2_16 = &xxpand_avx2_square_16<expand_operator_avx2_16, limit_up_16_avx2, MemoryMode::SSE2_UNALIGNED, expand_c_horizontal_core_16_avx2>;
-Processor16 *expand_square_aavx2_16 = &xxpand_avx2_square_16<expand_operator_avx2_16, limit_up_16_avx2, MemoryMode::SSE2_ALIGNED, expand_c_horizontal_core_16_avx2>;
 
 Processor16 *expand_custom_16_avx2_c   = &generic_custom_16_avx2_c<NewValue16>;
 

@@ -70,10 +70,8 @@ static void average32_sse2_t(uint8_t *pDst, ptrdiff_t dst_pitch, const uint8_t *
 } // namespace
 
 Processor *average_sse2 = &average_sse2_t<MemoryMode::SSE2_UNALIGNED>;
-Processor *average_asse2 = &average_sse2_t<MemoryMode::SSE2_ALIGNED>;
 
 Processor32 *average32_sse2 = &average32_sse2_t<MemoryMode::SSE2_UNALIGNED>;
-Processor32 *average32_asse2 = &average32_sse2_t<MemoryMode::SSE2_ALIGNED>;
 
 } } } } }
 

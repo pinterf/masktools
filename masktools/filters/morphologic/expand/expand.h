@@ -8,19 +8,15 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Morpho
 
 extern Processor *expand_square_c;
 extern Processor *expand_square_sse2;
-extern Processor *expand_square_asse2;
 
 extern Processor *expand_horizontal_c;
 extern Processor *expand_horizontal_sse2;
-extern Processor *expand_horizontal_asse2;
 
 extern Processor *expand_vertical_c;
 extern Processor *expand_vertical_sse2;
-extern Processor *expand_vertical_asse2;
 
 extern Processor *expand_both_c;
 extern Processor *expand_both_sse2;
-extern Processor *expand_both_asse2;
 
 extern Processor *expand_custom_c;
 
@@ -34,22 +30,14 @@ extern Processor16 *expand_custom_16_c;
 extern Processor16* expand_custom_16_avx2_c;
 
 extern Processor16 *expand_square_sse4_16;
-extern Processor16 *expand_square_asse4_16;
 extern Processor16 *expand_horizontal_sse4_16;
-extern Processor16 *expand_horizontal_asse4_16;
 extern Processor16 *expand_vertical_sse4_16;
-extern Processor16 *expand_vertical_asse4_16;
 extern Processor16 *expand_both_sse4_16;
-extern Processor16 *expand_both_asse4_16;
 
 extern Processor16* expand_square_avx2_16;
-extern Processor16* expand_square_aavx2_16;
 extern Processor16* expand_horizontal_avx2_16;
-extern Processor16* expand_horizontal_aavx2_16;
 extern Processor16* expand_vertical_avx2_16;
-extern Processor16* expand_vertical_aavx2_16;
 extern Processor16* expand_both_avx2_16;
-extern Processor16* expand_both_aavx2_16;
 
 #ifdef NEON_INTRINSICS
 extern Processor *expand_square_neon;
@@ -89,7 +77,6 @@ public:
 #endif
 #ifdef INTEL_INTRINSICS
         processors.push_back(Filtering::Processor<Processor>(expand_square_sse2, Constraint(CPU_SSE2, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 17), 1));
-        processors.push_back(Filtering::Processor<Processor>(expand_square_asse2, Constraint(CPU_SSE2, MODULO_NONE, MODULO_NONE, ALIGNMENT_16, 17), 2));
 #endif
       }
       else if (_bits_per_pixel <= 16) {
@@ -99,9 +86,7 @@ public:
 #endif
 #ifdef INTEL_INTRINSICS
         processors16.push_back(Filtering::Processor<Processor16>(expand_square_sse4_16, Constraint(CPU_SSE4_1, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 16), 1));
-        processors16.push_back(Filtering::Processor<Processor16>(expand_square_asse4_16, Constraint(CPU_SSE4_1, MODULO_NONE, MODULO_NONE, ALIGNMENT_16, 16), 2));
         processors16.push_back(Filtering::Processor<Processor16>(expand_square_avx2_16, Constraint(CPU_AVX2, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 32), 3));
-        processors16.push_back(Filtering::Processor<Processor16>(expand_square_aavx2_16, Constraint(CPU_AVX2, MODULO_NONE, MODULO_NONE, ALIGNMENT_32, 32), 4));
 #endif
       }
       else {
@@ -117,7 +102,6 @@ public:
 #endif
 #ifdef INTEL_INTRINSICS
         processors.push_back(Filtering::Processor<Processor>(expand_horizontal_sse2, Constraint(CPU_SSE2, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 17), 1));
-        processors.push_back(Filtering::Processor<Processor>(expand_horizontal_asse2, Constraint(CPU_SSE2, MODULO_NONE, MODULO_NONE, ALIGNMENT_16, 17), 2));
 #endif
       }
       else if (_bits_per_pixel <= 16) {
@@ -127,9 +111,7 @@ public:
 #endif
 #ifdef INTEL_INTRINSICS
         processors16.push_back(Filtering::Processor<Processor16>(expand_horizontal_sse4_16, Constraint(CPU_SSE4_1, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 16), 1));
-        processors16.push_back(Filtering::Processor<Processor16>(expand_horizontal_asse4_16, Constraint(CPU_SSE4_1, MODULO_NONE, MODULO_NONE, ALIGNMENT_16, 16), 2));
         processors16.push_back(Filtering::Processor<Processor16>(expand_horizontal_avx2_16, Constraint(CPU_AVX2, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 32), 3));
-        processors16.push_back(Filtering::Processor<Processor16>(expand_horizontal_aavx2_16, Constraint(CPU_AVX2, MODULO_NONE, MODULO_NONE, ALIGNMENT_32, 32), 4));
 #endif
       }
       else {
@@ -145,7 +127,6 @@ public:
 #endif
 #ifdef INTEL_INTRINSICS
         processors.push_back(Filtering::Processor<Processor>(expand_vertical_sse2, Constraint(CPU_SSE2, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 16), 1));
-        processors.push_back(Filtering::Processor<Processor>(expand_vertical_asse2, Constraint(CPU_SSE2, MODULO_NONE, MODULO_NONE, ALIGNMENT_16, 16), 2));
 #endif
       }
       else if (_bits_per_pixel <= 16) {
@@ -155,9 +136,7 @@ public:
 #endif
 #ifdef INTEL_INTRINSICS
         processors16.push_back(Filtering::Processor<Processor16>(expand_vertical_sse4_16, Constraint(CPU_SSE4_1, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 16), 1));
-        processors16.push_back(Filtering::Processor<Processor16>(expand_vertical_asse4_16, Constraint(CPU_SSE4_1, MODULO_NONE, MODULO_NONE, ALIGNMENT_16, 16), 2));
         processors16.push_back(Filtering::Processor<Processor16>(expand_vertical_avx2_16, Constraint(CPU_AVX2, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 32), 3));
-        processors16.push_back(Filtering::Processor<Processor16>(expand_vertical_aavx2_16, Constraint(CPU_AVX2, MODULO_NONE, MODULO_NONE, ALIGNMENT_32, 32), 4));
 #endif
       }
       else {
@@ -173,7 +152,6 @@ public:
 #endif
 #ifdef INTEL_INTRINSICS
         processors.push_back(Filtering::Processor<Processor>(expand_both_sse2, Constraint(CPU_SSE2, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 17), 1));
-        processors.push_back(Filtering::Processor<Processor>(expand_both_asse2, Constraint(CPU_SSE2, MODULO_NONE, MODULO_NONE, ALIGNMENT_16, 17), 2));
 #endif
       }
       else if (_bits_per_pixel <= 16) {
@@ -183,9 +161,7 @@ public:
 #endif
 #ifdef INTEL_INTRINSICS
         processors16.push_back(Filtering::Processor<Processor16>(expand_both_sse4_16, Constraint(CPU_SSE4_1, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 16), 1));
-        processors16.push_back(Filtering::Processor<Processor16>(expand_both_asse4_16, Constraint(CPU_SSE4_1, MODULO_NONE, MODULO_NONE, ALIGNMENT_16, 16), 2));
         processors16.push_back(Filtering::Processor<Processor16>(expand_both_avx2_16, Constraint(CPU_AVX2, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 32), 3));
-        processors16.push_back(Filtering::Processor<Processor16>(expand_both_aavx2_16, Constraint(CPU_AVX2, MODULO_NONE, MODULO_NONE, ALIGNMENT_32, 32), 4));
 #endif
       }
       else {

@@ -11,7 +11,6 @@ typedef void(Processor32)(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pUp
 
 Processor clamp_c;
 extern Processor *clamp_sse2;
-extern Processor *clamp_asse2;
 
 /* 16 bit */
 
@@ -34,7 +33,6 @@ extern Processor16 *clamp16_native_16_sse4_1;
 /* 32 bit */
 Processor32 clamp32_c;
 extern Processor32 *clamp32_sse2;
-extern Processor32 *clamp32_asse2;
 
 
 #ifdef NEON_INTRINSICS
@@ -125,7 +123,6 @@ public:
 #endif
 #ifdef INTEL_INTRINSICS
           processors.push_back(Filtering::Processor<Processor>(clamp_sse2, Constraint(CPU_SSE2, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 1), 1));
-          processors.push_back(Filtering::Processor<Processor>(clamp_asse2, Constraint(CPU_SSE2, MODULO_NONE, MODULO_NONE, ALIGNMENT_16, 16), 2));
 #endif
           break;
         case 10:
@@ -175,7 +172,6 @@ public:
 #endif
 #ifdef INTEL_INTRINSICS
           processors32.push_back(Filtering::Processor<Processor32>(clamp32_sse2, Constraint(CPU_SSE2, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 1), 1));
-          processors32.push_back(Filtering::Processor<Processor32>(clamp32_asse2, Constraint(CPU_SSE2, MODULO_NONE, MODULO_NONE, ALIGNMENT_16, 16), 2));
 #endif
           break;
         }

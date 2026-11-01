@@ -111,7 +111,6 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Binari
     Processor *binarize_255_t_##name = &binarize_sse2_t<mem_mode, binarize_255_t_sse2_op, binarize_255_t>;
 
 DEFINE_SSE2_VERSIONS(sse2, MemoryMode::SSE2_UNALIGNED)
-DEFINE_SSE2_VERSIONS(asse2, MemoryMode::SSE2_ALIGNED)
 
 } } } }
 

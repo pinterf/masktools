@@ -19,9 +19,9 @@ void invert16_t_sse2(uint8_t *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight
 #pragma warning(default: 4244)
   for (int j = 0; j < nHeight; j++) {
     for (int i = 0; i < nWidth; i += 16) {
-      auto src = simd_load_si128<MemoryMode::SSE2_ALIGNED>(pDst + i);
+      auto src = simd_load_si128<MemoryMode::SSE2_UNALIGNED>(pDst + i);
       auto result = _mm_xor_si128(src, fff);
-      simd_store_si128<MemoryMode::SSE2_ALIGNED>(pDst + i, result);
+      simd_store_si128<MemoryMode::SSE2_UNALIGNED>(pDst + i, result);
     }
     pDst += nDstPitch;
   }
@@ -34,9 +34,9 @@ void invert_sse2(uint8_t *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight)
     auto fff = _mm_set1_epi32(0xFFFFFFFF);
     for ( int j = 0; j < nHeight; j++ ) {
         for ( int i = 0; i < nWidth; i+=16 ) {
-            auto src = simd_load_si128<MemoryMode::SSE2_ALIGNED>(pDst+i);
+            auto src = simd_load_si128<MemoryMode::SSE2_UNALIGNED>(pDst+i);
             auto result = _mm_xor_si128(src, fff);
-            simd_store_si128<MemoryMode::SSE2_ALIGNED>(pDst+i, result);
+            simd_store_si128<MemoryMode::SSE2_UNALIGNED>(pDst+i, result);
         }
         pDst += nDstPitch;
     }
@@ -49,9 +49,9 @@ void invert32_sse2(uint8_t *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight)
   auto one = _mm_set1_ps(1.0f);
   for (int j = 0; j < nHeight; j++) {
     for (int i = 0; i < nWidth; i += 16) {
-      auto src = simd_load_ps<MemoryMode::SSE2_ALIGNED>(pDst + i);
+      auto src = simd_load_ps<MemoryMode::SSE2_UNALIGNED>(pDst + i);
       auto result = _mm_sub_ps(one, src);
-      simd_store_ps<MemoryMode::SSE2_ALIGNED>(pDst + i, result);
+      simd_store_ps<MemoryMode::SSE2_UNALIGNED>(pDst + i, result);
     }
     pDst += nDstPitch;
   }

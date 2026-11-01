@@ -84,10 +84,8 @@ static void clamp32_sse2_t(uint8_t *pDst, ptrdiff_t dst_pitch, const uint8_t *pS
 } // namespace
 
 Processor *clamp_sse2 = &clamp_sse2_t<MemoryMode::SSE2_UNALIGNED>;
-Processor *clamp_asse2 = &clamp_sse2_t<MemoryMode::SSE2_ALIGNED>;
 
 Processor32 *clamp32_sse2 = &clamp32_sse2_t<MemoryMode::SSE2_UNALIGNED>;
-Processor32 *clamp32_asse2 = &clamp32_sse2_t<MemoryMode::SSE2_ALIGNED>;
 
 } } } } }
 

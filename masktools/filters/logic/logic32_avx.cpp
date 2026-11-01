@@ -128,7 +128,6 @@ Processor32 *andn_##name = &logic_t_avx<mem_mode, andn_avx_op, andn>; \
 Processor32 *xor_##name  = &logic_t_avx<mem_mode, xor_avx_op, _xor>;
 
 DEFINE_AVX_VERSIONS(32_avx, MemoryMode::SSE2_UNALIGNED)
-DEFINE_AVX_VERSIONS(32_aavx, MemoryMode::SSE2_ALIGNED)
 
 #define DEFINE_SILLY_AVX_VERSIONS(mode, name, mem_mode) \
 Processor32 *mode##_##name         = &logic_t_avx<mem_mode, mode##_t_avx<nop_avx, nop_avx>, mode##_t<nop, nop>>;   \
@@ -143,8 +142,6 @@ Processor32 *add##mode##add_##name = &logic_t_avx<mem_mode, mode##_t_avx<add_avx
 
 DEFINE_SILLY_AVX_VERSIONS(min, 32_avx, MemoryMode::SSE2_UNALIGNED)
 DEFINE_SILLY_AVX_VERSIONS(max, 32_avx, MemoryMode::SSE2_UNALIGNED)
-DEFINE_SILLY_AVX_VERSIONS(min, 32_aavx, MemoryMode::SSE2_ALIGNED)
-DEFINE_SILLY_AVX_VERSIONS(max, 32_aavx, MemoryMode::SSE2_ALIGNED)
 
 #undef DEFINE_SILLY_AVX_VERSIONS
 #undef DEFINE_AVX_VERSIONS

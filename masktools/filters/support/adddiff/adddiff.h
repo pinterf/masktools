@@ -11,7 +11,6 @@ typedef void(Processor32)(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSr
 
 Processor adddiff_c;
 extern Processor *adddiff_sse2;
-extern Processor *adddiff_asse2;
 
 /* 16 bit */
 
@@ -33,7 +32,6 @@ extern Processor16 *adddiff16_native_16_sse4_1;
 
 Processor32 adddiff32_c;
 extern Processor32 *adddiff32_sse2;
-extern Processor32 *adddiff32_asse2;
 
 #ifdef NEON_INTRINSICS
 extern Processor *adddiff_neon;
@@ -93,7 +91,6 @@ public:
         processors.push_back(Filtering::Processor<Processor>(&adddiff_c, Constraint(CPU_NONE, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 1), 0));
 #ifdef INTEL_INTRINSICS
         processors.push_back(Filtering::Processor<Processor>(adddiff_sse2, Constraint(CPU_SSE2, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 1), 1));
-        processors.push_back(Filtering::Processor<Processor>(adddiff_asse2, Constraint(CPU_SSE2, MODULO_NONE, MODULO_NONE, ALIGNMENT_16, 16), 2));
 #endif
 #ifdef NEON_INTRINSICS
         processors.push_back(Filtering::Processor<Processor>(adddiff_neon, Constraint(CPU_NEON, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 1), 1));
@@ -143,7 +140,6 @@ public:
         processors32.push_back(Filtering::Processor<Processor32>(&adddiff32_c, Constraint(CPU_NONE, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 1), 0));
 #ifdef INTEL_INTRINSICS
         processors32.push_back(Filtering::Processor<Processor32>(adddiff32_sse2, Constraint(CPU_SSE2, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 1), 1));
-        processors32.push_back(Filtering::Processor<Processor32>(adddiff32_asse2, Constraint(CPU_SSE2, MODULO_NONE, MODULO_NONE, ALIGNMENT_16, 16), 2));
 #endif
 #ifdef NEON_INTRINSICS
         processors32.push_back(Filtering::Processor<Processor32>(adddiff32_neon, Constraint(CPU_NEON, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 1), 1));

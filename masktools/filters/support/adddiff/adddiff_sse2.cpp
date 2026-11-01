@@ -88,10 +88,8 @@ static void adddiff32_sse2_t(uint8_t *pDst, ptrdiff_t dst_pitch, const uint8_t *
 } // namespace
 
 Processor *adddiff_sse2 = &adddiff_sse2_t<MemoryMode::SSE2_UNALIGNED>;
-Processor *adddiff_asse2 = &adddiff_sse2_t<MemoryMode::SSE2_ALIGNED>;
 
 Processor32 *adddiff32_sse2 = &adddiff32_sse2_t<MemoryMode::SSE2_UNALIGNED>;
-Processor32 *adddiff32_asse2 = &adddiff32_sse2_t<MemoryMode::SSE2_ALIGNED>;
 
 } } } } }
 

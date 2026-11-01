@@ -78,7 +78,6 @@ namespace {
 } // namespace
 
 Processor *mask_sse2 = &mask_t<sad_sse2_op<MemoryMode::SSE2_UNALIGNED>, mask_sse2_op<MemoryMode::SSE2_UNALIGNED>>;
-Processor *mask_asse2 = &mask_t<sad_sse2_op<MemoryMode::SSE2_ALIGNED>, mask_sse2_op<MemoryMode::SSE2_ALIGNED>>;
 
 } } } } }
 

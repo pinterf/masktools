@@ -11,11 +11,6 @@ Processor *deflate_sse2 = &generic_sse2<
     process_line_xxflate<Border::None, limit_down_sse2, MemoryMode::SSE2_UNALIGNED>,
     process_line_xxflate<Border::Right, limit_down_sse2, MemoryMode::SSE2_UNALIGNED>
 >;
-Processor *deflate_asse2 = &generic_sse2<
-    process_line_xxflate<Border::Left, limit_down_sse2, MemoryMode::SSE2_ALIGNED>,
-    process_line_xxflate<Border::None, limit_down_sse2, MemoryMode::SSE2_ALIGNED>,
-    process_line_xxflate<Border::Right, limit_down_sse2, MemoryMode::SSE2_UNALIGNED>
->;
 
 } } } } }
 

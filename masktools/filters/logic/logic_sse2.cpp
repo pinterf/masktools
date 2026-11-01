@@ -84,7 +84,6 @@ Processor *andn_##name = &logic_t_sse2<mem_mode, andn_sse2_op, andn>; \
 Processor *xor_##name  = &logic_t_sse2<mem_mode, xor_sse2_op, _xor>;
 
 DEFINE_SSE2_VERSIONS(sse2, MemoryMode::SSE2_UNALIGNED)
-DEFINE_SSE2_VERSIONS(asse2, MemoryMode::SSE2_ALIGNED)
 
 #define DEFINE_SILLY_SSE2_VERSIONS(mode, name, mem_mode) \
 Processor *mode##_##name         = &logic_t_sse2<mem_mode, mode##_t_sse2<nop_sse2, nop_sse2>, mode##_t<nop, nop>>; \
@@ -99,8 +98,6 @@ Processor *add##mode##add_##name = &logic_t_sse2<mem_mode, mode##_t_sse2<add_sse
 
 DEFINE_SILLY_SSE2_VERSIONS(min, sse2, MemoryMode::SSE2_UNALIGNED)
 DEFINE_SILLY_SSE2_VERSIONS(max, sse2, MemoryMode::SSE2_UNALIGNED)
-DEFINE_SILLY_SSE2_VERSIONS(min, asse2, MemoryMode::SSE2_ALIGNED)
-DEFINE_SILLY_SSE2_VERSIONS(max, asse2, MemoryMode::SSE2_ALIGNED)
 #undef DEFINE_SILLY_SSE2_VERSIONS
 #undef DEFINE_SSE2_VERSIONS
 

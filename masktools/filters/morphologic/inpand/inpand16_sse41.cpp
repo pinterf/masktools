@@ -24,17 +24,13 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Morpho
     >;
 
 DEFINE_SSE4_VERSIONS(sse4, MemoryMode::SSE2_UNALIGNED)
-DEFINE_SSE4_VERSIONS(asse4, MemoryMode::SSE2_ALIGNED)
 #undef DEFINE_SSE4_VERSIONS
 
 Processor16 *inpand_vertical_sse4_16 = &xxpand_sse4_vertical_16<inpand_operator_sse4_16, limit_down_sse4_16, MemoryMode::SSE2_UNALIGNED>;
-Processor16 *inpand_vertical_asse4_16 = &xxpand_sse4_vertical_16<inpand_operator_sse4_16, limit_down_sse4_16, MemoryMode::SSE2_ALIGNED>;
 
 Processor16 *inpand_horizontal_sse4_16 = &xxpand_sse4_horizontal_16<inpand_operator_sse4_16, limit_down_sse4_16, MemoryMode::SSE2_UNALIGNED, inpand_c_horizontal_core_16>;
-Processor16 *inpand_horizontal_asse4_16 = &xxpand_sse4_horizontal_16<inpand_operator_sse4_16, limit_down_sse4_16, MemoryMode::SSE2_ALIGNED, inpand_c_horizontal_core_16>;
 
 Processor16 *inpand_square_sse4_16 = &xxpand_sse4_square_16<inpand_operator_sse4_16, limit_down_sse4_16, MemoryMode::SSE2_UNALIGNED, inpand_c_horizontal_core_16>;
-Processor16 *inpand_square_asse4_16 = &xxpand_sse4_square_16<inpand_operator_sse4_16, limit_down_sse4_16, MemoryMode::SSE2_ALIGNED, inpand_c_horizontal_core_16>;
 
 } } } } }
 

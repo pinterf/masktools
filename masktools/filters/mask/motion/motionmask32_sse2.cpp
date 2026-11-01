@@ -96,7 +96,6 @@ namespace {
 } // namespace
 
 Processor32 *mask32_sse2 = &mask32_t<sad32_sse2_op<MemoryMode::SSE2_UNALIGNED>, mask32_c_op /*mask16_sse2_op<MemoryMode::SSE2_UNALIGNED>*/>;
-Processor32 *mask32_asse2 = &mask32_t<sad32_sse2_op<MemoryMode::SSE2_ALIGNED>, mask32_c_op /* mask16_sse2_op<MemoryMode::SSE2_ALIGNED>*/>;
 
 } } } } }
 
