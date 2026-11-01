@@ -111,11 +111,11 @@ void binarize_sse2_native_t(uint8_t *pDst, ptrdiff_t nDstPitch, uint16_t nThresh
 
     for (int j = 0; j < nHeight; ++j) {
         for (int i = 0; i < wMod16; i+=16) {
-            auto src = simd_load_si128<MemoryMode::SSE2_UNALIGNED>(reinterpret_cast<const __m128i*>(pDst+i));
+            auto src = _mm_loadu_si128(reinterpret_cast<const __m128i*>(reinterpret_cast<const __m128i*>(pDst+i)));
 
             auto result = op(src, t, halfrange, max);
 
-            simd_store_si128<MemoryMode::SSE2_UNALIGNED>(reinterpret_cast<__m128i*>(pDst+i), result);
+            _mm_storeu_si128(reinterpret_cast<__m128i*>(reinterpret_cast<__m128i*>(pDst+i)), result);
         }
         pDst += nDstPitch;
     }

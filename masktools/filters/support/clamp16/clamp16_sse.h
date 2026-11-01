@@ -44,15 +44,15 @@ void clamp16_native_simd(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pUpL
 
     for ( int j = 0; j < nHeight; ++j ) {
         for ( int i = 0; i < wMod16; i+=16 ) {
-            auto upper_limit = simd_load_si128<MemoryMode::SSE2_UNALIGNED>(reinterpret_cast<const __m128i*>(pUpLimit+i));
-            auto lower_limit = simd_load_si128<MemoryMode::SSE2_UNALIGNED>(reinterpret_cast<const __m128i*>(pLowLimit+i));
-            auto limited = simd_load_si128<MemoryMode::SSE2_UNALIGNED>(reinterpret_cast<const __m128i*>(pDst+i));
+            auto upper_limit = _mm_loadu_si128(reinterpret_cast<const __m128i*>(reinterpret_cast<const __m128i*>(pUpLimit+i)));
+            auto lower_limit = _mm_loadu_si128(reinterpret_cast<const __m128i*>(reinterpret_cast<const __m128i*>(pLowLimit+i)));
+            auto limited = _mm_loadu_si128(reinterpret_cast<const __m128i*>(reinterpret_cast<const __m128i*>(pDst+i)));
             if(bits_per_pixel < 16)
               limited = clamp16_core_simd<flags, true>(limited, upper_limit, lower_limit, overshoot_v, undershoot_v, max_pixel_value);
             else
               limited = clamp16_core_simd<flags, false>(limited, upper_limit, lower_limit, overshoot_v, undershoot_v, max_pixel_value);
 
-            simd_store_si128<MemoryMode::SSE2_UNALIGNED>(reinterpret_cast<__m128i*>(pDst+i), limited);
+            _mm_storeu_si128(reinterpret_cast<__m128i*>(reinterpret_cast<__m128i*>(pDst+i)), limited);
         }
         pDst += nDstPitch;
         pUpLimit += nUpLimitPitch;

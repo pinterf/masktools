@@ -15,7 +15,6 @@ namespace {
     return _mm_and_ps(_mm_sub_ps(a, b), absmask);
   }
 
-  template <MemoryMode mem_mode>
   static double sad32_sse2_op(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight)
   {
     nWidth *= sizeof(float);
@@ -27,8 +26,8 @@ namespace {
     for (int y = 0; y < nHeight; ++y) {
       auto acc = zero; // avoid overflow. calc line by line
       for (int x = 0; x < wMod16; x += 16) {
-        auto dst1 = simd_load_ps<mem_mode>(pDst + x);
-        auto src1 = simd_load_ps<mem_mode>(pSrc + x);
+        auto dst1 = _mm_loadu_ps(reinterpret_cast<const float*>(pDst + x));
+        auto src1 = _mm_loadu_ps(reinterpret_cast<const float*>(pSrc + x));
 
         acc = _mm_add_ps(acc, simd_abs_diff_32(dst1, src1));
         // sum0_32, sum1_32, sum2_32, sum3_32
@@ -56,7 +55,6 @@ namespace {
 
 #if 0
   // todo simd
-  template <MemoryMode mem_mode>
   static void mask32_sse2_op(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nLowThreshold, int nHighThreshold, int nWidth, int nHeight)
   {
     nWidth *= sizeof(float);
@@ -72,8 +70,8 @@ namespace {
 
     for (int j = 0; j < nHeight; ++j) {
       for (int i = 0; i < wMod16; i += 16) {
-        auto dst1 = simd_load_si128<mem_mode>(pDst + i);
-        auto src1 = simd_load_si128<mem_mode>(pSrc + i);
+        auto dst1 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pDst + i));
+        auto src1 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pSrc + i));
 
         auto greater = _mm_subs_epu8(dst1, src1);
         auto smaller = _mm_subs_epu8(src1, dst1);
@@ -81,7 +79,7 @@ namespace {
 
         auto mask = threshold_sse2(diff, lowThresh, highThresh, v128);
 
-        simd_store_si128<mem_mode>(pDst + i, mask);
+        _mm_storeu_si128(reinterpret_cast<__m128i*>(pDst + i), mask);
       }
       pDst += nDstPitch;
       pSrc += nSrcPitch;
@@ -95,7 +93,7 @@ namespace {
 
 } // namespace
 
-Processor32 *mask32_sse2 = &mask32_t<sad32_sse2_op<MemoryMode::SSE2_UNALIGNED>, mask32_c_op /*mask16_sse2_op<MemoryMode::SSE2_UNALIGNED>*/>;
+Processor32 *mask32_sse2 = &mask32_t<sad32_sse2_op, mask32_c_op /*mask16_sse2_op*/>;
 
 } } } } }
 

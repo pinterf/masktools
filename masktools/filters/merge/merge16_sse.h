@@ -208,10 +208,10 @@ template <CpuFlags flags>
 MT_FORCEINLINE static __m128i get_mask_420_simd(const uint8_t *ptr, ptrdiff_t pitch, int x) {
     x = x*2;
 
-    auto row1_lo = simd_load_si128<MemoryMode::SSE2_UNALIGNED>(reinterpret_cast<const __m128i*>(ptr+x));
-    auto row1_hi = simd_load_si128<MemoryMode::SSE2_UNALIGNED>(reinterpret_cast<const __m128i*>(ptr+x+16));
-    auto row2_lo = simd_load_si128<MemoryMode::SSE2_UNALIGNED>(reinterpret_cast<const __m128i*>(ptr+pitch+x));
-    auto row2_hi = simd_load_si128<MemoryMode::SSE2_UNALIGNED>(reinterpret_cast<const __m128i*>(ptr+pitch+x+16));
+    auto row1_lo = _mm_loadu_si128(reinterpret_cast<const __m128i*>(reinterpret_cast<const __m128i*>(ptr+x)));
+    auto row1_hi = _mm_loadu_si128(reinterpret_cast<const __m128i*>(reinterpret_cast<const __m128i*>(ptr+x+16)));
+    auto row2_lo = _mm_loadu_si128(reinterpret_cast<const __m128i*>(reinterpret_cast<const __m128i*>(ptr+pitch+x)));
+    auto row2_hi = _mm_loadu_si128(reinterpret_cast<const __m128i*>(reinterpret_cast<const __m128i*>(ptr+pitch+x+16)));
 
     return get_single_mask_value_420<flags>(row1_lo, row1_hi, row2_lo, row2_hi);
 }
@@ -220,10 +220,10 @@ template <CpuFlags flags>
 MT_FORCEINLINE static __m128i get_mask_420_mpeg2_simd(const uint8_t *ptr, ptrdiff_t pitch, int x, __m128i &right_hi) {
   x = x * 2;
 
-  auto row1_lo = simd_load_si128<MemoryMode::SSE2_UNALIGNED>(reinterpret_cast<const __m128i*>(ptr + x));
-  auto row1_hi = simd_load_si128<MemoryMode::SSE2_UNALIGNED>(reinterpret_cast<const __m128i*>(ptr + x + 16));
-  auto row2_lo = simd_load_si128<MemoryMode::SSE2_UNALIGNED>(reinterpret_cast<const __m128i*>(ptr + pitch + x));
-  auto row2_hi = simd_load_si128<MemoryMode::SSE2_UNALIGNED>(reinterpret_cast<const __m128i*>(ptr + pitch + x + 16));
+  auto row1_lo = _mm_loadu_si128(reinterpret_cast<const __m128i*>(reinterpret_cast<const __m128i*>(ptr + x)));
+  auto row1_hi = _mm_loadu_si128(reinterpret_cast<const __m128i*>(reinterpret_cast<const __m128i*>(ptr + x + 16)));
+  auto row2_lo = _mm_loadu_si128(reinterpret_cast<const __m128i*>(reinterpret_cast<const __m128i*>(ptr + pitch + x)));
+  auto row2_hi = _mm_loadu_si128(reinterpret_cast<const __m128i*>(reinterpret_cast<const __m128i*>(ptr + pitch + x + 16)));
 
   return get_single_mask_value_420_mpeg2<flags>(row1_lo, row1_hi, row2_lo, row2_hi, right_hi); // right: in-out
 }
@@ -232,12 +232,12 @@ template <CpuFlags flags>
 MT_FORCEINLINE static __m128i get_mask_420_topleft_simd(const uint8_t* ptr, ptrdiff_t pitch_prev, ptrdiff_t pitch, int x, __m128i& right_hi) {
   x = x * 2;
 
-  auto row0_lo = simd_load_si128<MemoryMode::SSE2_UNALIGNED>(reinterpret_cast<const __m128i*>(ptr + pitch_prev + x));
-  auto row0_hi = simd_load_si128<MemoryMode::SSE2_UNALIGNED>(reinterpret_cast<const __m128i*>(ptr + pitch_prev + x + 16));
-  auto row1_lo = simd_load_si128<MemoryMode::SSE2_UNALIGNED>(reinterpret_cast<const __m128i*>(ptr + x));
-  auto row1_hi = simd_load_si128<MemoryMode::SSE2_UNALIGNED>(reinterpret_cast<const __m128i*>(ptr + x + 16));
-  auto row2_lo = simd_load_si128<MemoryMode::SSE2_UNALIGNED>(reinterpret_cast<const __m128i*>(ptr + pitch + x));
-  auto row2_hi = simd_load_si128<MemoryMode::SSE2_UNALIGNED>(reinterpret_cast<const __m128i*>(ptr + pitch + x + 16));
+  auto row0_lo = _mm_loadu_si128(reinterpret_cast<const __m128i*>(reinterpret_cast<const __m128i*>(ptr + pitch_prev + x)));
+  auto row0_hi = _mm_loadu_si128(reinterpret_cast<const __m128i*>(reinterpret_cast<const __m128i*>(ptr + pitch_prev + x + 16)));
+  auto row1_lo = _mm_loadu_si128(reinterpret_cast<const __m128i*>(reinterpret_cast<const __m128i*>(ptr + x)));
+  auto row1_hi = _mm_loadu_si128(reinterpret_cast<const __m128i*>(reinterpret_cast<const __m128i*>(ptr + x + 16)));
+  auto row2_lo = _mm_loadu_si128(reinterpret_cast<const __m128i*>(reinterpret_cast<const __m128i*>(ptr + pitch + x)));
+  auto row2_hi = _mm_loadu_si128(reinterpret_cast<const __m128i*>(reinterpret_cast<const __m128i*>(ptr + pitch + x + 16)));
 
   return get_single_mask_value_420_topleft<flags>(row0_lo, row0_hi, row1_lo, row1_hi, row2_lo, row2_hi, right_hi); // right: in-out
 }
@@ -246,8 +246,8 @@ template <CpuFlags flags>
 MT_FORCEINLINE static __m128i get_mask_422_simd(const uint8_t *ptr, int x) {
   x = x * 2;
 
-  auto row1_lo = simd_load_si128<MemoryMode::SSE2_UNALIGNED>(reinterpret_cast<const __m128i*>(ptr + x));
-  auto row1_hi = simd_load_si128<MemoryMode::SSE2_UNALIGNED>(reinterpret_cast<const __m128i*>(ptr + x + 16));
+  auto row1_lo = _mm_loadu_si128(reinterpret_cast<const __m128i*>(reinterpret_cast<const __m128i*>(ptr + x)));
+  auto row1_hi = _mm_loadu_si128(reinterpret_cast<const __m128i*>(reinterpret_cast<const __m128i*>(ptr + x + 16)));
   
   return get_single_mask_value_422<flags>(row1_lo, row1_hi);
 }
@@ -256,8 +256,8 @@ template <CpuFlags flags>
 MT_FORCEINLINE static __m128i get_mask_422_mpeg2_simd(const uint8_t *ptr, int x, __m128i &right_hi) {
   x = x * 2;
 
-  auto row1_lo = simd_load_si128<MemoryMode::SSE2_UNALIGNED>(reinterpret_cast<const __m128i*>(ptr + x));
-  auto row1_hi = simd_load_si128<MemoryMode::SSE2_UNALIGNED>(reinterpret_cast<const __m128i*>(ptr + x + 16));
+  auto row1_lo = _mm_loadu_si128(reinterpret_cast<const __m128i*>(reinterpret_cast<const __m128i*>(ptr + x)));
+  auto row1_hi = _mm_loadu_si128(reinterpret_cast<const __m128i*>(reinterpret_cast<const __m128i*>(ptr + x + 16)));
 
   return get_single_mask_value_422_mpeg2<flags>(row1_lo, row1_hi, right_hi); // right: in-out
 }
@@ -287,15 +287,15 @@ static void merge16_t_simd(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pS
       __m128i right_hi;
       if constexpr(mode == MASK420_MPEG2) {
         // prepare "right_hi": we need only pixel column #0 as the rightmost 32 bit word (12-15th byte)
-        auto row1 = simd_load_si128<MemoryMode::SSE2_UNALIGNED>(reinterpret_cast<const __m128i*>(pMask + 0));
-        auto row2 = simd_load_si128<MemoryMode::SSE2_UNALIGNED>(reinterpret_cast<const __m128i*>(pMask + nMaskPitch + 0));
+        auto row1 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(reinterpret_cast<const __m128i*>(pMask + 0)));
+        auto row2 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(reinterpret_cast<const __m128i*>(pMask + nMaskPitch + 0)));
 #pragma warning(disable: 4309)
         auto evenmask = _mm_set1_epi32(0x0000FFFF);
 #pragma warning(default: 4309)
         right_hi = _mm_add_epi32(_mm_slli_si128(_mm_and_si128(row1, evenmask), 12), _mm_slli_si128(_mm_and_si128(row2, evenmask), 12));
       } else if (mode == MASK422_MPEG2) {
         // prepare "right_hi": we need only pixel column #0 as the rightmost 32 bit word (12-15th byte)
-        auto row1 = simd_load_si128<MemoryMode::SSE2_UNALIGNED>(reinterpret_cast<const __m128i*>(pMask + 0));
+        auto row1 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(reinterpret_cast<const __m128i*>(pMask + 0)));
 #pragma warning(disable: 4309)
         auto evenmask = _mm_set1_epi32(0x0000FFFF);
 #pragma warning(default: 4309)
@@ -303,9 +303,9 @@ static void merge16_t_simd(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pS
       }
       else if constexpr (mode == MASK420_TOPLEFT) {
         // prepare "right_hi": we need only pixel column #0 as the rightmost 32 bit word (12-15th byte)
-        auto row0 = simd_load_si128<MemoryMode::SSE2_UNALIGNED>(reinterpret_cast<const __m128i*>(pMask + top_or_same + 0));
-        auto row1 = simd_load_si128<MemoryMode::SSE2_UNALIGNED>(reinterpret_cast<const __m128i*>(pMask + 0));
-        auto row2 = simd_load_si128<MemoryMode::SSE2_UNALIGNED>(reinterpret_cast<const __m128i*>(pMask + nMaskPitch + 0));
+        auto row0 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(reinterpret_cast<const __m128i*>(pMask + top_or_same + 0)));
+        auto row1 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(reinterpret_cast<const __m128i*>(pMask + 0)));
+        auto row2 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(reinterpret_cast<const __m128i*>(pMask + nMaskPitch + 0)));
 #pragma warning(disable: 4309)
         auto evenmask = _mm_set1_epi32(0x0000FFFF);
 #pragma warning(default: 4309)
@@ -315,7 +315,7 @@ static void merge16_t_simd(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pS
       }
       else if (mode == MASK422_MPEG2) {
         // prepare "right_hi": we need only pixel column #0 as the rightmost 32 bit word (12-15th byte)
-        auto row1 = simd_load_si128<MemoryMode::SSE2_UNALIGNED>(reinterpret_cast<const __m128i*>(pMask + 0));
+        auto row1 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(reinterpret_cast<const __m128i*>(pMask + 0)));
 #pragma warning(disable: 4309)
         auto evenmask = _mm_set1_epi32(0x0000FFFF);
 #pragma warning(default: 4309)
@@ -323,8 +323,8 @@ static void merge16_t_simd(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pS
       }
 
       for ( int i = 0; i < wMod16; i+=16 ) {
-            auto dst = simd_load_si128<MemoryMode::SSE2_UNALIGNED>(reinterpret_cast<const __m128i*>(pDst+i));
-            auto src = simd_load_si128<MemoryMode::SSE2_UNALIGNED>(reinterpret_cast<const __m128i*>(pSrc1+i));
+            auto dst = _mm_loadu_si128(reinterpret_cast<const __m128i*>(reinterpret_cast<const __m128i*>(pDst+i)));
+            auto src = _mm_loadu_si128(reinterpret_cast<const __m128i*>(reinterpret_cast<const __m128i*>(pSrc1+i)));
             __m128i mask;
 
             if (mode == MASK420)
@@ -338,11 +338,11 @@ static void merge16_t_simd(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pS
             else if (mode == MASK422_MPEG2)
               mask = get_mask_422_mpeg2_simd<flags>(pMask, i, right_hi);
             else
-              mask = simd_load_si128<MemoryMode::SSE2_UNALIGNED>(reinterpret_cast<const __m128i*>(pMask + i));
+              mask = _mm_loadu_si128(reinterpret_cast<const __m128i*>(reinterpret_cast<const __m128i*>(pMask + i)));
 
             __m128i result = merge_core_simd<flags, bits_per_pixel>(dst, src, mask, max_pixel_value, zero);
 
-            simd_store_si128<MemoryMode::SSE2_UNALIGNED>(reinterpret_cast<__m128i*>(pDst+i), result);
+            _mm_storeu_si128(reinterpret_cast<__m128i*>(reinterpret_cast<__m128i*>(pDst+i)), result);
         }
 
         pDst += nDstPitch;

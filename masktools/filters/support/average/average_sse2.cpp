@@ -8,7 +8,6 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Suppor
 
 namespace {
 
-template<MemoryMode mem_mode>
 static void average_sse2_t(uint8_t *pDst, ptrdiff_t dst_pitch, const uint8_t *pSrc, ptrdiff_t src_pitch, int width, int height)
 {
     int mod16_width = (width / 16) * 16;
@@ -20,12 +19,12 @@ static void average_sse2_t(uint8_t *pDst, ptrdiff_t dst_pitch, const uint8_t *pS
             _mm_prefetch(reinterpret_cast<const char*>(pDst)+i+256, _MM_HINT_T0);
             _mm_prefetch(reinterpret_cast<const char*>(pSrc)+i+256, _MM_HINT_T0);
 
-            auto dst = simd_load_si128<mem_mode>(pDst+i);
-            auto src = simd_load_si128<mem_mode>(pSrc+i);
+            auto dst = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pDst+i));
+            auto src = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pSrc+i));
 
             auto result  = _mm_avg_epu8(dst, src);
 
-            simd_store_si128<mem_mode>(pDst+i, result);
+            _mm_storeu_si128(reinterpret_cast<__m128i*>(pDst+i), result);
         }
         pDst += dst_pitch;
         pSrc += src_pitch;
@@ -36,7 +35,6 @@ static void average_sse2_t(uint8_t *pDst, ptrdiff_t dst_pitch, const uint8_t *pS
     }
 }
 
-template<MemoryMode mem_mode>
 static void average32_sse2_t(uint8_t *pDst, ptrdiff_t dst_pitch, const uint8_t *pSrc, ptrdiff_t src_pitch, int width, int height)
 {
   width *= sizeof(float);
@@ -51,12 +49,12 @@ static void average32_sse2_t(uint8_t *pDst, ptrdiff_t dst_pitch, const uint8_t *
       _mm_prefetch(reinterpret_cast<const char*>(pDst) + i + 256, _MM_HINT_T0);
       _mm_prefetch(reinterpret_cast<const char*>(pSrc) + i + 256, _MM_HINT_T0);
 
-      auto dst = simd_load_ps<mem_mode>(pDst + i);
-      auto src = simd_load_ps<mem_mode>(pSrc + i);
+      auto dst = _mm_loadu_ps(reinterpret_cast<const float*>(pDst + i));
+      auto src = _mm_loadu_ps(reinterpret_cast<const float*>(pSrc + i));
 
       auto result = _mm_mul_ps(_mm_add_ps(dst, src), vDiv2);
 
-      simd_store_ps<mem_mode>(pDst + i, result);
+      _mm_storeu_ps(reinterpret_cast<float*>(pDst + i), result);
     }
     pDst += dst_pitch;
     pSrc += src_pitch;
@@ -69,9 +67,9 @@ static void average32_sse2_t(uint8_t *pDst, ptrdiff_t dst_pitch, const uint8_t *
 
 } // namespace
 
-Processor *average_sse2 = &average_sse2_t<MemoryMode::SSE2_UNALIGNED>;
+Processor *average_sse2 = &average_sse2_t;
 
-Processor32 *average32_sse2 = &average32_sse2_t<MemoryMode::SSE2_UNALIGNED>;
+Processor32 *average32_sse2 = &average32_sse2_t;
 
 } } } } }
 

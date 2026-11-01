@@ -112,20 +112,20 @@ static MT_FORCEINLINE __m256i limit_down_16_avx2(__m256i source, __m256i sum, __
 }
 
 
-template<Border borderMode, Limit16 limit, MemoryMode mem_mode>
+template<Border borderMode, Limit16 limit>
 static void process_line_xxflate_16_avx2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const __m256i &maxDeviation, int byte_width) {
   auto zero = _mm256_setzero_si256();
   for (int x = 0; x < byte_width; x += 32) {
-    auto up_left = load16_one_to_left_si256<borderMode, mem_mode>(pSrcp + x);
-    auto up_center = simd256_load_si256<mem_mode>(pSrcp + x);
-    auto up_right = load16_one_to_right_si256<borderMode, mem_mode>(pSrcp + x);
+    auto up_left = load16_one_to_left_si256<borderMode>(pSrcp + x);
+    auto up_center = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(pSrcp + x));
+    auto up_right = load16_one_to_right_si256<borderMode>(pSrcp + x);
 
-    auto middle_left = load16_one_to_left_si256<borderMode, mem_mode>(pSrc + x);
-    auto middle_right = load16_one_to_right_si256<borderMode, mem_mode>(pSrc + x);
+    auto middle_left = load16_one_to_left_si256<borderMode>(pSrc + x);
+    auto middle_right = load16_one_to_right_si256<borderMode>(pSrc + x);
 
-    auto down_left = load16_one_to_left_si256<borderMode, mem_mode>(pSrcn + x);
-    auto down_center = simd256_load_si256<mem_mode>(pSrcn + x);
-    auto down_right = load16_one_to_right_si256<borderMode, mem_mode>(pSrcn + x);
+    auto down_left = load16_one_to_left_si256<borderMode>(pSrcn + x);
+    auto down_center = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(pSrcn + x));
+    auto down_right = load16_one_to_right_si256<borderMode>(pSrcn + x);
 
     auto up_left_lo = _mm256_unpacklo_epi16(up_left, zero);
     auto up_left_hi = _mm256_unpackhi_epi16(up_left, zero);
@@ -172,46 +172,46 @@ static void process_line_xxflate_16_avx2(uint8_t *pDst, const uint8_t *pSrcp, co
 
     auto result = _mm256_packus_epi32(sum_lo, sum_hi);
 
-    auto middle_center = simd256_load_si256<mem_mode>(pSrc + x);
+    auto middle_center = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(pSrc + x));
 
     result = limit(middle_center, result, maxDeviation); // ??? bits_per_pixel template?
 
-    simd256_store_si256<mem_mode>(pDst + x, result);
+    _mm256_storeu_si256(reinterpret_cast<__m256i*>(pDst + x), result);
   }
 }
 
-template<Border borderMode, decltype(_mm256_max_epu16) op, Limit16 limit, MemoryMode mem_mode>
+template<Border borderMode, decltype(_mm256_max_epu16) op, Limit16 limit>
 static MT_FORCEINLINE void process_line_xxpand_both_16_avx2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const __m256i &maxDeviation, int byte_width) {
   for (int x = 0; x < byte_width; x += 32) {
-    __m256i up_center = simd256_load_si256<mem_mode>(pSrcp + x);
-    __m256i middle_center = simd256_load_si256<mem_mode>(pSrc + x);
-    __m256i down_center = simd256_load_si256<mem_mode>(pSrcn + x);
-    __m256i middle_left = load16_one_to_left_si256<borderMode, mem_mode>(pSrc + x);
-    __m256i middle_right = load16_one_to_right_si256<borderMode, mem_mode>(pSrc + x);
+    __m256i up_center = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(pSrcp + x));
+    __m256i middle_center = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(pSrc + x));
+    __m256i down_center = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(pSrcn + x));
+    __m256i middle_left = load16_one_to_left_si256<borderMode>(pSrc + x);
+    __m256i middle_right = load16_one_to_right_si256<borderMode>(pSrc + x);
     __m256i acc = op(up_center, middle_left);
     acc = op(acc, middle_right);
     acc = op(acc, down_center);
 
     __m256i result = limit(middle_center, acc, maxDeviation);
-    simd256_store_si256<mem_mode>(pDst + x, result);
+    _mm256_storeu_si256(reinterpret_cast<__m256i*>(pDst + x), result);
   }
 }
 
 /* Vertical mt_xxpand */
 
-template<decltype(_mm256_max_epu16) op, Limit16 limit, MemoryMode mem_mode>
+template<decltype(_mm256_max_epu16) op, Limit16 limit>
 static MT_FORCEINLINE void process_line_xxpand_vertical_16_avx2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const __m256i &maxDeviation, int byte_width) {
   for (int x = 0; x < byte_width; x += 32) {
-    auto up_center = simd256_load_si256<mem_mode>(pSrcp + x);
-    auto down_center = simd256_load_si256<mem_mode>(pSrcn + x);
-    auto middle_center = simd256_load_si256<mem_mode>(pSrc + x);
+    auto up_center = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(pSrcp + x));
+    auto down_center = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(pSrcn + x));
+    auto middle_center = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(pSrc + x));
     auto acc = op(up_center, down_center);
     auto result = limit(middle_center, acc, maxDeviation);
-    simd256_store_si256<mem_mode>(pDst + x, result);
+    _mm256_storeu_si256(reinterpret_cast<__m256i*>(pDst + x), result);
   }
 }
 
-template<decltype(_mm256_max_epu16) op, Limit16 limit, MemoryMode mem_mode>
+template<decltype(_mm256_max_epu16) op, Limit16 limit>
 static void xxpand_avx2_vertical_16(uint16_t *pDst16, ptrdiff_t nDstPitch, const uint16_t *pSrc16, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, int nOrigHeight) {
   // back to byte level
   const BYTE* pSrc = reinterpret_cast<const BYTE *>(pSrc16);
@@ -228,10 +228,10 @@ static void xxpand_avx2_vertical_16(uint16_t *pDst16, ptrdiff_t nDstPitch, const
   int mod32_width = byte_width / 32 * 32;
   bool not_mod32 = byte_width != mod32_width;
 
-  process_line_xxpand_vertical_16_avx2<op, limit, mem_mode>(pDst, pSrc, pSrc, pSrcn, max_dev_v, mod32_width);
+  process_line_xxpand_vertical_16_avx2<op, limit>(pDst, pSrc, pSrc, pSrcn, max_dev_v, mod32_width);
 
   if (not_mod32) {
-    process_line_xxpand_vertical_16_avx2<op, limit, MemoryMode::SSE2_UNALIGNED>(pDst + byte_width - 32, pSrc + byte_width - 32, pSrc + byte_width - 32, pSrcn + byte_width - 32, max_dev_v, 32);
+    process_line_xxpand_vertical_16_avx2<op, limit>(pDst + byte_width - 32, pSrc + byte_width - 32, pSrc + byte_width - 32, pSrcn + byte_width - 32, max_dev_v, 32);
   }
 
   pDst += nDstPitch;
@@ -241,10 +241,10 @@ static void xxpand_avx2_vertical_16(uint16_t *pDst16, ptrdiff_t nDstPitch, const
 
   for (int y = 1; y < nHeight - 1; y++)
   {
-    process_line_xxpand_vertical_16_avx2<op, limit, mem_mode>(pDst, pSrcp, pSrc, pSrcn, max_dev_v, mod32_width);
+    process_line_xxpand_vertical_16_avx2<op, limit>(pDst, pSrcp, pSrc, pSrcn, max_dev_v, mod32_width);
 
     if (not_mod32) {
-      process_line_xxpand_vertical_16_avx2<op, limit, MemoryMode::SSE2_UNALIGNED>(pDst + byte_width - 32, pSrcp + byte_width - 32, pSrc + byte_width - 32, pSrcn + byte_width - 32, max_dev_v, 32);
+      process_line_xxpand_vertical_16_avx2<op, limit>(pDst + byte_width - 32, pSrcp + byte_width - 32, pSrc + byte_width - 32, pSrcn + byte_width - 32, max_dev_v, 32);
     }
 
     pDst += nDstPitch;
@@ -253,10 +253,10 @@ static void xxpand_avx2_vertical_16(uint16_t *pDst16, ptrdiff_t nDstPitch, const
     pSrcn += nSrcPitch;
   }
 
-  process_line_xxpand_vertical_16_avx2<op, limit, mem_mode>(pDst, pSrcp, pSrc, pSrc, max_dev_v, mod32_width);
+  process_line_xxpand_vertical_16_avx2<op, limit>(pDst, pSrcp, pSrc, pSrc, max_dev_v, mod32_width);
 
   if (not_mod32) {
-    process_line_xxpand_vertical_16_avx2<op, limit, MemoryMode::SSE2_UNALIGNED>(pDst + byte_width - 32, pSrcp + byte_width - 32, pSrc + byte_width - 32, pSrc + byte_width - 32, max_dev_v, 32);
+    process_line_xxpand_vertical_16_avx2<op, limit>(pDst + byte_width - 32, pSrcp + byte_width - 32, pSrc + byte_width - 32, pSrc + byte_width - 32, max_dev_v, 32);
   }
 }
 
@@ -284,7 +284,7 @@ static MT_FORCEINLINE uint16_t inpand_c_horizontal_core_16_avx2(uint16_t left, u
 }
 
 //this implemented in a somewhat retarded way to allow pDst and pSrc be the same pointer (used in 3x3 expand)
-template<decltype(_mm256_max_epu16) op, Limit16 limit, MemoryMode mem_mode, decltype(expand_c_horizontal_core_16_avx2) c_core>
+template<decltype(_mm256_max_epu16) op, Limit16 limit, decltype(expand_c_horizontal_core_16_avx2) c_core>
 static void xxpand_avx2_horizontal_16(uint16_t *pDst16, ptrdiff_t nDstPitch, const uint16_t *pSrc16, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, int nOrigHeight) {
   // back to byte level
   const BYTE* pSrc = reinterpret_cast<const BYTE *>(pSrc16);
@@ -308,38 +308,38 @@ static void xxpand_avx2_horizontal_16(uint16_t *pDst16, ptrdiff_t nDstPitch, con
 
   for (int y = 0; y < nHeight; ++y) {
     //left border
-    __m256i center = simd256_load_si256<mem_mode>(pSrc);
-    __m256i right = simd256_load_si256<MemoryMode::SSE2_UNALIGNED>(pSrc + sizeof(uint16_t)); // +2: word
+    __m256i center = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(pSrc));
+    __m256i right = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(pSrc + sizeof(uint16_t))); // +2: word
     left = _mm256_or_si256(_mm256_and_si256(center, left_mask), _MM256_SLLI_SI256<2>(center)); // shift 2: word
 
     __m256i result = op(left, right);
     result = limit(center, result, max_dev_v);
 
-    left = simd256_load_si256<MemoryMode::SSE2_UNALIGNED>(pSrc + 32- sizeof(uint16_t));
-    simd256_store_si256<mem_mode>(pDst, result);
+    left = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(pSrc + 32- sizeof(uint16_t)));
+    _mm256_storeu_si256(reinterpret_cast<__m256i*>(pDst), result);
 
     //main processing loop
     for (int x = 32; x < sse_loop_limit; x += 32) {
-      center = simd256_load_si256<mem_mode>(pSrc + x);
-      right = simd256_load_si256<MemoryMode::SSE2_UNALIGNED>(pSrc + x + sizeof(uint16_t));
+      center = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(pSrc + x));
+      right = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(pSrc + x + sizeof(uint16_t)));
 
       result = op(left, right);
       result = limit(center, result, max_dev_v);
 
-      left = simd256_load_si256<MemoryMode::SSE2_UNALIGNED>(pSrc + x + 32-sizeof(uint16_t));
+      left = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(pSrc + x + 32-sizeof(uint16_t)));
 
-      simd256_store_si256<mem_mode>(pDst + x, result);
+      _mm256_storeu_si256(reinterpret_cast<__m256i*>(pDst + x), result);
     }
 
     //right border
     if (mod32_width == byte_width) {
-      center = simd256_load_si256<mem_mode>(pSrc + mod32_width - 32);
+      center = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(pSrc + mod32_width - 32));
       right = _mm256_or_si256(_mm256_and_si256(center, right_mask), _MM256_SRLI_SI256<2>(center));
 
       result = op(left, right);
       result = limit(center, result, max_dev_v);
 
-      simd256_store_si256<mem_mode>(pDst + mod32_width - 32, result);
+      _mm256_storeu_si256(reinterpret_cast<__m256i*>(pDst + mod32_width - 32), result);
     }
     else { //some stuff left
       uint16_t l = _mm256_cvtsi256_si32(left) & 0xFFFF;
@@ -375,12 +375,12 @@ static void limit_by_source_avx2_16(uint16_t *pDst, ptrdiff_t nDstPitch, const u
   }
 }
 
-template<decltype(_mm256_max_epu16) op, Limit16 limit, MemoryMode mem_mode, decltype(expand_c_horizontal_core_16_avx2) c_core>
+template<decltype(_mm256_max_epu16) op, Limit16 limit, decltype(expand_c_horizontal_core_16_avx2) c_core>
 static void xxpand_avx2_square_16(uint16_t *pDst, ptrdiff_t nDstPitch, const uint16_t *pSrc, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, int nOrigHeight) {
   // a limit in both passes would allow up to 2 * deviation: the passes unlimited, then the limit by the source
   const int no_limit = 65535;
-  xxpand_avx2_vertical_16<op, limit, mem_mode>(pDst, nDstPitch, pSrc, nSrcPitch, no_limit, pCoordinates, nCoordinates, nWidth, nHeight, nOrigHeight);
-  xxpand_avx2_horizontal_16<op, limit, mem_mode, c_core>(pDst, nDstPitch, pDst, nDstPitch, no_limit, pCoordinates, nCoordinates, nWidth, nHeight, nOrigHeight);
+  xxpand_avx2_vertical_16<op, limit>(pDst, nDstPitch, pSrc, nSrcPitch, no_limit, pCoordinates, nCoordinates, nWidth, nHeight, nOrigHeight);
+  xxpand_avx2_horizontal_16<op, limit, c_core>(pDst, nDstPitch, pDst, nDstPitch, no_limit, pCoordinates, nCoordinates, nWidth, nHeight, nOrigHeight);
   if (nMaxDeviation < no_limit)
     limit_by_source_avx2_16<limit>(pDst, nDstPitch, pSrc, nSrcPitch, nMaxDeviation, nWidth, nHeight);
 }

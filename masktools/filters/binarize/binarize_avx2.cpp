@@ -94,7 +94,7 @@ static MT_FORCEINLINE __m256i binarize_255_t_avx2_op(__m256i x, __m256i t, __m25
     return _mm256_or_si256(lower, t);
 }
 
-template<MemoryMode mem_mode, decltype(binarize_upper_avx2_op) op, decltype(binarize_upper_base_avx2) op_c>
+template<decltype(binarize_upper_avx2_op) op, decltype(binarize_upper_base_avx2) op_c>
 void binarize_avx2_t(uint8_t *dstp, ptrdiff_t dst_pitch, uint8_t threshold, int width, int height)
 {
     auto t = _mm256_set1_epi8(uint8_t(threshold));
@@ -105,17 +105,17 @@ void binarize_avx2_t(uint8_t *dstp, ptrdiff_t dst_pitch, uint8_t threshold, int 
 
     for ( int j = 0; j < height; ++j ) {
         for (int i = 0; i < mod64_width; i+=64 ) {
-            auto src = simd256_load_si256<mem_mode>(dstp+i);
-            auto src2 = simd256_load_si256<mem_mode>(dstp + i + 32);
+            auto src = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(dstp+i));
+            auto src2 = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(dstp + i + 32));
             auto result = op(src, t, t128);
             auto result2 = op(src2, t, t128);
-            simd256_store_si256<mem_mode>(dstp + i, result);
-            simd256_store_si256<mem_mode>(dstp+i+32, result2);
+            _mm256_storeu_si256(reinterpret_cast<__m256i*>(dstp + i), result);
+            _mm256_storeu_si256(reinterpret_cast<__m256i*>(dstp+i+32), result2);
         }
         for (int i = mod64_width; i < mod32_width; i += 32) {
-          auto src = simd256_load_si256<mem_mode>(dstp + i);
+          auto src = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(dstp + i));
           auto result = op(src, t, t128);
-          simd256_store_si256<mem_mode>(dstp + i, result);
+          _mm256_storeu_si256(reinterpret_cast<__m256i*>(dstp + i), result);
         }
         dstp += dst_pitch;
     }
@@ -132,22 +132,22 @@ void binarize_avx2_t(uint8_t *dstp, ptrdiff_t dst_pitch, uint8_t threshold, int 
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Binarize {
 
-#define DEFINE_AVX2_VERSIONS(name, mem_mode) \
-    Processor *binarize_upper_##name = &binarize_avx2_t<mem_mode, binarize_upper_avx2_op, binarize_upper_base_avx2>; \
-    Processor *binarize_lower_##name = &binarize_avx2_t<mem_mode, binarize_lower_avx2_op, binarize_lower_base_avx2>; \
-    Processor *binarize_0_x_##name   = &binarize_avx2_t<mem_mode, binarize_0_x_avx2_op, binarize_0_x_base_avx2>; \
-    Processor *binarize_t_x_##name   = &binarize_avx2_t<mem_mode, binarize_t_x_avx2_op, binarize_t_x_base_avx2>; \
-    Processor *binarize_x_0_##name   = &binarize_avx2_t<mem_mode, binarize_x_0_avx2_op, binarize_x_0_base_avx2>; \
-    Processor *binarize_x_t_##name   = &binarize_avx2_t<mem_mode, binarize_x_t_avx2_op, binarize_x_t_base_avx2>; \
-    Processor *binarize_t_0_##name   = &binarize_avx2_t<mem_mode, binarize_t_0_avx2_op, binarize_t_0_base_avx2>; \
-    Processor *binarize_0_t_##name   = &binarize_avx2_t<mem_mode, binarize_0_t_avx2_op, binarize_0_t_base_avx2>; \
-    Processor *binarize_x_255_##name = &binarize_avx2_t<mem_mode, binarize_x_255_avx2_op, binarize_x_255_base_avx2>; \
-    Processor *binarize_t_255_##name = &binarize_avx2_t<mem_mode, binarize_t_255_avx2_op, binarize_t_255_base_avx2>; \
-    Processor *binarize_255_x_##name = &binarize_avx2_t<mem_mode, binarize_255_x_avx2_op, binarize_255_x_base_avx2>; \
-    Processor *binarize_255_t_##name = &binarize_avx2_t<mem_mode, binarize_255_t_avx2_op, binarize_255_t_base_avx2>;
+#define DEFINE_AVX2_VERSIONS(name) \
+    Processor *binarize_upper_##name = &binarize_avx2_t<binarize_upper_avx2_op, binarize_upper_base_avx2>; \
+    Processor *binarize_lower_##name = &binarize_avx2_t<binarize_lower_avx2_op, binarize_lower_base_avx2>; \
+    Processor *binarize_0_x_##name   = &binarize_avx2_t<binarize_0_x_avx2_op, binarize_0_x_base_avx2>; \
+    Processor *binarize_t_x_##name   = &binarize_avx2_t<binarize_t_x_avx2_op, binarize_t_x_base_avx2>; \
+    Processor *binarize_x_0_##name   = &binarize_avx2_t<binarize_x_0_avx2_op, binarize_x_0_base_avx2>; \
+    Processor *binarize_x_t_##name   = &binarize_avx2_t<binarize_x_t_avx2_op, binarize_x_t_base_avx2>; \
+    Processor *binarize_t_0_##name   = &binarize_avx2_t<binarize_t_0_avx2_op, binarize_t_0_base_avx2>; \
+    Processor *binarize_0_t_##name   = &binarize_avx2_t<binarize_0_t_avx2_op, binarize_0_t_base_avx2>; \
+    Processor *binarize_x_255_##name = &binarize_avx2_t<binarize_x_255_avx2_op, binarize_x_255_base_avx2>; \
+    Processor *binarize_t_255_##name = &binarize_avx2_t<binarize_t_255_avx2_op, binarize_t_255_base_avx2>; \
+    Processor *binarize_255_x_##name = &binarize_avx2_t<binarize_255_x_avx2_op, binarize_255_x_base_avx2>; \
+    Processor *binarize_255_t_##name = &binarize_avx2_t<binarize_255_t_avx2_op, binarize_255_t_base_avx2>;
 
 
-DEFINE_AVX2_VERSIONS(avx2, MemoryMode::SSE2_UNALIGNED)
+DEFINE_AVX2_VERSIONS(avx2)
 
 
 

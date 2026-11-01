@@ -9,7 +9,6 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Mask {
 
 namespace {
 
-  template <MemoryMode mem_mode>
   static uint64_t sad16_sse2_op(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight)
   {
     nWidth *= sizeof(uint16_t);
@@ -21,8 +20,8 @@ namespace {
     for (int y = 0; y < nHeight; ++y) {
       __m128i acc = zero; // avoid overflow. calc line by line
       for (int x = 0; x < wMod16; x += 16) {
-        auto dst1 = simd_load_si128<mem_mode>(pDst + x);
-        auto src1 = simd_load_si128<mem_mode>(pSrc + x);
+        auto dst1 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pDst + x));
+        auto src1 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pSrc + x));
 
         __m128i greater_t = _mm_subs_epu16(dst1, src1); // unsigned sub with saturation
         __m128i smaller_t = _mm_subs_epu16(src1, dst1);
@@ -61,7 +60,6 @@ namespace {
 
 #if 0
   todo simd
-  template <MemoryMode mem_mode>
   static void mask16_sse2_op(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nLowThreshold, int nHighThreshold, int nWidth, int nHeight)
   {
     nWidth *= sizeof(uint16_t);
@@ -77,8 +75,8 @@ namespace {
 
     for (int j = 0; j < nHeight; ++j) {
       for (int i = 0; i < wMod16; i += 16) {
-        auto dst1 = simd_load_si128<mem_mode>(pDst + i);
-        auto src1 = simd_load_si128<mem_mode>(pSrc + i);
+        auto dst1 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pDst + i));
+        auto src1 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pSrc + i));
 
         auto greater = _mm_subs_epu8(dst1, src1);
         auto smaller = _mm_subs_epu8(src1, dst1);
@@ -86,7 +84,7 @@ namespace {
 
         auto mask = threshold_sse2(diff, lowThresh, highThresh, v128);
 
-        simd_store_si128<mem_mode>(pDst + i, mask);
+        _mm_storeu_si128(reinterpret_cast<__m128i*>(pDst + i), mask);
       }
       pDst += nDstPitch;
       pSrc += nSrcPitch;
@@ -100,10 +98,10 @@ namespace {
 
 } // namespace
 
-Processor16* mask10_sse2 = &mask16_t<sad16_sse2_op<MemoryMode::SSE2_UNALIGNED>, mask16_c_op<10> /* mask16_sse2_op<MemoryMode::SSE2_UNALIGNED>*/>;
-Processor16* mask12_sse2 = &mask16_t<sad16_sse2_op<MemoryMode::SSE2_UNALIGNED>, mask16_c_op<12> /* mask16_sse2_op<MemoryMode::SSE2_UNALIGNED>*/>;
-Processor16* mask14_sse2 = &mask16_t<sad16_sse2_op<MemoryMode::SSE2_UNALIGNED>, mask16_c_op<14> /* mask16_sse2_op<MemoryMode::SSE2_UNALIGNED>*/>;
-Processor16* mask16_sse2 = &mask16_t<sad16_sse2_op<MemoryMode::SSE2_UNALIGNED>, mask16_c_op<16> /* mask16_sse2_op<MemoryMode::SSE2_UNALIGNED>*/>;
+Processor16* mask10_sse2 = &mask16_t<sad16_sse2_op, mask16_c_op<10> /* mask16_sse2_op*/>;
+Processor16* mask12_sse2 = &mask16_t<sad16_sse2_op, mask16_c_op<12> /* mask16_sse2_op*/>;
+Processor16* mask14_sse2 = &mask16_t<sad16_sse2_op, mask16_c_op<14> /* mask16_sse2_op*/>;
+Processor16* mask16_sse2 = &mask16_t<sad16_sse2_op, mask16_c_op<16> /* mask16_sse2_op*/>;
 
 } } } } }
 

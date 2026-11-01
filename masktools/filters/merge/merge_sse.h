@@ -19,14 +19,14 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Merge 
 namespace {
 
    // SSE2 or SSE4 because of blend
-   template <MemoryMode mem_mode, CpuFlags flags>
+   template <CpuFlags flags>
    MT_FORCEINLINE __m128i merge_sse2_core(uint8_t *pDst, const uint8_t *pSrc, const __m128i& mask_lo, const __m128i& mask_hi,
       const __m128i& v128, const __m128i& zero, const __m128i& maxMaskFF) {
-      auto dst = simd_load_si128<mem_mode>(pDst);
+      auto dst = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pDst));
       auto dst_lo = _mm_unpacklo_epi8(dst, zero);
       auto dst_hi = _mm_unpackhi_epi8(dst, zero);
       
-      auto src = simd_load_si128<mem_mode>(pSrc);
+      auto src = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pSrc));
       auto src1_lo = _mm_unpacklo_epi8(src, zero);
       auto src1_hi = _mm_unpackhi_epi8(src, zero);
 
@@ -59,7 +59,7 @@ namespace {
       return result;
    }
 
-   template <MemoryMode mem_mode, CpuFlags flags>
+   template <CpuFlags flags>
    void merge_sse2_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
       const uint8_t *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
    {
@@ -74,18 +74,18 @@ namespace {
 #pragma warning(default: 4309)
       for (int j = 0; j < nHeight; ++j) {
          for (int i = 0; i < wMod16; i += 16) {
-            auto src2 = simd_load_si128<mem_mode>(pMask + i); // original mask
+            auto src2 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pMask + i)); // original mask
             auto mask_t1 = _mm_unpacklo_epi8(src2, zero);
             auto mask_t2 = _mm_unpackhi_epi8(src2, zero);
 
-            auto result = merge_sse2_core<mem_mode, flags>(pDst + i, pSrc1 + i, mask_t1, mask_t2, v128, zero, maxMaskFF);
+            auto result = merge_sse2_core<flags>(pDst + i, pSrc1 + i, mask_t1, mask_t2, v128, zero, maxMaskFF);
             // 2.2.7: applied logic: if mask == 255 -> src returned, mask == 0 -> dst is returned
             // old behaviour:
             // when mask is 255 then second clip's 255 becomes 254 and 0 becomes 1
             // in 16 bit merge this problem is solved: special ensures that max mask returns second clip
             // mask 0 returns first clip
 
-            simd_store_si128<mem_mode>(pDst + i, result);
+            _mm_storeu_si128(reinterpret_cast<__m128i*>(pDst + i), result);
          }
          pDst += nDstPitch;
          pSrc1 += nSrc1Pitch;
@@ -97,7 +97,7 @@ namespace {
       }
    }
 
-   template <MemoryMode mem_mode, CpuFlags flags>
+   template <CpuFlags flags>
    void merge_luma_420_sse2_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
      const uint8_t *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
    {
@@ -116,10 +116,10 @@ namespace {
          _mm_prefetch(reinterpret_cast<const char*>(pMask) + i * 2 + 64, _MM_HINT_T0);
          _mm_prefetch(reinterpret_cast<const char*>(pMask) + nSrc2Pitch + i * 2 + 64, _MM_HINT_T0);
          // preparing mask
-         auto src2_row1_t1 = simd_load_si128<mem_mode>(pMask + i * 2);
-         auto src2_row1_t2 = simd_load_si128<mem_mode>(pMask + i * 2 + 16);
-         auto src2_row2_t1 = simd_load_si128<mem_mode>(pMask + nSrc2Pitch + i * 2);
-         auto src2_row2_t2 = simd_load_si128<mem_mode>(pMask + nSrc2Pitch + i * 2 + 16);
+         auto src2_row1_t1 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pMask + i * 2));
+         auto src2_row1_t2 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pMask + i * 2 + 16));
+         auto src2_row2_t1 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pMask + nSrc2Pitch + i * 2));
+         auto src2_row2_t2 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pMask + nSrc2Pitch + i * 2 + 16));
          auto avg_t1 = _mm_avg_epu8(src2_row1_t1, src2_row2_t1);
          auto avg_t2 = _mm_avg_epu8(src2_row1_t2, src2_row2_t2);
          auto shifted_t1 = _mm_srli_si128(avg_t1, 1);
@@ -131,9 +131,9 @@ namespace {
          auto mask_t1 = _mm_and_si128(avg_t1, v255);
          auto mask_t2 = _mm_and_si128(avg_t2, v255);
 
-         auto result = merge_sse2_core<mem_mode, flags>(pDst + i, pSrc1 + i, mask_t1, mask_t2, v128, zero, maxMaskFF);
+         auto result = merge_sse2_core<flags>(pDst + i, pSrc1 + i, mask_t1, mask_t2, v128, zero, maxMaskFF);
 
-         simd_store_si128<mem_mode>(pDst + i, result);
+         _mm_storeu_si128(reinterpret_cast<__m128i*>(pDst + i), result);
        }
        pDst += nDstPitch;
        pSrc1 += nSrc1Pitch;
@@ -144,7 +144,7 @@ namespace {
      }
    }
 
-   template <MemoryMode mem_mode, CpuFlags flags>
+   template <CpuFlags flags>
    void merge_luma_420_mpeg2_sse2_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
      const uint8_t *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
    {
@@ -159,8 +159,8 @@ namespace {
 #pragma warning(default: 4309)
      for (int j = 0; j < nHeight; ++j) {
        // prepare "right_hi": we need only pixel column #0 as the rightmost word (14-15th byte)
-       auto row1 = simd_load_si128<mem_mode>(pMask + 0 * 2);
-       auto row2 = simd_load_si128<mem_mode>(pMask + nSrc2Pitch + 0 * 2);
+       auto row1 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pMask + 0 * 2));
+       auto row2 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pMask + nSrc2Pitch + 0 * 2));
        __m128i right_lo, right_hi;
 #pragma warning(disable: 4309)
        auto evenmask = _mm_set1_epi16(0x00FF);
@@ -169,10 +169,10 @@ namespace {
 
        for (int i = 0; i < wMod16; i += 16) {
          // preparing mask
-         auto row1_lo = simd_load_si128<mem_mode>(pMask + i * 2);
-         auto row1_hi = simd_load_si128<mem_mode>(pMask + i * 2 + 16);
-         auto row2_lo = simd_load_si128<mem_mode>(pMask + nSrc2Pitch + i * 2);
-         auto row2_hi = simd_load_si128<mem_mode>(pMask + nSrc2Pitch + i * 2 + 16);
+         auto row1_lo = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pMask + i * 2));
+         auto row1_hi = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pMask + i * 2 + 16));
+         auto row2_lo = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pMask + nSrc2Pitch + i * 2));
+         auto row2_hi = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pMask + nSrc2Pitch + i * 2 + 16));
 
          auto mid_lo = _mm_add_epi16(_mm_and_si128(row1_lo, evenmask), _mm_and_si128(row2_lo, evenmask));
          auto mid_hi = _mm_add_epi16(_mm_and_si128(row1_hi, evenmask), _mm_and_si128(row2_hi, evenmask));
@@ -191,9 +191,9 @@ namespace {
          auto mask_lo = _mm_srli_epi16(_mm_add_epi16(_mm_add_epi16(_mm_add_epi16(_mm_slli_epi16(mid_lo, 1), left_lo), right_lo), four), 3);
          auto mask_hi = _mm_srli_epi16(_mm_add_epi16(_mm_add_epi16(_mm_add_epi16(_mm_slli_epi16(mid_hi, 1), left_hi), right_hi), four), 3);
 
-         auto result = merge_sse2_core<mem_mode, flags>(pDst + i, pSrc1 + i, mask_lo, mask_hi, v128, zero, maxMaskFF);
+         auto result = merge_sse2_core<flags>(pDst + i, pSrc1 + i, mask_lo, mask_hi, v128, zero, maxMaskFF);
 
-         simd_store_si128<mem_mode>(pDst + i, result);
+         _mm_storeu_si128(reinterpret_cast<__m128i*>(pDst + i), result);
        }
        pDst += nDstPitch;
        pSrc1 += nSrc1Pitch;
@@ -207,7 +207,7 @@ namespace {
      }
    }
 
-   template <MemoryMode mem_mode, CpuFlags flags>
+   template <CpuFlags flags>
    void merge_luma_420_topleft_sse2_t(uint8_t* pDst, ptrdiff_t nDstPitch, const uint8_t* pSrc1, ptrdiff_t nSrc1Pitch,
      const uint8_t* pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
    {
@@ -226,9 +226,9 @@ namespace {
        // no previous line for 'top'
 
        // prepare "right_hi": we need only pixel column #0 as the rightmost word (14-15th byte)
-       auto row0 = simd_load_si128<mem_mode>(pMask + top_or_same + 0 * 2);
-       auto row1 = simd_load_si128<mem_mode>(pMask + 0 * 2);
-       auto row2 = simd_load_si128<mem_mode>(pMask + nSrc2Pitch + 0 * 2);
+       auto row0 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pMask + top_or_same + 0 * 2));
+       auto row1 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pMask + 0 * 2));
+       auto row2 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pMask + nSrc2Pitch + 0 * 2));
        __m128i right_lo, right_hi;
 #pragma warning(disable: 4309)
        auto evenmask = _mm_set1_epi16(0x00FF);
@@ -246,12 +246,12 @@ namespace {
          // subsampled 16 pixels take 2x16 pixels of original luma mask
 
          // preparing mask
-         auto row0_lo = simd_load_si128<mem_mode>(pMask + top_or_same + i * 2);
-         auto row0_hi = simd_load_si128<mem_mode>(pMask + top_or_same + i * 2 + 16);
-         auto row1_lo = simd_load_si128<mem_mode>(pMask + i * 2);
-         auto row1_hi = simd_load_si128<mem_mode>(pMask + i * 2 + 16);
-         auto row2_lo = simd_load_si128<mem_mode>(pMask + nSrc2Pitch + i * 2);
-         auto row2_hi = simd_load_si128<mem_mode>(pMask + nSrc2Pitch + i * 2 + 16);
+         auto row0_lo = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pMask + top_or_same + i * 2));
+         auto row0_hi = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pMask + top_or_same + i * 2 + 16));
+         auto row1_lo = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pMask + i * 2));
+         auto row1_hi = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pMask + i * 2 + 16));
+         auto row2_lo = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pMask + nSrc2Pitch + i * 2));
+         auto row2_hi = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pMask + nSrc2Pitch + i * 2 + 16));
 
          // row0 - row1 - row2: weights 1-2-1
          //   oXo mid
@@ -281,9 +281,9 @@ namespace {
          auto mask_lo = _mm_srli_epi16(_mm_add_epi16(_mm_add_epi16(_mm_add_epi16(_mm_slli_epi16(mid_lo, 1), left_lo), right_lo), eight), 4);
          auto mask_hi = _mm_srli_epi16(_mm_add_epi16(_mm_add_epi16(_mm_add_epi16(_mm_slli_epi16(mid_hi, 1), left_hi), right_hi), eight), 4);
 
-         auto result = merge_sse2_core<mem_mode, flags>(pDst + i, pSrc1 + i, mask_lo, mask_hi, v128, zero, maxMaskFF);
+         auto result = merge_sse2_core<flags>(pDst + i, pSrc1 + i, mask_lo, mask_hi, v128, zero, maxMaskFF);
 
-         simd_store_si128<mem_mode>(pDst + i, result);
+         _mm_storeu_si128(reinterpret_cast<__m128i*>(pDst + i), result);
        }
        pDst += nDstPitch;
        pSrc1 += nSrc1Pitch;
@@ -297,7 +297,7 @@ namespace {
      }
    }
 
-   template <MemoryMode mem_mode, CpuFlags flags>
+   template <CpuFlags flags>
    void merge_luma_422_sse2_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
      const uint8_t *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
    {
@@ -315,8 +315,8 @@ namespace {
        for (int i = 0; i < wMod16; i += 16) {
          _mm_prefetch(reinterpret_cast<const char*>(pMask) + i * 2 + 64, _MM_HINT_T0);
          // preparing mask
-         auto src2_row1_t1 = simd_load_si128<mem_mode>(pMask + i * 2);
-         auto src2_row1_t2 = simd_load_si128<mem_mode>(pMask + i * 2 + 16);
+         auto src2_row1_t1 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pMask + i * 2));
+         auto src2_row1_t2 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pMask + i * 2 + 16));
          auto shifted_t1 = _mm_srli_si128(src2_row1_t1, 1);
          auto shifted_t2 = _mm_srli_si128(src2_row1_t2, 1);
          auto avg_t1 = _mm_avg_epu8(src2_row1_t1, shifted_t1);
@@ -324,9 +324,9 @@ namespace {
          auto mask_t1 = _mm_and_si128(avg_t1, v255);
          auto mask_t2 = _mm_and_si128(avg_t2, v255);
 
-         auto result = merge_sse2_core<mem_mode, flags>(pDst + i, pSrc1 + i, mask_t1, mask_t2, v128, zero, maxMaskFF);
+         auto result = merge_sse2_core<flags>(pDst + i, pSrc1 + i, mask_t1, mask_t2, v128, zero, maxMaskFF);
 
-         simd_store_si128<mem_mode>(pDst + i, result);
+         _mm_storeu_si128(reinterpret_cast<__m128i*>(pDst + i), result);
        }
        pDst += nDstPitch;
        pSrc1 += nSrc1Pitch;
@@ -337,7 +337,7 @@ namespace {
      }
    }
 
-   template <MemoryMode mem_mode, CpuFlags flags>
+   template <CpuFlags flags>
    void merge_luma_422_mpeg2_sse2_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
      const uint8_t *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
    {
@@ -352,7 +352,7 @@ namespace {
      auto zero = _mm_setzero_si128();
      for (int j = 0; j < nHeight; ++j) {
        // prepare "right_hi": we need only pixel column #0 as the rightmost word (14-15th byte)
-       auto row1 = simd_load_si128<mem_mode>(pMask + 0 * 2);
+       auto row1 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pMask + 0 * 2));
        __m128i right_lo, right_hi;
 #pragma warning(disable: 4309)
        auto evenmask = _mm_set1_epi16(0x00FF);
@@ -361,8 +361,8 @@ namespace {
        for (int i = 0; i < wMod16; i += 16) {
          _mm_prefetch(reinterpret_cast<const char*>(pMask) + i * 2 + 64, _MM_HINT_T0);
          // preparing mask
-         auto row1_lo = simd_load_si128<mem_mode>(pMask + i * 2);
-         auto row1_hi = simd_load_si128<mem_mode>(pMask + i * 2 + 16);
+         auto row1_lo = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pMask + i * 2));
+         auto row1_hi = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pMask + i * 2 + 16));
 
          auto mid_lo = _mm_and_si128(row1_lo, evenmask);
          auto mid_hi = _mm_and_si128(row1_hi, evenmask);
@@ -381,9 +381,9 @@ namespace {
          auto mask_lo = _mm_srli_epi16(_mm_add_epi16(_mm_add_epi16(_mm_add_epi16(_mm_slli_epi16(mid_lo, 1), left_lo), right_lo), two), 2);
          auto mask_hi = _mm_srli_epi16(_mm_add_epi16(_mm_add_epi16(_mm_add_epi16(_mm_slli_epi16(mid_hi, 1), left_hi), right_hi), two), 2);
 
-         auto result = merge_sse2_core<mem_mode, flags>(pDst + i, pSrc1 + i, mask_lo, mask_hi, v128, zero, maxMaskFF);
+         auto result = merge_sse2_core<flags>(pDst + i, pSrc1 + i, mask_lo, mask_hi, v128, zero, maxMaskFF);
 
-         simd_store_si128<mem_mode>(pDst + i, result);
+         _mm_storeu_si128(reinterpret_cast<__m128i*>(pDst + i), result);
        }
        pDst += nDstPitch;
        pSrc1 += nSrc1Pitch;
@@ -399,13 +399,12 @@ namespace {
 
    // 411: the masks of 16 chroma pixels from 64 luma mask pixels of the row, as words (lo: 0-7, hi: 8-15);
    // pair averages of pair averages, as the C version
-   template <MemoryMode mem_mode>
    MT_FORCEINLINE void mask_411_sse2(const uint8_t *pMask, __m128i &mask_lo, __m128i &mask_hi) {
      auto v255 = _mm_set1_epi16(0x00FF);
-     auto m0 = simd_load_si128<mem_mode>(pMask);
-     auto m1 = simd_load_si128<mem_mode>(pMask + 16);
-     auto m2 = simd_load_si128<mem_mode>(pMask + 32);
-     auto m3 = simd_load_si128<mem_mode>(pMask + 48);
+     auto m0 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pMask));
+     auto m1 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pMask + 16));
+     auto m2 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pMask + 32));
+     auto m3 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pMask + 48));
      // pair averages at the even bytes
      auto p0 = _mm_and_si128(_mm_avg_epu8(m0, _mm_srli_si128(m0, 1)), v255);
      auto p1 = _mm_and_si128(_mm_avg_epu8(m1, _mm_srli_si128(m1, 1)), v255);
@@ -418,7 +417,7 @@ namespace {
      mask_hi = _mm_and_si128(_mm_avg_epu8(p23, _mm_srli_si128(p23, 1)), v255);
    }
 
-   template <MemoryMode mem_mode, CpuFlags flags>
+   template <CpuFlags flags>
    void merge_luma_411_sse2_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
      const uint8_t *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
    {
@@ -436,11 +435,11 @@ namespace {
          _mm_prefetch(reinterpret_cast<const char*>(pMask) + i * 4 + 64, _MM_HINT_T0);
          // preparing mask
          __m128i mask_t1, mask_t2;
-         mask_411_sse2<mem_mode>(pMask + i * 4, mask_t1, mask_t2);
+         mask_411_sse2(pMask + i * 4, mask_t1, mask_t2);
 
-         auto result = merge_sse2_core<mem_mode, flags>(pDst + i, pSrc1 + i, mask_t1, mask_t2, v128, zero, maxMaskFF);
+         auto result = merge_sse2_core<flags>(pDst + i, pSrc1 + i, mask_t1, mask_t2, v128, zero, maxMaskFF);
 
-         simd_store_si128<mem_mode>(pDst + i, result);
+         _mm_storeu_si128(reinterpret_cast<__m128i*>(pDst + i), result);
        }
        pDst += nDstPitch;
        pSrc1 += nSrc1Pitch;

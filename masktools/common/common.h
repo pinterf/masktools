@@ -5,12 +5,7 @@
 
 namespace Filtering {
 
-// processor template parameters, also of C versions (the left and right edge of a 3x3 kernel)
-enum class MemoryMode {
-  SSE2_UNALIGNED,
-  SSE2_ALIGNED
-};
-
+// processor template parameter, also of C versions (the left and right edge of a 3x3 kernel)
 enum class Border {
   Left,
   Right,

@@ -8,7 +8,6 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Suppor
 
 namespace {
 
-template<MemoryMode mem_mode>
 static void makediff_sse2_t(uint8_t *pDst, ptrdiff_t dst_pitch, const uint8_t *pSrc, ptrdiff_t src_pitch, int width, int height)
 {
     int mod32_width = (width / 32) * 32;
@@ -21,10 +20,10 @@ static void makediff_sse2_t(uint8_t *pDst, ptrdiff_t dst_pitch, const uint8_t *p
             _mm_prefetch(reinterpret_cast<const char*>(pDst)+i+128, _MM_HINT_T0);
             _mm_prefetch(reinterpret_cast<const char*>(pSrc)+i+128, _MM_HINT_T0);
 
-            auto dst = simd_load_si128<mem_mode>(pDst+i);
-            auto dst2 = simd_load_si128<mem_mode>(pDst+i+16);
-            auto src = simd_load_si128<mem_mode>(pSrc+i);
-            auto src2 = simd_load_si128<mem_mode>(pSrc+i+16);
+            auto dst = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pDst+i));
+            auto dst2 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pDst+i+16));
+            auto src = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pSrc+i));
+            auto src2 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pSrc+i+16));
 
             auto dstsub = _mm_sub_epi8(dst, v128);
             auto dstsub2 = _mm_sub_epi8(dst2, v128);
@@ -38,8 +37,8 @@ static void makediff_sse2_t(uint8_t *pDst, ptrdiff_t dst_pitch, const uint8_t *p
             auto result = _mm_add_epi8(subbed, v128);
             auto result2 = _mm_add_epi8(subbed2, v128);
 
-            simd_store_si128<mem_mode>(pDst+i, result);
-            simd_store_si128<mem_mode>(pDst+i+16, result2);
+            _mm_storeu_si128(reinterpret_cast<__m128i*>(pDst+i), result);
+            _mm_storeu_si128(reinterpret_cast<__m128i*>(pDst+i+16), result2);
         }
         pDst += dst_pitch;
         pSrc += src_pitch;
@@ -50,7 +49,6 @@ static void makediff_sse2_t(uint8_t *pDst, ptrdiff_t dst_pitch, const uint8_t *p
     }
 }
 
-template<MemoryMode mem_mode>
 static void makediff32_sse2_t(uint8_t *pDst, ptrdiff_t dst_pitch, const uint8_t *pSrc, ptrdiff_t src_pitch, int width, int height, bool chroma)
 {
   width *= sizeof(float);
@@ -69,12 +67,12 @@ static void makediff32_sse2_t(uint8_t *pDst, ptrdiff_t dst_pitch, const uint8_t 
       _mm_prefetch(reinterpret_cast<const char*>(pDst) + i + 128, _MM_HINT_T0);
       _mm_prefetch(reinterpret_cast<const char*>(pSrc) + i + 128, _MM_HINT_T0);
 
-      auto dst = simd_load_ps<mem_mode>(pDst + i);
-      auto src = simd_load_ps<mem_mode>(pSrc + i);
+      auto dst = _mm_loadu_ps(reinterpret_cast<const float*>(pDst + i));
+      auto src = _mm_loadu_ps(reinterpret_cast<const float*>(pSrc + i));
 
       auto result = _mm_add_ps(_mm_sub_ps(dst, src),vHalf); // to work like "x y - 128 +"
 
-      simd_store_ps<mem_mode>(pDst + i, result);
+      _mm_storeu_ps(reinterpret_cast<float*>(pDst + i), result);
     }
     pDst += dst_pitch;
     pSrc += src_pitch;
@@ -87,9 +85,9 @@ static void makediff32_sse2_t(uint8_t *pDst, ptrdiff_t dst_pitch, const uint8_t 
 
 } // namespace
 
-Processor *makediff_sse2 = &makediff_sse2_t<MemoryMode::SSE2_UNALIGNED>;
+Processor *makediff_sse2 = &makediff_sse2_t;
 
-Processor32 *makediff32_sse2 = &makediff32_sse2_t<MemoryMode::SSE2_UNALIGNED>;
+Processor32 *makediff32_sse2 = &makediff32_sse2_t;
 
 } } } } }
 

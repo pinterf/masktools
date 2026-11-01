@@ -41,114 +41,33 @@ namespace Filtering {
 // Anonymous namespace: this header is included from files built with different per file compiler flags.
 namespace {
 
-#define USE_MOVPS
-
-template<MemoryMode mem_mode, typename T>
-#if defined(GCC) || defined(CLANG)
-__attribute__((__target__("avx")))
-#endif
-static MT_FORCEINLINE __m256 simd256_load_ps(const T* ptr) {
-#ifdef USE_MOVPS
-  if constexpr (mem_mode == MemoryMode::SSE2_ALIGNED) {
-    return _mm256_load_ps(reinterpret_cast<const float*>(ptr));
-  }
-  else {
-    return _mm256_loadu_ps(reinterpret_cast<const float*>(ptr));
-  }
-#else
-  if constexpr (mem_mode == MemoryMode::SSE2_ALIGNED) {
-    return _mm256_castsi256_ps(_mm256_load_si256(reinterpret_cast<const __m256i*>(ptr)));
-  }
-  else {
-    return _mm256_castsi256_ps(_mm256_loadu_si256(reinterpret_cast<const __m256i*>(ptr)));
-  }
-#endif
-}
-
-template<MemoryMode mem_mode, typename T>
-#if defined(GCC) || defined(CLANG)
-__attribute__((__target__("avx")))
-#endif
-static MT_FORCEINLINE __m256 simd256_128_load_ps(const T* ptr) {
-  if constexpr (mem_mode == MemoryMode::SSE2_ALIGNED) {
-    return _mm256_loadu2_m128(reinterpret_cast<const float*>(ptr) + 4, reinterpret_cast<const float*>(ptr));
-  }
-  else {
-    return _mm256_loadu2_m128(reinterpret_cast<const float*>(ptr) + 4, reinterpret_cast<const float*>(ptr));
-  }
-}
-
-template<MemoryMode mem_mode, typename T>
-#if defined(GCC) || defined(CLANG)
-__attribute__((__target__("avx")))
-#endif
-static MT_FORCEINLINE void simd256_store_si256(T *ptr, __m256i value) {
-#ifdef USE_MOVPS
-  if constexpr (mem_mode == MemoryMode::SSE2_ALIGNED) {
-    _mm256_store_ps(reinterpret_cast<float*>(ptr), _mm256_castsi256_ps(value));
-  }
-  else {
-    _mm256_storeu_ps(reinterpret_cast<float*>(ptr), _mm256_castsi256_ps(value));
-  }
-#else
-  if constexpr (mem_mode == MemoryMode::SSE2_ALIGNED) {
-    _mm256_store_si256(reinterpret_cast<__m256i*>(ptr), value);
-  }
-  else {
-    _mm256_storeu_si256(reinterpret_cast<__m256i*>(ptr), value);
-  }
-#endif
-}
-
-template<MemoryMode mem_mode, typename T>
-#if defined(GCC) || defined(CLANG)
-__attribute__((__target__("avx")))
-#endif
-static MT_FORCEINLINE void simd256_store_ps(T *ptr, __m256 value) {
-#ifdef USE_MOVPS
-  if constexpr (mem_mode == MemoryMode::SSE2_ALIGNED) {
-    _mm256_store_ps(reinterpret_cast<float*>(ptr), value);
-  }
-  else {
-    _mm256_storeu_ps(reinterpret_cast<float*>(ptr), value);
-  }
-#else
-  if (mem_mode == MemoryMode::SSE2_ALIGNED) {
-    _mm256_store_si256(reinterpret_cast<__m256i*>(ptr), _mm256_castps_si256(value));
-  }
-  else {
-    _mm256_storeu_si256(reinterpret_cast<__m256i*>(ptr), _mm256_castps_si256(value));
-  }
-#endif
-}
-
-template<Border border_mode, MemoryMode mem_mode>
+template<Border border_mode>
 #if defined(GCC) || defined(CLANG)
 __attribute__((__target__("avx")))
 #endif
 static MT_FORCEINLINE __m256 load32_one_to_left_si256(const uint8_t *ptr) {
   if constexpr (border_mode == Border::Left) {
-    auto lo128 = load32_one_to_left<border_mode, mem_mode>(ptr); // really left!
-    auto hi128 = simd_load_ps<MemoryMode::SSE2_UNALIGNED>(ptr + 16 - 4);
+    auto lo128 = load32_one_to_left<border_mode>(ptr); // really left!
+    auto hi128 = _mm_loadu_ps(reinterpret_cast<const float*>(ptr + 16 - 4));
     return _mm256_set_m128(hi128, lo128);
   }
   else {
-    return simd256_load_ps<MemoryMode::SSE2_UNALIGNED>(ptr - 4);
+    return _mm256_loadu_ps(reinterpret_cast<const float*>(ptr - 4));
   }
 }
 
-template<Border border_mode, MemoryMode mem_mode>
+template<Border border_mode>
 #if defined(GCC) || defined(CLANG)
 __attribute__((__target__("avx")))
 #endif
 static MT_FORCEINLINE __m256 load32_one_to_right_si256(const uint8_t *ptr) {
   if constexpr(border_mode == Border::Right) {
-    auto lo128 = simd_load_ps<MemoryMode::SSE2_UNALIGNED>(ptr+4);
-    auto hi128 = load32_one_to_right<border_mode, mem_mode>(ptr + 16); // really right!
+    auto lo128 = _mm_loadu_ps(reinterpret_cast<const float*>(ptr+4));
+    auto hi128 = load32_one_to_right<border_mode>(ptr + 16); // really right!
     return _mm256_set_m128(hi128, lo128);
   }
   else {
-    return simd256_load_ps<MemoryMode::SSE2_UNALIGNED>(ptr + 4);
+    return _mm256_loadu_ps(reinterpret_cast<const float*>(ptr + 4));
   }
 }
 

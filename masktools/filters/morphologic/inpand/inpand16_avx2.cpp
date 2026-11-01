@@ -110,21 +110,21 @@ Processor16 *inpand_both_16_avx2_c = &MorphologicProcessor<uint16_t>::generic_16
     process_line_morpho_16_avx2_c<Border::Right, minimumThresholded<::minimum_both>>
     >;
 
-#define DEFINE_AVX2_VERSIONS(name, mem_mode) \
+#define DEFINE_AVX2_VERSIONS(name) \
     Processor16 *inpand_both_##name##_16 = &generic_16_avx2< \
-    process_line_xxpand_both_16_avx2<Border::Left, inpand_operator_avx2_16, limit_down_16_avx2, mem_mode>, \
-    process_line_xxpand_both_16_avx2<Border::None, inpand_operator_avx2_16, limit_down_16_avx2, mem_mode>, \
-    process_line_xxpand_both_16_avx2<Border::Right, inpand_operator_avx2_16, limit_down_16_avx2, MemoryMode::SSE2_UNALIGNED> \
+    process_line_xxpand_both_16_avx2<Border::Left, inpand_operator_avx2_16, limit_down_16_avx2>, \
+    process_line_xxpand_both_16_avx2<Border::None, inpand_operator_avx2_16, limit_down_16_avx2>, \
+    process_line_xxpand_both_16_avx2<Border::Right, inpand_operator_avx2_16, limit_down_16_avx2> \
     >;
 
-DEFINE_AVX2_VERSIONS(avx2, MemoryMode::SSE2_UNALIGNED)
+DEFINE_AVX2_VERSIONS(avx2)
 #undef DEFINE_AVX2_VERSIONS
 
-Processor16 *inpand_vertical_avx2_16 = &xxpand_avx2_vertical_16<inpand_operator_avx2_16, limit_down_16_avx2, MemoryMode::SSE2_UNALIGNED>;
+Processor16 *inpand_vertical_avx2_16 = &xxpand_avx2_vertical_16<inpand_operator_avx2_16, limit_down_16_avx2>;
 
-Processor16 *inpand_horizontal_avx2_16 = &xxpand_avx2_horizontal_16<inpand_operator_avx2_16, limit_down_16_avx2, MemoryMode::SSE2_UNALIGNED, inpand_c_horizontal_core_16_avx2>;
+Processor16 *inpand_horizontal_avx2_16 = &xxpand_avx2_horizontal_16<inpand_operator_avx2_16, limit_down_16_avx2, inpand_c_horizontal_core_16_avx2>;
 
-Processor16 *inpand_square_avx2_16 = &xxpand_avx2_square_16<inpand_operator_avx2_16, limit_down_16_avx2, MemoryMode::SSE2_UNALIGNED, inpand_c_horizontal_core_16_avx2>;
+Processor16 *inpand_square_avx2_16 = &xxpand_avx2_square_16<inpand_operator_avx2_16, limit_down_16_avx2, inpand_c_horizontal_core_16_avx2>;
 
 Processor16 *inpand_custom_16_avx2_c = &generic_custom_16_avx2_c<NewValue16>;
 

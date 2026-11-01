@@ -56,88 +56,63 @@ namespace Filtering {
 // Anonymous namespace: this header is included from files built with different per file compiler flags.
 namespace {
 
-#define USE_MOVPS
-
-template<MemoryMode mem_mode, typename T>
-#if defined(GCC) || defined(CLANG)
-__attribute__((__target__("avx2")))
-#endif
-static MT_FORCEINLINE __m256i simd256_load_si256(const T* ptr) {
-#ifdef USE_MOVPS
-  if constexpr (mem_mode == MemoryMode::SSE2_ALIGNED) {
-    return _mm256_castps_si256(_mm256_load_ps(reinterpret_cast<const float*>(ptr)));
-}
-  else {
-    return _mm256_castps_si256(_mm256_loadu_ps(reinterpret_cast<const float*>(ptr)));
-  }
-#else
-  if constexpr (mem_mode == MemoryMode::SSE2_ALIGNED) {
-    return _mm256_load_si256(reinterpret_cast<const __m256i*>(ptr));
-  }
-  else {
-    return _mm256_loadu_si256(reinterpret_cast<const __m256i*>(ptr));
-  }
-#endif
-}
-
-
-template<Border border_mode, MemoryMode mem_mode>
+template<Border border_mode>
 #if defined(GCC) || defined(CLANG)
 __attribute__((__target__("avx2")))
 #endif
 static MT_FORCEINLINE __m256i load_one_to_left_si256(const uint8_t *ptr) {
   if constexpr (border_mode == Border::Left) {
-    auto lo128 = load_one_to_left<border_mode, mem_mode>(ptr); // really left!
-    auto hi128 = simd_load_si128<MemoryMode::SSE2_UNALIGNED>(ptr + 16 - 1);
+    auto lo128 = load_one_to_left<border_mode>(ptr); // really left!
+    auto hi128 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(ptr + 16 - 1));
     return _mm256_set_m128i(hi128, lo128);
   }
   else {
-    return simd256_load_si256<MemoryMode::SSE2_UNALIGNED>(ptr - 1);
+    return _mm256_loadu_si256(reinterpret_cast<const __m256i*>(ptr - 1));
   }
 }
 
-template<Border border_mode, MemoryMode mem_mode>
+template<Border border_mode>
 #if defined(GCC) || defined(CLANG)
 __attribute__((__target__("avx2")))
 #endif
 static MT_FORCEINLINE __m256i load_one_to_right_si256(const uint8_t *ptr) {
   if constexpr (border_mode == Border::Right) {
-    auto lo128 = simd_load_si128<MemoryMode::SSE2_UNALIGNED>(ptr + 1);
-    auto hi128 = load_one_to_right<border_mode, mem_mode>(ptr + 16); // really right!
+    auto lo128 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(ptr + 1));
+    auto hi128 = load_one_to_right<border_mode>(ptr + 16); // really right!
     return _mm256_set_m128i(hi128, lo128);
   }
   else {
-    return simd256_load_si256<MemoryMode::SSE2_UNALIGNED>(ptr + 1);
+    return _mm256_loadu_si256(reinterpret_cast<const __m256i*>(ptr + 1));
   }
 }
 
-template<Border border_mode, MemoryMode mem_mode>
+template<Border border_mode>
 #if defined(GCC) || defined(CLANG)
 __attribute__((__target__("avx2")))
 #endif
 static MT_FORCEINLINE __m256i load16_one_to_left_si256(const uint8_t* ptr) {
   if constexpr (border_mode == Border::Left) {
-    auto lo128 = load16_one_to_left<border_mode, mem_mode>(ptr); // really left!
-    auto hi128 = simd_load_si128<MemoryMode::SSE2_UNALIGNED>(ptr + 16 - 2);
+    auto lo128 = load16_one_to_left<border_mode>(ptr); // really left!
+    auto hi128 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(ptr + 16 - 2));
     return _mm256_set_m128i(hi128, lo128);
   }
   else {
-    return simd256_load_si256<MemoryMode::SSE2_UNALIGNED>(ptr - 2);
+    return _mm256_loadu_si256(reinterpret_cast<const __m256i*>(ptr - 2));
   }
 }
 
-template<Border border_mode, MemoryMode mem_mode>
+template<Border border_mode>
 #if defined(GCC) || defined(CLANG)
 __attribute__((__target__("avx2")))
 #endif
 static MT_FORCEINLINE __m256i load16_one_to_right_si256(const uint8_t* ptr) {
   if constexpr (border_mode == Border::Right) {
-    auto lo128 = simd_load_si128<MemoryMode::SSE2_UNALIGNED>(ptr + 2);
-    auto hi128 = load16_one_to_right<border_mode, mem_mode>(ptr + 16); // really right!
+    auto lo128 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(ptr + 2));
+    auto hi128 = load16_one_to_right<border_mode>(ptr + 16); // really right!
     return _mm256_set_m128i(hi128, lo128);
   }
   else {
-    return simd256_load_si256<MemoryMode::SSE2_UNALIGNED>(ptr + 2);
+    return _mm256_loadu_si256(reinterpret_cast<const __m256i*>(ptr + 2));
   }
 }
 

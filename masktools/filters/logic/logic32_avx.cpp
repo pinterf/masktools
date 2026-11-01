@@ -81,7 +81,7 @@ static MT_FORCEINLINE __m256 max_t_avx(const __m256 &a, const __m256 &b, const _
 }
 
 
-template<MemoryMode mem_mode, decltype(and_avx_op) op, decltype(_and) op_c>
+template<decltype(and_avx_op) op, decltype(_and) op_c>
     void logic_t_avx(float *pDst8, ptrdiff_t nDstPitch, const float *pSrc8, ptrdiff_t nSrcPitch, int nWidth, int nHeight, float nThresholdDestination, float nThresholdSource)
 {
     uint8_t *pDst = reinterpret_cast<uint8_t *>(pDst8);
@@ -100,12 +100,12 @@ template<MemoryMode mem_mode, decltype(and_avx_op) op, decltype(_and) op_c>
             _mm_prefetch(reinterpret_cast<const char*>(pDst) + i + 384, _MM_HINT_T0);
             _mm_prefetch(reinterpret_cast<const char*>(pSrc) + i + 384, _MM_HINT_T0);
           
-            auto dst = simd256_load_ps<mem_mode>(pDst+i);
-            auto src = simd256_load_ps<mem_mode>(pSrc+i);
+            auto dst = _mm256_loadu_ps(reinterpret_cast<const float*>(pDst+i));
+            auto src = _mm256_loadu_ps(reinterpret_cast<const float*>(pSrc+i));
 
             auto result = op(dst, src, tDest, tSource);
 
-            simd256_store_ps<mem_mode>(pDst+i, result);
+            _mm256_storeu_ps(reinterpret_cast<float*>(pDst+i), result);
         }
         pDst += nDstPitch;
         pSrc += nSrcPitch;
@@ -121,27 +121,27 @@ template<MemoryMode mem_mode, decltype(and_avx_op) op, decltype(_and) op_c>
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Logic {
 
-#define DEFINE_AVX_VERSIONS(name, mem_mode) \
-Processor32 *and_##name  = &logic_t_avx<mem_mode, and_avx_op, _and>; \
-Processor32 *or_##name   = &logic_t_avx<mem_mode, or_avx_op, _or>; \
-Processor32 *andn_##name = &logic_t_avx<mem_mode, andn_avx_op, andn>; \
-Processor32 *xor_##name  = &logic_t_avx<mem_mode, xor_avx_op, _xor>;
+#define DEFINE_AVX_VERSIONS(name) \
+Processor32 *and_##name  = &logic_t_avx<and_avx_op, _and>; \
+Processor32 *or_##name   = &logic_t_avx<or_avx_op, _or>; \
+Processor32 *andn_##name = &logic_t_avx<andn_avx_op, andn>; \
+Processor32 *xor_##name  = &logic_t_avx<xor_avx_op, _xor>;
 
-DEFINE_AVX_VERSIONS(32_avx, MemoryMode::SSE2_UNALIGNED)
+DEFINE_AVX_VERSIONS(32_avx)
 
-#define DEFINE_SILLY_AVX_VERSIONS(mode, name, mem_mode) \
-Processor32 *mode##_##name         = &logic_t_avx<mem_mode, mode##_t_avx<nop_avx, nop_avx>, mode##_t<nop, nop>>;   \
-Processor32 *mode##sub_##name      = &logic_t_avx<mem_mode, mode##_t_avx<nop_avx, sub_avx>, mode##_t<nop, sub>>;   \
-Processor32 *mode##add_##name      = &logic_t_avx<mem_mode, mode##_t_avx<nop_avx, add_avx>, mode##_t<nop, add>>;   \
-Processor32 *sub##mode##_##name    = &logic_t_avx<mem_mode, mode##_t_avx<sub_avx, nop_avx>, mode##_t<sub, nop>>;   \
-Processor32 *sub##mode##sub_##name = &logic_t_avx<mem_mode, mode##_t_avx<sub_avx, sub_avx>, mode##_t<sub, sub>>;   \
-Processor32 *sub##mode##add_##name = &logic_t_avx<mem_mode, mode##_t_avx<sub_avx, add_avx>, mode##_t<sub, add>>;   \
-Processor32 *add##mode##_##name    = &logic_t_avx<mem_mode, mode##_t_avx<add_avx, nop_avx>, mode##_t<add, nop>>;   \
-Processor32 *add##mode##sub_##name = &logic_t_avx<mem_mode, mode##_t_avx<add_avx, sub_avx>, mode##_t<add, sub>>;   \
-Processor32 *add##mode##add_##name = &logic_t_avx<mem_mode, mode##_t_avx<add_avx, add_avx>, mode##_t<add, add>>;
+#define DEFINE_SILLY_AVX_VERSIONS(mode, name) \
+Processor32 *mode##_##name         = &logic_t_avx<mode##_t_avx<nop_avx, nop_avx>, mode##_t<nop, nop>>;   \
+Processor32 *mode##sub_##name      = &logic_t_avx<mode##_t_avx<nop_avx, sub_avx>, mode##_t<nop, sub>>;   \
+Processor32 *mode##add_##name      = &logic_t_avx<mode##_t_avx<nop_avx, add_avx>, mode##_t<nop, add>>;   \
+Processor32 *sub##mode##_##name    = &logic_t_avx<mode##_t_avx<sub_avx, nop_avx>, mode##_t<sub, nop>>;   \
+Processor32 *sub##mode##sub_##name = &logic_t_avx<mode##_t_avx<sub_avx, sub_avx>, mode##_t<sub, sub>>;   \
+Processor32 *sub##mode##add_##name = &logic_t_avx<mode##_t_avx<sub_avx, add_avx>, mode##_t<sub, add>>;   \
+Processor32 *add##mode##_##name    = &logic_t_avx<mode##_t_avx<add_avx, nop_avx>, mode##_t<add, nop>>;   \
+Processor32 *add##mode##sub_##name = &logic_t_avx<mode##_t_avx<add_avx, sub_avx>, mode##_t<add, sub>>;   \
+Processor32 *add##mode##add_##name = &logic_t_avx<mode##_t_avx<add_avx, add_avx>, mode##_t<add, add>>;
 
-DEFINE_SILLY_AVX_VERSIONS(min, 32_avx, MemoryMode::SSE2_UNALIGNED)
-DEFINE_SILLY_AVX_VERSIONS(max, 32_avx, MemoryMode::SSE2_UNALIGNED)
+DEFINE_SILLY_AVX_VERSIONS(min, 32_avx)
+DEFINE_SILLY_AVX_VERSIONS(max, 32_avx)
 
 #undef DEFINE_SILLY_AVX_VERSIONS
 #undef DEFINE_AVX_VERSIONS

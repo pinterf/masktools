@@ -67,7 +67,7 @@ static MT_FORCEINLINE __m128i simd_abs_diff_epi32(__m128i a, __m128i b) {
   }
 }
 
-template<CpuFlags flags, int bits_per_pixel, Border borderMode, MemoryMode mem_mode>
+template<CpuFlags flags, int bits_per_pixel, Border borderMode>
 static MT_FORCEINLINE void process_line_convolution_sse2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m128i &lowThresh, const __m128i &highThresh, int width) {
     UNUSED(pSrcp);
 #pragma warning(disable: 4310)
@@ -88,17 +88,17 @@ static MT_FORCEINLINE void process_line_convolution_sse2(uint8_t *pDst, const ui
     auto divisor = _mm_set_epi32(0, 0, 0, simd_bit_scan_forward(matrix[9]));
 
     for (int x = 0; x < width; x+=16) {
-        auto up_left = load16_one_to_left<borderMode, mem_mode>(pSrcp+x);
-        auto up_center = simd_load_si128<mem_mode>(pSrcp+x);
-        auto up_right = load16_one_to_right<borderMode, mem_mode>(pSrcp+x);
+        auto up_left = load16_one_to_left<borderMode>(pSrcp+x);
+        auto up_center = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pSrcp+x));
+        auto up_right = load16_one_to_right<borderMode>(pSrcp+x);
 
-        auto middle_left = load16_one_to_left<borderMode, mem_mode>(pSrc+x);
-        auto middle_center = simd_load_si128<mem_mode>(pSrc+x);
-        auto middle_right = load16_one_to_right<borderMode, mem_mode>(pSrc+x);
+        auto middle_left = load16_one_to_left<borderMode>(pSrc+x);
+        auto middle_center = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pSrc+x));
+        auto middle_right = load16_one_to_right<borderMode>(pSrc+x);
 
-        auto down_left = load16_one_to_left<borderMode, mem_mode>(pSrcn+x);
-        auto down_center = simd_load_si128<mem_mode>(pSrcn+x);
-        auto down_right = load16_one_to_right<borderMode, mem_mode>(pSrcn+x);
+        auto down_left = load16_one_to_left<borderMode>(pSrcn+x);
+        auto down_center = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pSrcn+x));
+        auto down_right = load16_one_to_right<borderMode>(pSrcn+x);
 
         auto up_left_lo = _mm_unpacklo_epi16(up_left, zero);
         auto up_left_hi = _mm_unpackhi_epi16(up_left, zero);
@@ -162,11 +162,11 @@ static MT_FORCEINLINE void process_line_convolution_sse2(uint8_t *pDst, const ui
         auto acc = simd_packus_epi32<flags>(acc_lo, acc_hi);
         auto result = threshold16_sse2<bits_per_pixel>(acc, lowThresh, highThresh, vHalf, vMax);
 
-        simd_store_si128<mem_mode>(pDst+x, result);
+        _mm_storeu_si128(reinterpret_cast<__m128i*>(pDst+x), result);
     }
 }
 
-template<CpuFlags flags, int bits_per_pixel, Border borderMode, MemoryMode mem_mode>
+template<CpuFlags flags, int bits_per_pixel, Border borderMode>
 static MT_FORCEINLINE void process_line_sobel_sse2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m128i &lowThresh, const __m128i &highThresh, int width) {
     UNUSED(matrix);
 #pragma warning(disable: 4310)
@@ -176,12 +176,12 @@ static MT_FORCEINLINE void process_line_sobel_sse2(uint8_t *pDst, const uint8_t 
     auto zero = _mm_setzero_si128();
 
     for (int x = 0; x < width; x+=16) {
-        auto up_center = simd_load_si128<mem_mode>(pSrcp+x);
+        auto up_center = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pSrcp+x));
 
-        auto middle_left = load16_one_to_left<borderMode, mem_mode>(pSrc+x);
-        auto middle_right = load16_one_to_right<borderMode, mem_mode>(pSrc+x);
+        auto middle_left = load16_one_to_left<borderMode>(pSrc+x);
+        auto middle_right = load16_one_to_right<borderMode>(pSrc+x);
 
-        auto down_center = simd_load_si128<mem_mode>(pSrcn+x);
+        auto down_center = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pSrcn+x));
 
         auto up_center_lo = _mm_unpacklo_epi16(up_center, zero);
         auto up_center_hi = _mm_unpackhi_epi16(up_center, zero);
@@ -210,11 +210,11 @@ static MT_FORCEINLINE void process_line_sobel_sse2(uint8_t *pDst, const uint8_t 
         auto diff = simd_packus_epi32<flags>(diff_lo, diff_hi);
         auto result = threshold16_sse2<bits_per_pixel>(diff, lowThresh, highThresh, vHalf, vMax);
 
-        simd_store_si128<mem_mode>(pDst+x, result);
+        _mm_storeu_si128(reinterpret_cast<__m128i*>(pDst+x), result);
     }
 }
 
-template<CpuFlags flags, int bits_per_pixel, Border borderMode, MemoryMode mem_mode>
+template<CpuFlags flags, int bits_per_pixel, Border borderMode>
 static MT_FORCEINLINE void process_line_roberts_sse2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m128i &lowThresh, const __m128i &highThresh, int width) {
     UNUSED(pSrcp);
     UNUSED(matrix);
@@ -225,10 +225,10 @@ static MT_FORCEINLINE void process_line_roberts_sse2(uint8_t *pDst, const uint8_
     auto zero = _mm_setzero_si128();
 
     for (int x = 0; x < width; x+=16) {
-        auto middle_center = simd_load_si128<mem_mode>(pSrc+x);
-        auto middle_right = load16_one_to_right<borderMode, mem_mode>(pSrc+x);
+        auto middle_center = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pSrc+x));
+        auto middle_right = load16_one_to_right<borderMode>(pSrc+x);
 
-        auto down_center = simd_load_si128<mem_mode>(pSrcn+x);
+        auto down_center = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pSrcn+x));
 
         auto middle_center_lo = _mm_unpacklo_epi16(middle_center, zero);
         auto middle_center_hi = _mm_unpackhi_epi16(middle_center, zero);
@@ -254,11 +254,11 @@ static MT_FORCEINLINE void process_line_roberts_sse2(uint8_t *pDst, const uint8_
         auto diff = simd_packus_epi32<flags>(diff_lo, diff_hi);
         auto result = threshold16_sse2<bits_per_pixel>(diff, lowThresh, highThresh, vHalf, vMax);
 
-        simd_store_si128<mem_mode>(pDst+x, result);
+        _mm_storeu_si128(reinterpret_cast<__m128i*>(pDst+x), result);
     }
 }
 
-template<CpuFlags flags, int bits_per_pixel, Border borderMode, MemoryMode mem_mode>
+template<CpuFlags flags, int bits_per_pixel, Border borderMode>
 static MT_FORCEINLINE void process_line_laplace_sse2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m128i &lowThresh, const __m128i &highThresh, int width) {
     UNUSED(pSrcp);
     UNUSED(matrix);
@@ -269,17 +269,17 @@ static MT_FORCEINLINE void process_line_laplace_sse2(uint8_t *pDst, const uint8_
     auto zero = _mm_setzero_si128();
 
     for (int x = 0; x < width; x+=16) {
-        auto up_left = load16_one_to_left<borderMode, mem_mode>(pSrcp+x);
-        auto up_center = simd_load_si128<mem_mode>(pSrcp+x);
-        auto up_right = load16_one_to_right<borderMode, mem_mode>(pSrcp+x);
+        auto up_left = load16_one_to_left<borderMode>(pSrcp+x);
+        auto up_center = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pSrcp+x));
+        auto up_right = load16_one_to_right<borderMode>(pSrcp+x);
 
-        auto middle_left = load16_one_to_left<borderMode, mem_mode>(pSrc+x);
-        auto middle_center = simd_load_si128<mem_mode>(pSrc+x);
-        auto middle_right = load16_one_to_right<borderMode, mem_mode>(pSrc+x);
+        auto middle_left = load16_one_to_left<borderMode>(pSrc+x);
+        auto middle_center = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pSrc+x));
+        auto middle_right = load16_one_to_right<borderMode>(pSrc+x);
 
-        auto down_left = load16_one_to_left<borderMode, mem_mode>(pSrcn+x);
-        auto down_center = simd_load_si128<mem_mode>(pSrcn+x);
-        auto down_right = load16_one_to_right<borderMode, mem_mode>(pSrcn+x);
+        auto down_left = load16_one_to_left<borderMode>(pSrcn+x);
+        auto down_center = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pSrcn+x));
+        auto down_right = load16_one_to_right<borderMode>(pSrcn+x);
 
         auto up_left_lo = _mm_unpacklo_epi16(up_left, zero);
         auto up_left_hi = _mm_unpackhi_epi16(up_left, zero);
@@ -336,11 +336,11 @@ static MT_FORCEINLINE void process_line_laplace_sse2(uint8_t *pDst, const uint8_
         auto diff = simd_packus_epi32<flags>(diff_lo, diff_hi);
         auto result = threshold16_sse2<bits_per_pixel>(diff, lowThresh, highThresh, vHalf, vMax);
 
-        simd_store_si128<mem_mode>(pDst+x, result);
+        _mm_storeu_si128(reinterpret_cast<__m128i*>(pDst+x), result);
     }
 }
 
-template<CpuFlags flags, int bits_per_pixel, Border borderMode, MemoryMode mem_mode>
+template<CpuFlags flags, int bits_per_pixel, Border borderMode>
 static MT_FORCEINLINE void process_line_morpho_sse2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m128i &lowThresh, const __m128i &highThresh, int width) {
     UNUSED(matrix);
 #pragma warning(disable: 4310)
@@ -349,17 +349,17 @@ static MT_FORCEINLINE void process_line_morpho_sse2(uint8_t *pDst, const uint8_t
 #pragma warning(default: 4310)
 
     for (int x = 0; x < width; x+=16) {
-        auto up_left = load16_one_to_left<borderMode, mem_mode>(pSrcp+x);
-        auto up_center = simd_load_si128<mem_mode>(pSrcp+x);
-        auto up_right = load16_one_to_right<borderMode, mem_mode>(pSrcp+x);
+        auto up_left = load16_one_to_left<borderMode>(pSrcp+x);
+        auto up_center = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pSrcp+x));
+        auto up_right = load16_one_to_right<borderMode>(pSrcp+x);
 
-        auto middle_left = load16_one_to_left<borderMode, mem_mode>(pSrc+x);
-        auto middle_center = simd_load_si128<mem_mode>(pSrc+x);
-        auto middle_right = load16_one_to_right<borderMode, mem_mode>(pSrc+x);
+        auto middle_left = load16_one_to_left<borderMode>(pSrc+x);
+        auto middle_center = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pSrc+x));
+        auto middle_right = load16_one_to_right<borderMode>(pSrc+x);
 
-        auto down_left = load16_one_to_left<borderMode, mem_mode>(pSrcn+x);
-        auto down_center = simd_load_si128<mem_mode>(pSrcn+x);
-        auto down_right = load16_one_to_right<borderMode, mem_mode>(pSrcn+x);
+        auto down_left = load16_one_to_left<borderMode>(pSrcn+x);
+        auto down_center = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pSrcn+x));
+        auto down_right = load16_one_to_right<borderMode>(pSrcn+x);
 
         auto maxv = simd_max_epu16<flags>(middle_right, up_right);
         maxv = simd_max_epu16<flags>(maxv, down_center);
@@ -382,11 +382,11 @@ static MT_FORCEINLINE void process_line_morpho_sse2(uint8_t *pDst, const uint8_t
         auto diff = _mm_sub_epi16(maxv, minv);
         auto result = threshold16_sse2<bits_per_pixel>(diff, lowThresh, highThresh, vHalf, vMax);
 
-        simd_store_si128<mem_mode>(pDst+x, result);
+        _mm_storeu_si128(reinterpret_cast<__m128i*>(pDst+x), result);
     }
 }
 
-template<CpuFlags flags, int bits_per_pixel, Border borderMode, MemoryMode mem_mode>
+template<CpuFlags flags, int bits_per_pixel, Border borderMode>
 static MT_FORCEINLINE void process_line_cartoon_sse2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m128i &lowThresh, const __m128i &highThresh, int width) {
     UNUSED(matrix); UNUSED(pSrcn);
 #pragma warning(disable: 4310)
@@ -396,9 +396,9 @@ static MT_FORCEINLINE void process_line_cartoon_sse2(uint8_t *pDst, const uint8_
     auto zero = _mm_setzero_si128();
 
     for (int x = 0; x < width; x+=16) {
-        auto up_center = simd_load_si128<mem_mode>(pSrcp+x);
-        auto up_right = load16_one_to_right<borderMode, mem_mode>(pSrcp+x);
-        auto middle_center = simd_load_si128<mem_mode>(pSrc+x);
+        auto up_center = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pSrcp+x));
+        auto up_right = load16_one_to_right<borderMode>(pSrcp+x);
+        auto middle_center = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pSrc+x));
         
         auto up_center_lo = _mm_unpacklo_epi16(up_center, zero);
         auto up_center_hi = _mm_unpackhi_epi16(up_center, zero);
@@ -422,11 +422,11 @@ static MT_FORCEINLINE void process_line_cartoon_sse2(uint8_t *pDst, const uint8_
         auto acc = simd_packus_epi32<flags>(acc_lo, acc_hi);
         auto result = threshold16_sse2<bits_per_pixel>(acc, lowThresh, highThresh, vHalf, vMax);
 
-        simd_store_si128<mem_mode>(pDst+x, result);
+        _mm_storeu_si128(reinterpret_cast<__m128i*>(pDst+x), result);
     }
 }
 
-template<CpuFlags flags, int bits_per_pixel, Border borderMode, MemoryMode mem_mode>
+template<CpuFlags flags, int bits_per_pixel, Border borderMode>
 static MT_FORCEINLINE void process_line_prewitt_sse2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m128i &lowThresh, const __m128i &highThresh, int width) {
     UNUSED(matrix);
 #pragma warning(disable: 4310)
@@ -436,16 +436,16 @@ static MT_FORCEINLINE void process_line_prewitt_sse2(uint8_t *pDst, const uint8_
     auto zero = _mm_setzero_si128();
 
     for (int x = 0; x < width; x+=16) {
-        auto up_left = load16_one_to_left<borderMode, mem_mode>(pSrcp+x);
-        auto up_center = simd_load_si128<mem_mode>(pSrcp+x);
-        auto up_right = load16_one_to_right<borderMode, mem_mode>(pSrcp+x);
+        auto up_left = load16_one_to_left<borderMode>(pSrcp+x);
+        auto up_center = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pSrcp+x));
+        auto up_right = load16_one_to_right<borderMode>(pSrcp+x);
 
-        auto middle_left = load16_one_to_left<borderMode, mem_mode>(pSrc+x);
-        auto middle_right = load16_one_to_right<borderMode, mem_mode>(pSrc+x);
+        auto middle_left = load16_one_to_left<borderMode>(pSrc+x);
+        auto middle_right = load16_one_to_right<borderMode>(pSrc+x);
 
-        auto down_left = load16_one_to_left<borderMode, mem_mode>(pSrcn+x);
-        auto down_center = simd_load_si128<mem_mode>(pSrcn+x);
-        auto down_right = load16_one_to_right<borderMode, mem_mode>(pSrcn+x);
+        auto down_left = load16_one_to_left<borderMode>(pSrcn+x);
+        auto down_center = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pSrcn+x));
+        auto down_right = load16_one_to_right<borderMode>(pSrcn+x);
 
         auto up_left_lo = _mm_unpacklo_epi16(up_left, zero);
         auto up_left_hi = _mm_unpackhi_epi16(up_left, zero);
@@ -519,11 +519,11 @@ static MT_FORCEINLINE void process_line_prewitt_sse2(uint8_t *pDst, const uint8_
 
         result = threshold16_sse2<bits_per_pixel>(result, lowThresh, highThresh, vHalf, vMax);
 
-        simd_store_si128<mem_mode>(pDst+x, result);
+        _mm_storeu_si128(reinterpret_cast<__m128i*>(pDst+x), result);
     }
 }
 
-template<CpuFlags flags, int bits_per_pixel, Border borderMode, MemoryMode mem_mode>
+template<CpuFlags flags, int bits_per_pixel, Border borderMode>
 static MT_FORCEINLINE void process_line_half_prewitt_sse2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m128i &lowThresh, const __m128i &highThresh, int width) {
     UNUSED(matrix);
 #pragma warning(disable: 4310)
@@ -533,16 +533,16 @@ static MT_FORCEINLINE void process_line_half_prewitt_sse2(uint8_t *pDst, const u
     auto zero = _mm_setzero_si128();
 
     for (int x = 0; x < width; x+=16) {
-        auto up_left = load16_one_to_left<borderMode, mem_mode>(pSrcp+x);
-        auto up_center = simd_load_si128<mem_mode>(pSrcp+x);
-        auto up_right = load16_one_to_right<borderMode, mem_mode>(pSrcp+x);
+        auto up_left = load16_one_to_left<borderMode>(pSrcp+x);
+        auto up_center = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pSrcp+x));
+        auto up_right = load16_one_to_right<borderMode>(pSrcp+x);
 
-        auto middle_left = load16_one_to_left<borderMode, mem_mode>(pSrc+x);
-        auto middle_right = load16_one_to_right<borderMode, mem_mode>(pSrc+x);
+        auto middle_left = load16_one_to_left<borderMode>(pSrc+x);
+        auto middle_right = load16_one_to_right<borderMode>(pSrc+x);
 
-        auto down_left = load16_one_to_left<borderMode, mem_mode>(pSrcn+x);
-        auto down_center = simd_load_si128<mem_mode>(pSrcn+x);
-        auto down_right = load16_one_to_right<borderMode, mem_mode>(pSrcn+x);
+        auto down_left = load16_one_to_left<borderMode>(pSrcn+x);
+        auto down_center = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pSrcn+x));
+        auto down_right = load16_one_to_right<borderMode>(pSrcn+x);
 
         auto up_left_lo = _mm_unpacklo_epi16(up_left, zero);
         auto up_left_hi = _mm_unpackhi_epi16(up_left, zero);
@@ -611,7 +611,7 @@ static MT_FORCEINLINE void process_line_half_prewitt_sse2(uint8_t *pDst, const u
 
         result = threshold16_sse2<bits_per_pixel>(result, lowThresh, highThresh, vHalf, vMax);
 
-        simd_store_si128<mem_mode>(pDst+x, result);
+        _mm_storeu_si128(reinterpret_cast<__m128i*>(pDst+x), result);
     }
 }
 

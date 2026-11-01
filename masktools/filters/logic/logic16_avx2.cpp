@@ -100,12 +100,12 @@ static void logic16_native_t_avx2(uint8_t *pDst, ptrdiff_t nDstPitch, const uint
 
     for (int j = 0; j < nHeight; ++j) {
         for (int i = 0; i < wMod32; i+=32) {
-            auto dst = simd256_load_si256<MemoryMode::SSE2_UNALIGNED>(reinterpret_cast<const __m256i*>(pDst+i));
-            auto src = simd256_load_si256<MemoryMode::SSE2_UNALIGNED>(reinterpret_cast<const __m256i*>(pSrc+i));
+            auto dst = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(reinterpret_cast<const __m256i*>(pDst+i)));
+            auto src = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(reinterpret_cast<const __m256i*>(pSrc+i)));
 
             auto result = op(dst, src, tDest, tSource);
 
-            simd256_store_si256<MemoryMode::SSE2_UNALIGNED>(reinterpret_cast<__m256i*>(pDst+i), result);
+            _mm256_storeu_si256(reinterpret_cast<__m256i*>(reinterpret_cast<__m256i*>(pDst+i)), result);
         }
         pDst += nDstPitch;
         pSrc += nSrcPitch;

@@ -110,21 +110,21 @@ Processor16 *expand_both_16_avx2_c = &MorphologicProcessor<uint16_t>::generic_16
     process_line_morpho_16_avx2_c<Border::Right, maximumThresholded<::maximum_both>>
     >;
 
-#define DEFINE_AVX2_VERSIONS(name, mem_mode) \
+#define DEFINE_AVX2_VERSIONS(name) \
     Processor16 *expand_both_##name##_16 = &generic_16_avx2< \
-    process_line_xxpand_both_16_avx2<Border::Left, expand_operator_avx2_16, limit_up_16_avx2, mem_mode>, \
-    process_line_xxpand_both_16_avx2<Border::None, expand_operator_avx2_16, limit_up_16_avx2, mem_mode>, \
-    process_line_xxpand_both_16_avx2<Border::Right, expand_operator_avx2_16, limit_up_16_avx2, MemoryMode::SSE2_UNALIGNED> \
+    process_line_xxpand_both_16_avx2<Border::Left, expand_operator_avx2_16, limit_up_16_avx2>, \
+    process_line_xxpand_both_16_avx2<Border::None, expand_operator_avx2_16, limit_up_16_avx2>, \
+    process_line_xxpand_both_16_avx2<Border::Right, expand_operator_avx2_16, limit_up_16_avx2> \
     >;
 
-DEFINE_AVX2_VERSIONS(avx2, MemoryMode::SSE2_UNALIGNED)
+DEFINE_AVX2_VERSIONS(avx2)
 #undef DEFINE_AVX2_VERSIONS
 
-Processor16 *expand_vertical_avx2_16 = &xxpand_avx2_vertical_16<expand_operator_avx2_16, limit_up_16_avx2, MemoryMode::SSE2_UNALIGNED>;
+Processor16 *expand_vertical_avx2_16 = &xxpand_avx2_vertical_16<expand_operator_avx2_16, limit_up_16_avx2>;
 
-Processor16 *expand_horizontal_avx2_16 = &xxpand_avx2_horizontal_16<expand_operator_avx2_16, limit_up_16_avx2, MemoryMode::SSE2_UNALIGNED, expand_c_horizontal_core_16_avx2>;
+Processor16 *expand_horizontal_avx2_16 = &xxpand_avx2_horizontal_16<expand_operator_avx2_16, limit_up_16_avx2, expand_c_horizontal_core_16_avx2>;
 
-Processor16 *expand_square_avx2_16 = &xxpand_avx2_square_16<expand_operator_avx2_16, limit_up_16_avx2, MemoryMode::SSE2_UNALIGNED, expand_c_horizontal_core_16_avx2>;
+Processor16 *expand_square_avx2_16 = &xxpand_avx2_square_16<expand_operator_avx2_16, limit_up_16_avx2, expand_c_horizontal_core_16_avx2>;
 
 Processor16 *expand_custom_16_avx2_c   = &generic_custom_16_avx2_c<NewValue16>;
 

@@ -48,8 +48,8 @@ void adddiff16_native_simd(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pS
 
     for (int j = 0; j < nHeight; ++j) {
         for (int i = 0; i < wMod16; i+=16) {
-            auto dst = simd_load_si128<MemoryMode::SSE2_UNALIGNED>(reinterpret_cast<const __m128i*>(pDst+i));
-            auto src = simd_load_si128<MemoryMode::SSE2_UNALIGNED>(reinterpret_cast<const __m128i*>(pSrc+i));
+            auto dst = _mm_loadu_si128(reinterpret_cast<const __m128i*>(reinterpret_cast<const __m128i*>(pDst+i)));
+            auto src = _mm_loadu_si128(reinterpret_cast<const __m128i*>(reinterpret_cast<const __m128i*>(pSrc+i)));
 
             __m128i result;
             if(bits_per_pixel < 16)
@@ -57,7 +57,7 @@ void adddiff16_native_simd(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pS
             else
               result = adddiff16_core_simd<flags, false>(dst, src, halfrange, max_pixel_value);
 
-            simd_store_si128<MemoryMode::SSE2_UNALIGNED>(reinterpret_cast<__m128i*>(pDst+i), result);
+            _mm_storeu_si128(reinterpret_cast<__m128i*>(reinterpret_cast<__m128i*>(pDst+i)), result);
         }
         pDst += nDstPitch;
         pSrc += nSrcPitch;

@@ -10,9 +10,9 @@ using namespace Filters::Mask;
 
 #define DEFINE_SSSE3_VERSIONS(name) \
 Processor *name##_ssse3 = &generic_sse2< \
-    process_line_##name##_sse2<CPU_SSSE3, Border::Left, MemoryMode::SSE2_UNALIGNED>, \
-    process_line_##name##_sse2<CPU_SSSE3, Border::None, MemoryMode::SSE2_UNALIGNED>, \
-    process_line_##name##_sse2<CPU_SSSE3, Border::Right, MemoryMode::SSE2_UNALIGNED> \
+    process_line_##name##_sse2<CPU_SSSE3, Border::Left>, \
+    process_line_##name##_sse2<CPU_SSSE3, Border::None>, \
+    process_line_##name##_sse2<CPU_SSSE3, Border::Right> \
 >;
 
 DEFINE_SSSE3_VERSIONS(sobel)

@@ -176,10 +176,10 @@ static void merge16_t_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1
 MT_FORCEINLINE static __m256i get_mask_420_simd(const uint8_t *ptr, ptrdiff_t pitch, int x) {
     x = x*2;
 
-    auto row1_lo = simd256_load_si256<MemoryMode::SSE2_UNALIGNED>(reinterpret_cast<const __m256i*>(ptr+x));
-    auto row1_hi = simd256_load_si256<MemoryMode::SSE2_UNALIGNED>(reinterpret_cast<const __m256i*>(ptr+x+32));
-    auto row2_lo = simd256_load_si256<MemoryMode::SSE2_UNALIGNED>(reinterpret_cast<const __m256i*>(ptr+pitch+x));
-    auto row2_hi = simd256_load_si256<MemoryMode::SSE2_UNALIGNED>(reinterpret_cast<const __m256i*>(ptr+pitch+x+32));
+    auto row1_lo = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(reinterpret_cast<const __m256i*>(ptr+x)));
+    auto row1_hi = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(reinterpret_cast<const __m256i*>(ptr+x+32)));
+    auto row2_lo = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(reinterpret_cast<const __m256i*>(ptr+pitch+x)));
+    auto row2_hi = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(reinterpret_cast<const __m256i*>(ptr+pitch+x+32)));
 
     return get_single_mask_value_420(row1_lo, row1_hi, row2_lo, row2_hi);
 }
@@ -187,8 +187,8 @@ MT_FORCEINLINE static __m256i get_mask_420_simd(const uint8_t *ptr, ptrdiff_t pi
 MT_FORCEINLINE static __m256i get_mask_422_simd(const uint8_t *ptr, int x) {
   x = x * 2;
 
-  auto row1_lo = simd256_load_si256<MemoryMode::SSE2_UNALIGNED>(reinterpret_cast<const __m256i*>(ptr + x));
-  auto row1_hi = simd256_load_si256<MemoryMode::SSE2_UNALIGNED>(reinterpret_cast<const __m256i*>(ptr + x + 32));
+  auto row1_lo = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(reinterpret_cast<const __m256i*>(ptr + x)));
+  auto row1_hi = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(reinterpret_cast<const __m256i*>(ptr + x + 32)));
   
   return get_single_mask_value_422(row1_lo, row1_hi);
 }
@@ -213,8 +213,8 @@ static void merge16_t_simd(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pS
 
     for ( int j = 0; j < nHeight; ++j ) {
         for ( int i = 0; i < wMod32; i+=32 ) {
-            auto dst = simd256_load_si256<MemoryMode::SSE2_UNALIGNED>(reinterpret_cast<const __m256i*>(pDst+i));
-            auto src = simd256_load_si256<MemoryMode::SSE2_UNALIGNED>(reinterpret_cast<const __m256i*>(pSrc1+i));
+            auto dst = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(reinterpret_cast<const __m256i*>(pDst+i)));
+            auto src = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(reinterpret_cast<const __m256i*>(pSrc1+i)));
             __m256i mask;
 
             if (mode == MASK420) {
@@ -222,12 +222,12 @@ static void merge16_t_simd(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pS
             } else if (mode == MASK422) {
               mask = get_mask_422_simd(pMask, i);
             } else {
-              mask = simd256_load_si256<MemoryMode::SSE2_UNALIGNED>(reinterpret_cast<const __m256i*>(pMask + i));
+              mask = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(reinterpret_cast<const __m256i*>(pMask + i)));
             }
 
             __m256i result = merge_core_simd<bits_per_pixel>(dst, src, mask, max_pixel_value, zero);
 
-            simd256_store_si256<MemoryMode::SSE2_UNALIGNED>(reinterpret_cast<__m256i*>(pDst+i), result);
+            _mm256_storeu_si256(reinterpret_cast<__m256i*>(reinterpret_cast<__m256i*>(pDst+i)), result);
         }
 
         pDst += nDstPitch;

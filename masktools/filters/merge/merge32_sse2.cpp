@@ -14,19 +14,17 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Merge 
 
 namespace {
 
-   template <MemoryMode mem_mode>
    MT_FORCEINLINE __m128 merge32_sse2_core(uint8_t *pDst, const uint8_t *pSrc, const __m128& mask) {
       // ( 1- mask) * dst + mask * src = 
       // dst - dst * mask + src * mask = 
       // dst + mask * (src - dst)
-      auto dst = simd_load_ps<mem_mode>(pDst);
-      auto src = simd_load_ps<mem_mode>(pSrc);
+      auto dst = _mm_loadu_ps(reinterpret_cast<const float*>(pDst));
+      auto src = _mm_loadu_ps(reinterpret_cast<const float*>(pSrc));
       auto diff = _mm_sub_ps(src, dst);
       auto tmp = _mm_mul_ps(diff, mask); // (p2-p1)*mask
       return _mm_add_ps(tmp, dst); // +dst
    }
 
-   template <MemoryMode mem_mode>
    void merge32_sse2_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
       const uint8_t *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
    {
@@ -38,9 +36,9 @@ namespace {
       auto pMask_s = pMask;
       for (int j = 0; j < nHeight; ++j) {
          for (int i = 0; i < wMod16; i += 16) {
-            auto mask = simd_load_ps<mem_mode>(pMask + i);
-            auto result = merge32_sse2_core<mem_mode>(pDst + i, pSrc1 + i, mask);
-            simd_store_ps<mem_mode>(pDst + i, result);
+            auto mask = _mm_loadu_ps(reinterpret_cast<const float*>(pMask + i));
+            auto result = merge32_sse2_core(pDst + i, pSrc1 + i, mask);
+            _mm_storeu_ps(reinterpret_cast<float*>(pDst + i), result);
          }
          pDst += nDstPitch;
          pSrc1 += nSrc1Pitch;
@@ -52,7 +50,6 @@ namespace {
       }
    }
 
-   template <MemoryMode mem_mode>
    void merge32_luma_420_sse2_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
      const uint8_t *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
    {
@@ -68,10 +65,10 @@ namespace {
          _mm_prefetch(reinterpret_cast<const char*>(pMask) + i * 2 + 64, _MM_HINT_T0);
          _mm_prefetch(reinterpret_cast<const char*>(pMask) + nSrc2Pitch + i * 2 + 64, _MM_HINT_T0);
          // preparing mask
-         auto src2_row1_t1 = simd_load_ps<mem_mode>(pMask + i * 2);
-         auto src2_row1_t2 = simd_load_ps<mem_mode>(pMask + i * 2 + 16);
-         auto src2_row2_t1 = simd_load_ps<mem_mode>(pMask + nSrc2Pitch + i * 2);
-         auto src2_row2_t2 = simd_load_ps<mem_mode>(pMask + nSrc2Pitch + i * 2 + 16);
+         auto src2_row1_t1 = _mm_loadu_ps(reinterpret_cast<const float*>(pMask + i * 2));
+         auto src2_row1_t2 = _mm_loadu_ps(reinterpret_cast<const float*>(pMask + i * 2 + 16));
+         auto src2_row2_t1 = _mm_loadu_ps(reinterpret_cast<const float*>(pMask + nSrc2Pitch + i * 2));
+         auto src2_row2_t2 = _mm_loadu_ps(reinterpret_cast<const float*>(pMask + nSrc2Pitch + i * 2 + 16));
          auto tmp1 = _mm_add_ps(src2_row1_t1, src2_row2_t1);
          auto tmp2 = _mm_add_ps(src2_row1_t2, src2_row2_t2);
          // sum horizontally
@@ -79,9 +76,9 @@ namespace {
          // make average
          auto mask = _mm_mul_ps(sum, vOneFourth);
 
-         auto result = merge32_sse2_core<mem_mode>(pDst + i, pSrc1 + i, mask);
+         auto result = merge32_sse2_core(pDst + i, pSrc1 + i, mask);
 
-         simd_store_ps<mem_mode>(pDst + i, result);
+         _mm_storeu_ps(reinterpret_cast<float*>(pDst + i), result);
        }
        pDst += nDstPitch;
        pSrc1 += nSrc1Pitch;
@@ -93,7 +90,6 @@ namespace {
      }
    }
 
-   template <MemoryMode mem_mode>
    void merge32_luma_420_mpeg2_sse2_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
      const uint8_t *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
    {
@@ -105,8 +101,8 @@ namespace {
      auto pMask_s = pMask;
      auto vOneEight = _mm_set1_ps(0.125f);
      for (int j = 0; j < nHeight; ++j) {
-       auto row1 = simd_load_ps<mem_mode>(pMask + 0 * 2);
-       auto row2 = simd_load_ps<mem_mode>(pMask + 0 * 2 + 16);
+       auto row1 = _mm_loadu_ps(reinterpret_cast<const float*>(pMask + 0 * 2));
+       auto row2 = _mm_loadu_ps(reinterpret_cast<const float*>(pMask + 0 * 2 + 16));
        // sum vertically and keep evens
        auto right = _mm_add_ps(row1, row2);
        // move lowest to highest, others n/a
@@ -114,10 +110,10 @@ namespace {
 
        for (int i = 0; i < wMod16; i += 16) {
          // preparing mask
-         auto row1_lo = simd_load_ps<mem_mode>(pMask + i * 2);
-         auto row1_hi = simd_load_ps<mem_mode>(pMask + i * 2 + 16);
-         auto row2_lo = simd_load_ps<mem_mode>(pMask + nSrc2Pitch + i * 2);
-         auto row2_hi = simd_load_ps<mem_mode>(pMask + nSrc2Pitch + i * 2 + 16);
+         auto row1_lo = _mm_loadu_ps(reinterpret_cast<const float*>(pMask + i * 2));
+         auto row1_hi = _mm_loadu_ps(reinterpret_cast<const float*>(pMask + i * 2 + 16));
+         auto row2_lo = _mm_loadu_ps(reinterpret_cast<const float*>(pMask + nSrc2Pitch + i * 2));
+         auto row2_hi = _mm_loadu_ps(reinterpret_cast<const float*>(pMask + nSrc2Pitch + i * 2 + 16));
          // sum vertically
          auto tmp_lo = _mm_add_ps(row1_lo, row2_lo);
          auto tmp_hi = _mm_add_ps(row1_hi, row2_hi);
@@ -132,9 +128,9 @@ namespace {
          // (left + mid*2 + right) / 8
          auto mask = _mm_mul_ps(_mm_add_ps(_mm_add_ps(_mm_add_ps(mid, mid), left), right), vOneEight);
 
-         auto result = merge32_sse2_core<mem_mode>(pDst + i, pSrc1 + i, mask);
+         auto result = merge32_sse2_core(pDst + i, pSrc1 + i, mask);
 
-         simd_store_ps<mem_mode>(pDst + i, result);
+         _mm_storeu_ps(reinterpret_cast<float*>(pDst + i), result);
        }
        pDst += nDstPitch;
        pSrc1 += nSrc1Pitch;
@@ -149,7 +145,6 @@ namespace {
      }
    }
 
-   template <MemoryMode mem_mode>
    void merge32_luma_422_sse2_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
      const uint8_t *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
    {
@@ -164,15 +159,15 @@ namespace {
        for (int i = 0; i < wMod16; i += 16) {
          _mm_prefetch(reinterpret_cast<const char*>(pMask) + i * 2 + 64, _MM_HINT_T0);
          // preparing mask
-         auto mask_row_t1 = simd_load_ps<mem_mode>(pMask + i * 2);
-         auto mask_row_t2 = simd_load_ps<mem_mode>(pMask + i * 2 + 16);
+         auto mask_row_t1 = _mm_loadu_ps(reinterpret_cast<const float*>(pMask + i * 2));
+         auto mask_row_t2 = _mm_loadu_ps(reinterpret_cast<const float*>(pMask + i * 2 + 16));
          // sum horizontally
          auto sum = simd_hadd_ps(mask_row_t1, mask_row_t2);
          // make average
          auto mask = _mm_mul_ps(sum, vHalf);
-         auto result = merge32_sse2_core<mem_mode>(pDst + i, pSrc1 + i, mask);
+         auto result = merge32_sse2_core(pDst + i, pSrc1 + i, mask);
 
-         simd_store_ps<mem_mode>(pDst + i, result);
+         _mm_storeu_ps(reinterpret_cast<float*>(pDst + i), result);
        }
        pDst += nDstPitch;
        pSrc1 += nSrc1Pitch;
@@ -184,7 +179,6 @@ namespace {
      }
    }
 
-   template <MemoryMode mem_mode>
    void merge32_luma_422_mpeg2_sse2_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
      const uint8_t *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
    {
@@ -196,7 +190,7 @@ namespace {
      auto pMask_s = pMask;
      auto vOneFourth = _mm_set1_ps(0.25f);
      for (int j = 0; j < nHeight; ++j) {
-       auto row1 = simd_load_ps<mem_mode>(pMask + 0 * 2);
+       auto row1 = _mm_loadu_ps(reinterpret_cast<const float*>(pMask + 0 * 2));
        // keep evens
        auto right = row1;
        // move lowest to highest, others n/a
@@ -204,8 +198,8 @@ namespace {
 
        for (int i = 0; i < wMod16; i += 16) {
          // preparing mask
-         auto row1_lo = simd_load_ps<mem_mode>(pMask + i * 2);
-         auto row1_hi = simd_load_ps<mem_mode>(pMask + i * 2 + 16);
+         auto row1_lo = _mm_loadu_ps(reinterpret_cast<const float*>(pMask + i * 2));
+         auto row1_hi = _mm_loadu_ps(reinterpret_cast<const float*>(pMask + i * 2 + 16));
          // mask evens and collapse
          auto mid = _mm_shuffle_ps(row1_lo, row1_hi, (0 << 0) | (2 << 2) | (0 << 4) | (2 << 6));
          // mask odds and collapse
@@ -217,9 +211,9 @@ namespace {
          // (left + mid*2 + right) / 4
          auto mask = _mm_mul_ps(_mm_add_ps(_mm_add_ps(_mm_add_ps(mid, mid), left), right), vOneFourth);
 
-         auto result = merge32_sse2_core<mem_mode>(pDst + i, pSrc1 + i, mask);
+         auto result = merge32_sse2_core(pDst + i, pSrc1 + i, mask);
 
-         simd_store_ps<mem_mode>(pDst + i, result);
+         _mm_storeu_ps(reinterpret_cast<float*>(pDst + i), result);
        }
        pDst += nDstPitch;
        pSrc1 += nSrc1Pitch;
@@ -236,11 +230,11 @@ namespace {
 
 } // namespace
 
-   Processor32 *merge32_sse2 = merge32_sse2_t<MemoryMode::SSE2_UNALIGNED>;
-   Processor32 *merge32_luma_420_sse2 = merge32_luma_420_sse2_t<MemoryMode::SSE2_UNALIGNED>;
-   Processor32 *merge32_luma_420_mpeg2_sse2 = merge32_luma_420_mpeg2_sse2_t<MemoryMode::SSE2_UNALIGNED>;
-   Processor32 *merge32_luma_422_sse2 = merge32_luma_422_sse2_t<MemoryMode::SSE2_UNALIGNED>;
-   Processor32 *merge32_luma_422_mpeg2_sse2 = merge32_luma_422_mpeg2_sse2_t<MemoryMode::SSE2_UNALIGNED>;
+   Processor32 *merge32_sse2 = merge32_sse2_t;
+   Processor32 *merge32_luma_420_sse2 = merge32_luma_420_sse2_t;
+   Processor32 *merge32_luma_420_mpeg2_sse2 = merge32_luma_420_mpeg2_sse2_t;
+   Processor32 *merge32_luma_422_sse2 = merge32_luma_422_sse2_t;
+   Processor32 *merge32_luma_422_mpeg2_sse2 = merge32_luma_422_mpeg2_sse2_t;
 
 } } } }
 

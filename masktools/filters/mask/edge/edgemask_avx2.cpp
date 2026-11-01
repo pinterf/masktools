@@ -134,7 +134,7 @@ static MT_FORCEINLINE __m256i simd256_abs_diff_epu16(__m256i a, __m256i b) {
     return _mm256_abs_epi16(diff);
 }
 
-template<Border borderMode, MemoryMode mem_mode>
+template<Border borderMode>
 static MT_FORCEINLINE void process_line_convolution_avx2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m256i &lowThresh, const __m256i &highThresh, int width) {
     UNUSED(pSrcp);
     auto v128 = _mm256_set1_epi8(uint8_t(0x80));
@@ -152,17 +152,17 @@ static MT_FORCEINLINE void process_line_convolution_avx2(uint8_t *pDst, const ui
     __m128i divisor = _mm_set_epi32(0, 0, 0, simd_bit_scan_forward(matrix[9]));
 
     for (int x = 0; x < width; x+=32) {
-        auto up_left = load_one_to_left_si256<borderMode, mem_mode>(pSrcp+x);
-        auto up_center = simd256_load_si256<mem_mode>(pSrcp+x);
-        auto up_right = load_one_to_right_si256<borderMode, mem_mode>(pSrcp+x);
+        auto up_left = load_one_to_left_si256<borderMode>(pSrcp+x);
+        auto up_center = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(pSrcp+x));
+        auto up_right = load_one_to_right_si256<borderMode>(pSrcp+x);
 
-        auto middle_left = load_one_to_left_si256<borderMode, mem_mode>(pSrc+x);
-        auto middle_center = simd256_load_si256<mem_mode>(pSrc+x);
-        auto middle_right = load_one_to_right_si256<borderMode, mem_mode>(pSrc+x);
+        auto middle_left = load_one_to_left_si256<borderMode>(pSrc+x);
+        auto middle_center = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(pSrc+x));
+        auto middle_right = load_one_to_right_si256<borderMode>(pSrc+x);
 
-        auto down_left = load_one_to_left_si256<borderMode, mem_mode>(pSrcn+x);
-        auto down_center = simd256_load_si256<mem_mode>(pSrcn+x);
-        auto down_right = load_one_to_right_si256<borderMode, mem_mode>(pSrcn+x);
+        auto down_left = load_one_to_left_si256<borderMode>(pSrcn+x);
+        auto down_center = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(pSrcn+x));
+        auto down_right = load_one_to_right_si256<borderMode>(pSrcn+x);
 
         auto up_left_lo = _mm256_unpacklo_epi8(up_left, zero);
         auto up_left_hi = _mm256_unpackhi_epi8(up_left, zero);
@@ -226,23 +226,23 @@ static MT_FORCEINLINE void process_line_convolution_avx2(uint8_t *pDst, const ui
         auto acc = _mm256_packus_epi16(acc_lo, acc_hi);
         auto result = threshold_avx2(acc, lowThresh, highThresh, v128);
 
-        simd256_store_si256<mem_mode>(pDst+x, result);
+        _mm256_storeu_si256(reinterpret_cast<__m256i*>(pDst+x), result);
     }
 }
 
-template<Border borderMode, MemoryMode mem_mode>
+template<Border borderMode>
 static MT_FORCEINLINE void process_line_sobel_avx2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m256i &lowThresh, const __m256i &highThresh, int width) {
     UNUSED(matrix);
     auto v128 = _mm256_set1_epi8(uint8_t(0x80));
     auto zero = _mm256_setzero_si256();
 
     for (int x = 0; x < width; x+=32) {
-        auto up_center = simd256_load_si256<mem_mode>(pSrcp+x);
+        auto up_center = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(pSrcp+x));
 
-        auto middle_left = load_one_to_left_si256<borderMode, mem_mode>(pSrc+x);
-        auto middle_right = load_one_to_right_si256<borderMode, mem_mode>(pSrc+x);
+        auto middle_left = load_one_to_left_si256<borderMode>(pSrc+x);
+        auto middle_right = load_one_to_right_si256<borderMode>(pSrc+x);
 
-        auto down_center = simd256_load_si256<mem_mode>(pSrcn+x);
+        auto down_center = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(pSrcn+x));
 
         auto up_center_lo = _mm256_unpacklo_epi8(up_center, zero);
         auto up_center_hi = _mm256_unpackhi_epi8(up_center, zero);
@@ -271,11 +271,11 @@ static MT_FORCEINLINE void process_line_sobel_avx2(uint8_t *pDst, const uint8_t 
         auto diff = _mm256_packus_epi16(diff_lo, diff_hi);
         auto result = threshold_avx2(diff, lowThresh, highThresh, v128);
 
-        simd256_store_si256<mem_mode>(pDst+x, result);
+        _mm256_storeu_si256(reinterpret_cast<__m256i*>(pDst+x), result);
     }
 }
 
-template<Border borderMode, MemoryMode mem_mode>
+template<Border borderMode>
 static MT_FORCEINLINE void process_line_roberts_avx2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m256i &lowThresh, const __m256i &highThresh, int width) {
     UNUSED(pSrcp);
     UNUSED(matrix);
@@ -283,10 +283,10 @@ static MT_FORCEINLINE void process_line_roberts_avx2(uint8_t *pDst, const uint8_
     auto zero = _mm256_setzero_si256();
 
     for (int x = 0; x < width; x+=32) {
-        auto middle_center = simd256_load_si256<mem_mode>(pSrc+x);
-        auto middle_right = load_one_to_right_si256<borderMode, mem_mode>(pSrc+x);
+        auto middle_center = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(pSrc+x));
+        auto middle_right = load_one_to_right_si256<borderMode>(pSrc+x);
 
-        auto down_center = simd256_load_si256<mem_mode>(pSrcn+x);
+        auto down_center = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(pSrcn+x));
 
         auto middle_center_lo = _mm256_unpacklo_epi8(middle_center, zero);
         auto middle_center_hi = _mm256_unpackhi_epi8(middle_center, zero);
@@ -312,11 +312,11 @@ static MT_FORCEINLINE void process_line_roberts_avx2(uint8_t *pDst, const uint8_
         auto diff = _mm256_packus_epi16(diff_lo, diff_hi);
         auto result = threshold_avx2(diff, lowThresh, highThresh, v128);
 
-        simd256_store_si256<mem_mode>(pDst+x, result);
+        _mm256_storeu_si256(reinterpret_cast<__m256i*>(pDst+x), result);
     }
 }
 
-template<Border borderMode, MemoryMode mem_mode>
+template<Border borderMode>
 static MT_FORCEINLINE void process_line_laplace_avx2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m256i &lowThresh, const __m256i &highThresh, int width) {
     UNUSED(pSrcp);
     UNUSED(matrix);
@@ -324,17 +324,17 @@ static MT_FORCEINLINE void process_line_laplace_avx2(uint8_t *pDst, const uint8_
     auto zero = _mm256_setzero_si256();
 
     for (int x = 0; x < width; x+=32) {
-        auto up_left = load_one_to_left_si256<borderMode, mem_mode>(pSrcp+x);
-        auto up_center = simd256_load_si256<mem_mode>(pSrcp+x);
-        auto up_right = load_one_to_right_si256<borderMode, mem_mode>(pSrcp+x);
+        auto up_left = load_one_to_left_si256<borderMode>(pSrcp+x);
+        auto up_center = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(pSrcp+x));
+        auto up_right = load_one_to_right_si256<borderMode>(pSrcp+x);
 
-        auto middle_left = load_one_to_left_si256<borderMode, mem_mode>(pSrc+x);
-        auto middle_center = simd256_load_si256<mem_mode>(pSrc+x);
-        auto middle_right = load_one_to_right_si256<borderMode, mem_mode>(pSrc+x);
+        auto middle_left = load_one_to_left_si256<borderMode>(pSrc+x);
+        auto middle_center = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(pSrc+x));
+        auto middle_right = load_one_to_right_si256<borderMode>(pSrc+x);
 
-        auto down_left = load_one_to_left_si256<borderMode, mem_mode>(pSrcn+x);
-        auto down_center = simd256_load_si256<mem_mode>(pSrcn+x);
-        auto down_right = load_one_to_right_si256<borderMode, mem_mode>(pSrcn+x);
+        auto down_left = load_one_to_left_si256<borderMode>(pSrcn+x);
+        auto down_center = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(pSrcn+x));
+        auto down_right = load_one_to_right_si256<borderMode>(pSrcn+x);
 
         auto up_left_lo = _mm256_unpacklo_epi8(up_left, zero);
         auto up_left_hi = _mm256_unpackhi_epi8(up_left, zero);
@@ -391,27 +391,27 @@ static MT_FORCEINLINE void process_line_laplace_avx2(uint8_t *pDst, const uint8_
         auto diff = _mm256_packus_epi16(diff_lo, diff_hi);
         auto result = threshold_avx2(diff, lowThresh, highThresh, v128);
 
-        simd256_store_si256<mem_mode>(pDst+x, result);
+        _mm256_storeu_si256(reinterpret_cast<__m256i*>(pDst+x), result);
     }
 }
 
-template<Border borderMode, MemoryMode mem_mode>
+template<Border borderMode>
 static MT_FORCEINLINE void process_line_morpho_avx2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m256i &lowThresh, const __m256i &highThresh, int width) {
     UNUSED(matrix);
     auto v128 = _mm256_set1_epi8(uint8_t(0x80));
 
     for (int x = 0; x < width; x+=32) {
-        auto up_left = load_one_to_left_si256<borderMode, mem_mode>(pSrcp+x);
-        auto up_center = simd256_load_si256<mem_mode>(pSrcp+x);
-        auto up_right = load_one_to_right_si256<borderMode, mem_mode>(pSrcp+x);
+        auto up_left = load_one_to_left_si256<borderMode>(pSrcp+x);
+        auto up_center = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(pSrcp+x));
+        auto up_right = load_one_to_right_si256<borderMode>(pSrcp+x);
 
-        auto middle_left = load_one_to_left_si256<borderMode, mem_mode>(pSrc+x);
-        auto middle_center = simd256_load_si256<mem_mode>(pSrc+x);
-        auto middle_right = load_one_to_right_si256<borderMode, mem_mode>(pSrc+x);
+        auto middle_left = load_one_to_left_si256<borderMode>(pSrc+x);
+        auto middle_center = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(pSrc+x));
+        auto middle_right = load_one_to_right_si256<borderMode>(pSrc+x);
 
-        auto down_left = load_one_to_left_si256<borderMode, mem_mode>(pSrcn+x);
-        auto down_center = simd256_load_si256<mem_mode>(pSrcn+x);
-        auto down_right = load_one_to_right_si256<borderMode, mem_mode>(pSrcn+x);
+        auto down_left = load_one_to_left_si256<borderMode>(pSrcn+x);
+        auto down_center = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(pSrcn+x));
+        auto down_right = load_one_to_right_si256<borderMode>(pSrcn+x);
 
         auto maxv = _mm256_max_epu8(middle_right, up_right);
         maxv = _mm256_max_epu8(maxv, down_center);
@@ -434,20 +434,20 @@ static MT_FORCEINLINE void process_line_morpho_avx2(uint8_t *pDst, const uint8_t
         auto diff = _mm256_sub_epi8(maxv, minv);
         auto result = threshold_avx2(diff, lowThresh, highThresh, v128);
 
-        simd256_store_si256<mem_mode>(pDst+x, result);
+        _mm256_storeu_si256(reinterpret_cast<__m256i*>(pDst+x), result);
     }
 }
 
-template<Border borderMode, MemoryMode mem_mode>
+template<Border borderMode>
 static MT_FORCEINLINE void process_line_cartoon_avx2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m256i &lowThresh, const __m256i &highThresh, int width) {
     UNUSED(matrix); UNUSED(pSrcn);
     auto v128 = _mm256_set1_epi8(uint8_t(0x80));
     auto zero = _mm256_setzero_si256();
 
     for (int x = 0; x < width; x+=32) {
-        auto up_center = simd256_load_si256<mem_mode>(pSrcp+x);
-        auto up_right = load_one_to_right_si256<borderMode, mem_mode>(pSrcp+x);
-        auto middle_center = simd256_load_si256<mem_mode>(pSrc+x);
+        auto up_center = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(pSrcp+x));
+        auto up_right = load_one_to_right_si256<borderMode>(pSrcp+x);
+        auto middle_center = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(pSrc+x));
         
         auto up_center_lo = _mm256_unpacklo_epi8(up_center, zero);
         auto up_center_hi = _mm256_unpackhi_epi8(up_center, zero);
@@ -470,27 +470,27 @@ static MT_FORCEINLINE void process_line_cartoon_avx2(uint8_t *pDst, const uint8_
         auto acc = _mm256_packus_epi16(acc_lo, acc_hi);
         auto result = threshold_avx2(acc, lowThresh, highThresh, v128);
 
-        simd256_store_si256<mem_mode>(pDst+x, result);
+        _mm256_storeu_si256(reinterpret_cast<__m256i*>(pDst+x), result);
     }
 }
 
-template<Border borderMode, MemoryMode mem_mode>
+template<Border borderMode>
 static MT_FORCEINLINE void process_line_prewitt_avx2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m256i &lowThresh, const __m256i &highThresh, int width) {
     UNUSED(matrix);
     auto v128 = _mm256_set1_epi8(uint8_t(0x80));
     auto zero = _mm256_setzero_si256();
 
     for (int x = 0; x < width; x+=32) {
-        auto up_left = load_one_to_left_si256<borderMode, mem_mode>(pSrcp+x);
-        auto up_center = simd256_load_si256<mem_mode>(pSrcp+x);
-        auto up_right = load_one_to_right_si256<borderMode, mem_mode>(pSrcp+x);
+        auto up_left = load_one_to_left_si256<borderMode>(pSrcp+x);
+        auto up_center = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(pSrcp+x));
+        auto up_right = load_one_to_right_si256<borderMode>(pSrcp+x);
 
-        auto middle_left = load_one_to_left_si256<borderMode, mem_mode>(pSrc+x);
-        auto middle_right = load_one_to_right_si256<borderMode, mem_mode>(pSrc+x);
+        auto middle_left = load_one_to_left_si256<borderMode>(pSrc+x);
+        auto middle_right = load_one_to_right_si256<borderMode>(pSrc+x);
 
-        auto down_left = load_one_to_left_si256<borderMode, mem_mode>(pSrcn+x);
-        auto down_center = simd256_load_si256<mem_mode>(pSrcn+x);
-        auto down_right = load_one_to_right_si256<borderMode, mem_mode>(pSrcn+x);
+        auto down_left = load_one_to_left_si256<borderMode>(pSrcn+x);
+        auto down_center = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(pSrcn+x));
+        auto down_right = load_one_to_right_si256<borderMode>(pSrcn+x);
 
         auto up_left_lo = _mm256_unpacklo_epi8(up_left, zero);
         auto up_left_hi = _mm256_unpackhi_epi8(up_left, zero);
@@ -558,27 +558,27 @@ static MT_FORCEINLINE void process_line_prewitt_avx2(uint8_t *pDst, const uint8_
 
         result = threshold_avx2(result, lowThresh, highThresh, v128);
 
-        simd256_store_si256<mem_mode>(pDst+x, result);
+        _mm256_storeu_si256(reinterpret_cast<__m256i*>(pDst+x), result);
     }
 }
 
-template<Border borderMode, MemoryMode mem_mode>
+template<Border borderMode>
 static MT_FORCEINLINE void process_line_half_prewitt_avx2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m256i &lowThresh, const __m256i &highThresh, int width) {
     UNUSED(matrix);
     auto v128 = _mm256_set1_epi8(uint8_t(0x80));
     auto zero = _mm256_setzero_si256();
 
     for (int x = 0; x < width; x+=32) {
-        auto up_left = load_one_to_left_si256<borderMode, mem_mode>(pSrcp+x);
-        auto up_center = simd256_load_si256<mem_mode>(pSrcp+x);
-        auto up_right = load_one_to_right_si256<borderMode, mem_mode>(pSrcp+x);
+        auto up_left = load_one_to_left_si256<borderMode>(pSrcp+x);
+        auto up_center = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(pSrcp+x));
+        auto up_right = load_one_to_right_si256<borderMode>(pSrcp+x);
 
-        auto middle_left = load_one_to_left_si256<borderMode, mem_mode>(pSrc+x);
-        auto middle_right = load_one_to_right_si256<borderMode, mem_mode>(pSrc+x);
+        auto middle_left = load_one_to_left_si256<borderMode>(pSrc+x);
+        auto middle_right = load_one_to_right_si256<borderMode>(pSrc+x);
 
-        auto down_left = load_one_to_left_si256<borderMode, mem_mode>(pSrcn+x);
-        auto down_center = simd256_load_si256<mem_mode>(pSrcn+x);
-        auto down_right = load_one_to_right_si256<borderMode, mem_mode>(pSrcn+x);
+        auto down_left = load_one_to_left_si256<borderMode>(pSrcn+x);
+        auto down_center = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(pSrcn+x));
+        auto down_right = load_one_to_right_si256<borderMode>(pSrcn+x);
 
         auto up_left_lo = _mm256_unpacklo_epi8(up_left, zero);
         auto up_left_hi = _mm256_unpackhi_epi8(up_left, zero);
@@ -647,7 +647,7 @@ static MT_FORCEINLINE void process_line_half_prewitt_avx2(uint8_t *pDst, const u
 
         result = threshold_avx2(result, lowThresh, highThresh, v128);
 
-        simd256_store_si256<mem_mode>(pDst+x, result);
+        _mm256_storeu_si256(reinterpret_cast<__m256i*>(pDst+x), result);
     }
 }
 
@@ -658,9 +658,9 @@ using namespace Filters::Mask;
 
 #define DEFINE_AVX2_VERSIONS(name) \
 Processor *name##_avx2 = &generic_avx2< \
-    process_line_##name##_avx2<Border::Left, MemoryMode::SSE2_UNALIGNED>, \
-    process_line_##name##_avx2<Border::None, MemoryMode::SSE2_UNALIGNED>, \
-    process_line_##name##_avx2<Border::Right, MemoryMode::SSE2_UNALIGNED> \
+    process_line_##name##_avx2<Border::Left>, \
+    process_line_##name##_avx2<Border::None>, \
+    process_line_##name##_avx2<Border::Right> \
 >; 
 
 DEFINE_AVX2_VERSIONS(sobel)

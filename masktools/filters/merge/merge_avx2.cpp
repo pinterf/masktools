@@ -91,14 +91,13 @@ namespace {
      }
    }
 
-   template <MemoryMode mem_mode>
    MT_FORCEINLINE __m256i merge_avx2_core(uint8_t *pDst, const uint8_t *pSrc, const __m256i& mask_lo, const __m256i& mask_hi,
       const __m256i& v128, const __m256i& zero, const __m256i& maxMaskFF) {
-      auto dst = simd256_load_si256<mem_mode>(pDst);
+      auto dst = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(pDst));
       auto dst_lo = _mm256_unpacklo_epi8(dst, zero);
       auto dst_hi = _mm256_unpackhi_epi8(dst, zero);
       
-      auto src = simd256_load_si256<mem_mode>(pSrc);
+      auto src = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(pSrc));
       auto src1_lo = _mm256_unpacklo_epi8(src, zero);
       auto src1_hi = _mm256_unpackhi_epi8(src, zero);
 
@@ -130,7 +129,6 @@ namespace {
       return result;
    }
 
-   template <MemoryMode mem_mode>
    void merge_avx2_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
       const uint8_t *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
    {
@@ -145,16 +143,16 @@ namespace {
 #pragma warning(default: 4309)
       for (int j = 0; j < nHeight; ++j) {
          for (int i = 0; i < wMod32; i += 32) {
-            auto src2 = simd256_load_si256<mem_mode>(pMask + i);
+            auto src2 = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(pMask + i));
             auto mask_t1 = _mm256_unpacklo_epi8(src2, zero);
             auto mask_t2 = _mm256_unpackhi_epi8(src2, zero);
 
-            auto result = merge_avx2_core<mem_mode>(pDst + i, pSrc1 + i, mask_t1, mask_t2, v128, zero, maxMaskFF);
+            auto result = merge_avx2_core(pDst + i, pSrc1 + i, mask_t1, mask_t2, v128, zero, maxMaskFF);
             // remark: when mask is 255 then second clip's 255 becomes 254 and 0 becomes 1
             // it 16 bit merge this problem is solved: special ensures that mask 255 returns second clip
             // mask 0 returns first clip
 
-            simd256_store_si256<mem_mode>(pDst + i, result);
+            _mm256_storeu_si256(reinterpret_cast<__m256i*>(pDst + i), result);
          }
          pDst += nDstPitch;
          pSrc1 += nSrc1Pitch;
@@ -166,7 +164,6 @@ namespace {
       }
    }
    
-   template <MemoryMode mem_mode>
    void merge_luma_420_avx2_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
      const uint8_t *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
    {
@@ -185,10 +182,10 @@ namespace {
          _mm_prefetch(reinterpret_cast<const char*>(pMask) + i * 2 + 2*64, _MM_HINT_T0);
          _mm_prefetch(reinterpret_cast<const char*>(pMask) + nSrc2Pitch + i * 2 + 2*64, _MM_HINT_T0);
          // preparing mask
-         auto src2_row1_t1 = simd256_load_si256<mem_mode>(pMask + i * 2);
-         auto src2_row1_t2 = simd256_load_si256<mem_mode>(pMask + i * 2 + 32);
-         auto src2_row2_t1 = simd256_load_si256<mem_mode>(pMask + nSrc2Pitch + i * 2);
-         auto src2_row2_t2 = simd256_load_si256<mem_mode>(pMask + nSrc2Pitch + i * 2 + 32);
+         auto src2_row1_t1 = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(pMask + i * 2));
+         auto src2_row1_t2 = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(pMask + i * 2 + 32));
+         auto src2_row2_t1 = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(pMask + nSrc2Pitch + i * 2));
+         auto src2_row2_t2 = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(pMask + nSrc2Pitch + i * 2 + 32));
          auto avg_t1 = _mm256_avg_epu8(src2_row1_t1, src2_row2_t1);
          auto avg_t2 = _mm256_avg_epu8(src2_row1_t2, src2_row2_t2);
          auto shifted_t1 = _mm256_srli_si256(avg_t1,1); // srli with 2x128 lane is OK here
@@ -200,9 +197,9 @@ namespace {
          auto mask_t2 = _mm256_permute2x128_si256(avg_t1, avg_t2, (1 << 0) + (3 << 4));
          mask_t1 = _mm256_and_si256(mask_t1, v255);
          mask_t2 = _mm256_and_si256(mask_t2, v255);
-         auto result = merge_avx2_core<mem_mode>(pDst + i, pSrc1 + i, mask_t1, mask_t2, v128, zero, maxMaskFF);
+         auto result = merge_avx2_core(pDst + i, pSrc1 + i, mask_t1, mask_t2, v128, zero, maxMaskFF);
 
-         simd256_store_si256<mem_mode>(pDst + i, result);
+         _mm256_storeu_si256(reinterpret_cast<__m256i*>(pDst + i), result);
        }
        pDst += nDstPitch;
        pSrc1 += nSrc1Pitch;
@@ -214,7 +211,6 @@ namespace {
      }
    }
 
-   template <MemoryMode mem_mode>
    void merge_luma_422_avx2_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
      const uint8_t *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
    {
@@ -232,8 +228,8 @@ namespace {
        for (int i = 0; i < wMod32; i += 32) {
          _mm_prefetch(reinterpret_cast<const char*>(pMask) + i * 2 + 2*64, _MM_HINT_T0);
          // preparing mask
-         auto src2_row1_t1 = simd256_load_si256<mem_mode>(pMask + i * 2);
-         auto src2_row1_t2 = simd256_load_si256<mem_mode>(pMask + i * 2 + 32);
+         auto src2_row1_t1 = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(pMask + i * 2));
+         auto src2_row1_t2 = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(pMask + i * 2 + 32));
          auto shifted_t1 = _mm256_srli_si256(src2_row1_t1, 1); // srli with 2x128 lane is OK here
          auto shifted_t2 = _mm256_srli_si256(src2_row1_t2, 1);
          auto avg_t1 = _mm256_avg_epu8(src2_row1_t1, shifted_t1);
@@ -244,9 +240,9 @@ namespace {
          mask_t1 = _mm256_and_si256(mask_t1, v255);
          mask_t2 = _mm256_and_si256(mask_t2, v255);
 
-         auto result = merge_avx2_core<mem_mode>(pDst + i, pSrc1 + i, mask_t1, mask_t2, v128, zero, maxMaskFF);
+         auto result = merge_avx2_core(pDst + i, pSrc1 + i, mask_t1, mask_t2, v128, zero, maxMaskFF);
 
-         simd256_store_si256<mem_mode>(pDst + i, result);
+         _mm256_storeu_si256(reinterpret_cast<__m256i*>(pDst + i), result);
        }
        pDst += nDstPitch;
        pSrc1 += nSrc1Pitch;
@@ -260,13 +256,12 @@ namespace {
 
    // 411: the masks of 16 chroma pixels from 64 luma mask pixels of the row, as words (lo: 0-7, hi: 8-15);
    // pair averages of pair averages, as the C version
-   template <MemoryMode mem_mode>
    MT_FORCEINLINE void mask_411_sse2(const uint8_t *pMask, __m128i &mask_lo, __m128i &mask_hi) {
      auto v255 = _mm_set1_epi16(0x00FF);
-     auto m0 = simd_load_si128<mem_mode>(pMask);
-     auto m1 = simd_load_si128<mem_mode>(pMask + 16);
-     auto m2 = simd_load_si128<mem_mode>(pMask + 32);
-     auto m3 = simd_load_si128<mem_mode>(pMask + 48);
+     auto m0 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pMask));
+     auto m1 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pMask + 16));
+     auto m2 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pMask + 32));
+     auto m3 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pMask + 48));
      // pair averages at the even bytes
      auto p0 = _mm_and_si128(_mm_avg_epu8(m0, _mm_srli_si128(m0, 1)), v255);
      auto p1 = _mm_and_si128(_mm_avg_epu8(m1, _mm_srli_si128(m1, 1)), v255);
@@ -279,7 +274,6 @@ namespace {
      mask_hi = _mm_and_si128(_mm_avg_epu8(p23, _mm_srli_si128(p23, 1)), v255);
    }
 
-   template <MemoryMode mem_mode>
    void merge_luma_411_avx2_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
      const uint8_t *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
    {
@@ -297,14 +291,14 @@ namespace {
          _mm_prefetch(reinterpret_cast<const char*>(pMask) + i * 4 + 2*64, _MM_HINT_T0);
          // preparing mask: two halves of 16 pixels
          __m128i lo0, hi0, lo1, hi1;
-         mask_411_sse2<MemoryMode::SSE2_UNALIGNED>(pMask + i * 4, lo0, hi0);
-         mask_411_sse2<MemoryMode::SSE2_UNALIGNED>(pMask + i * 4 + 64, lo1, hi1);
+         mask_411_sse2(pMask + i * 4, lo0, hi0);
+         mask_411_sse2(pMask + i * 4 + 64, lo1, hi1);
          auto mask_t1 = _mm256_set_m128i(lo1, lo0);
          auto mask_t2 = _mm256_set_m128i(hi1, hi0);
 
-         auto result = merge_avx2_core<mem_mode>(pDst + i, pSrc1 + i, mask_t1, mask_t2, v128, zero, maxMaskFF);
+         auto result = merge_avx2_core(pDst + i, pSrc1 + i, mask_t1, mask_t2, v128, zero, maxMaskFF);
 
-         simd256_store_si256<mem_mode>(pDst + i, result);
+         _mm256_storeu_si256(reinterpret_cast<__m256i*>(pDst + i), result);
        }
        pDst += nDstPitch;
        pSrc1 += nSrc1Pitch;
@@ -318,10 +312,10 @@ namespace {
 } // namespace
 
    // no MPEG2 option here in 8bit AVX2
-   Processor *merge_avx2 = merge_avx2_t<MemoryMode::SSE2_UNALIGNED>;
-   Processor *merge_luma_420_avx2 = merge_luma_420_avx2_t<MemoryMode::SSE2_UNALIGNED>;
-   Processor *merge_luma_422_avx2 = merge_luma_422_avx2_t<MemoryMode::SSE2_UNALIGNED>;
-   Processor *merge_luma_411_avx2 = merge_luma_411_avx2_t<MemoryMode::SSE2_UNALIGNED>;
+   Processor *merge_avx2 = merge_avx2_t;
+   Processor *merge_luma_420_avx2 = merge_luma_420_avx2_t;
+   Processor *merge_luma_422_avx2 = merge_luma_422_avx2_t;
+   Processor *merge_luma_411_avx2 = merge_luma_411_avx2_t;
 
 } } } }
 
