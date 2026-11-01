@@ -197,30 +197,30 @@ static void xxpand_sse4_horizontal_16(uint16_t *pDst16, ptrdiff_t nDstPitch, con
   __m128i right_mask = _mm_set_epi16(0xFFFF, 0, 0, 0, 0, 0, 0, 0);
 #pragma warning(default: 4309)
 
-  __m128i left;
-
   for (int y = 0; y < nHeight; ++y) {
     //left border
     __m128i center = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pSrc));
     __m128i right = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pSrc + sizeof(uint16_t))); // +2: word
-    left = _mm_or_si128(_mm_and_si128(center, left_mask), _mm_slli_si128(center, sizeof(uint16_t))); // shift 2: word
+    __m128i left = _mm_or_si128(_mm_and_si128(center, left_mask), _mm_slli_si128(center, sizeof(uint16_t))); // shift 2: word
 
     __m128i result = op(left, right);
     result = limit(center, result, max_dev_v);
 
-    left = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pSrc + 16- sizeof(uint16_t)));
+    // the left neighbour of the next block, read before the store (pDst may be pSrc); a vector load here
+    // read past the row end before the C tail
+    uint16_t prev = reinterpret_cast<const uint16_t *>(pSrc)[7];
     _mm_storeu_si128(reinterpret_cast<__m128i*>(pDst), result);
 
     //main processing loop
     for (int x = 16; x < sse_loop_limit; x += 16) {
       center = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pSrc + x));
       right = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pSrc + x + sizeof(uint16_t)));
+      left = _mm_or_si128(_mm_slli_si128(center, sizeof(uint16_t)), _mm_cvtsi32_si128(prev));
 
       result = op(left, right);
       result = limit(center, result, max_dev_v);
 
-      left = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pSrc + x + 16-sizeof(uint16_t)));
-
+      prev = reinterpret_cast<const uint16_t *>(pSrc + x)[7];
       _mm_storeu_si128(reinterpret_cast<__m128i*>(pDst + x), result);
     }
 
@@ -228,6 +228,7 @@ static void xxpand_sse4_horizontal_16(uint16_t *pDst16, ptrdiff_t nDstPitch, con
     if (mod16_width == byte_width) {
       center = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pSrc + mod16_width - 16));
       right = _mm_or_si128(_mm_and_si128(center, right_mask), _mm_srli_si128(center, sizeof(uint16_t)));
+      left = _mm_or_si128(_mm_slli_si128(center, sizeof(uint16_t)), _mm_cvtsi32_si128(prev));
 
       result = op(left, right);
       result = limit(center, result, max_dev_v);
@@ -235,7 +236,7 @@ static void xxpand_sse4_horizontal_16(uint16_t *pDst16, ptrdiff_t nDstPitch, con
       _mm_storeu_si128(reinterpret_cast<__m128i*>(pDst + mod16_width - 16), result);
     }
     else { //some stuff left
-      uint16_t l = _mm_cvtsi128_si32(left) & 0xFFFF;
+      uint16_t l = prev;
 
       int x;
       for (x = mod16_width / sizeof(uint16_t); x < nWidth - 1; ++x) {

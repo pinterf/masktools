@@ -304,30 +304,32 @@ static void xxpand_avx2_horizontal_16(uint16_t *pDst16, ptrdiff_t nDstPitch, con
   __m256i right_mask = _mm256_set_epi16(0xFFFF, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 #pragma warning(default: 4309)
 
-  __m256i left;
+  const __m128i zero128 = _mm_setzero_si128();
 
   for (int y = 0; y < nHeight; ++y) {
     //left border
     __m256i center = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(pSrc));
     __m256i right = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(pSrc + sizeof(uint16_t))); // +2: word
-    left = _mm256_or_si256(_mm256_and_si256(center, left_mask), _MM256_SLLI_SI256<2>(center)); // shift 2: word
+    __m256i left = _mm256_or_si256(_mm256_and_si256(center, left_mask), _MM256_SLLI_SI256<2>(center)); // shift 2: word
 
     __m256i result = op(left, right);
     result = limit(center, result, max_dev_v);
 
-    left = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(pSrc + 32- sizeof(uint16_t)));
+    // the left neighbour of the next block, read before the store (pDst may be pSrc); a vector load here
+    // read past the row end before the C tail
+    uint16_t prev = reinterpret_cast<const uint16_t *>(pSrc)[15];
     _mm256_storeu_si256(reinterpret_cast<__m256i*>(pDst), result);
 
     //main processing loop
     for (int x = 32; x < sse_loop_limit; x += 32) {
       center = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(pSrc + x));
       right = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(pSrc + x + sizeof(uint16_t)));
+      left = _mm256_or_si256(_MM256_SLLI_SI256<2>(center), _mm256_set_m128i(zero128, _mm_cvtsi32_si128(prev)));
 
       result = op(left, right);
       result = limit(center, result, max_dev_v);
 
-      left = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(pSrc + x + 32-sizeof(uint16_t)));
-
+      prev = reinterpret_cast<const uint16_t *>(pSrc + x)[15];
       _mm256_storeu_si256(reinterpret_cast<__m256i*>(pDst + x), result);
     }
 
@@ -335,6 +337,7 @@ static void xxpand_avx2_horizontal_16(uint16_t *pDst16, ptrdiff_t nDstPitch, con
     if (mod32_width == byte_width) {
       center = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(pSrc + mod32_width - 32));
       right = _mm256_or_si256(_mm256_and_si256(center, right_mask), _MM256_SRLI_SI256<2>(center));
+      left = _mm256_or_si256(_MM256_SLLI_SI256<2>(center), _mm256_set_m128i(zero128, _mm_cvtsi32_si128(prev)));
 
       result = op(left, right);
       result = limit(center, result, max_dev_v);
@@ -342,7 +345,7 @@ static void xxpand_avx2_horizontal_16(uint16_t *pDst16, ptrdiff_t nDstPitch, con
       _mm256_storeu_si256(reinterpret_cast<__m256i*>(pDst + mod32_width - 32), result);
     }
     else { //some stuff left
-      uint16_t l = _mm256_cvtsi256_si32(left) & 0xFFFF;
+      uint16_t l = prev;
 
       int x;
       for (x = mod32_width / sizeof(uint16_t); x < nWidth - 1; ++x) {
