@@ -1,6 +1,7 @@
 #ifndef __Mt_Luts_H__
 #define __Mt_Luts_H__
 
+#include <cstdint>
 #include "../../../common/base/filter.h"
 #include "../../../../common/parser/parser.h"
 
@@ -348,7 +349,7 @@ public:
            case 10: luts_weight[i].ptr = calculateLut_w<10>(parser.getExpression(), scale_inputs, clamp_float); break;
            case 12: luts_weight[i].ptr = calculateLut_w<12>(parser.getExpression(), scale_inputs, clamp_float); break;
            case 14: luts_weight[i].ptr = calculateLut_w<14>(parser.getExpression(), scale_inputs, clamp_float); break;
-#if defined(_M_X64) || defined(__amd64__)
+#if SIZE_MAX > 0xFFFFFFFFu // 64 bit (32 bit: 16 bit is realtime)
            case 16: luts_weight[i].ptr = calculateLut_w<16>(parser.getExpression(), scale_inputs, clamp_float); break;
 #endif
            }
@@ -361,7 +362,7 @@ public:
              case 10: luts_weight[4].ptr = calculateLut_w<10>(parser.getExpression(), scale_inputs, clamp_float); break;
              case 12: luts_weight[4].ptr = calculateLut_w<12>(parser.getExpression(), scale_inputs, clamp_float); break;
              case 14: luts_weight[4].ptr = calculateLut_w<14>(parser.getExpression(), scale_inputs, clamp_float); break;
-#if defined(_M_X64) || defined(__amd64__)
+#if SIZE_MAX > 0xFFFFFFFFu // 64 bit (32 bit: 16 bit is realtime)
              case 16: luts_weight[4].ptr = calculateLut_w<16>(parser.getExpression(), scale_inputs, clamp_float); break;
 #endif
              }
