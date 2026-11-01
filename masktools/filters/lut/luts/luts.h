@@ -79,7 +79,9 @@ class Luts : public MaskTools::Filter
      Parser::Context ctx(expr, scale_inputs, clamp_float);
      int pixelsize = bits_per_pixel == 8 ? 1 : 2; // byte / uint16_t
      size_t buffer_size = ((size_t)1 << bits_per_pixel) * ((size_t)1 << bits_per_pixel) *pixelsize;
-     uint8_t *lut = new uint8_t[buffer_size];
+     uint8_t *lut = new (std::nothrow) uint8_t[buffer_size];
+     if (!lut)
+       return nullptr;
 
      const int size = 1 << bits_per_pixel;
 
@@ -121,7 +123,9 @@ class Luts : public MaskTools::Filter
      const int size = 1 << bits_per_pixel;
 
      size_t buffer_size = ((size_t)size) * ((size_t)size);
-     float *lut = new float[buffer_size];
+     float *lut = new (std::nothrow) float[buffer_size];
+     if (!lut)
+       return nullptr;
 
      for (int x = 0; x < size; x++)
        for (int y = 0; y < size; y++)
@@ -302,6 +306,10 @@ public:
            }
            luts[i].ptr = luts[4].ptr;
          }
+         if (luts[i].ptr == nullptr) {
+           error = "not enough memory for the lut, use realtime=true";
+           return;
+         }
        }
 
        //Part #2 ----- weight expression
@@ -368,6 +376,10 @@ public:
              }
            }
            luts_weight[i].ptr = luts_weight[4].ptr;
+         }
+         if (luts_weight[i].ptr == nullptr) {
+           error = "not enough memory for the lut, use realtime=true";
+           return;
          }
        }
      }

@@ -39,7 +39,9 @@ class Lutf : public MaskTools::Filter
     Parser::Context ctx(expr, scale_inputs, clamp_float);
     int pixelsize = bits_per_pixel == 8 ? 1 : 2; // byte / uint16_t
     size_t buffer_size = ((size_t)1 << bits_per_pixel) * ((size_t)1 << bits_per_pixel) *pixelsize;
-    uint8_t *lut = new uint8_t[buffer_size];
+    uint8_t *lut = new (std::nothrow) uint8_t[buffer_size];
+    if (!lut)
+      return nullptr;
 
     switch (bits_per_pixel) {
     case 8:
@@ -226,6 +228,11 @@ public:
               luts[4].ptr = calculateLut(parser.getExpression(), bits_per_pixel, scale_inputs, clamp_float, /*ref*/ compute_error);
             }
             luts[i].ptr = luts[4].ptr;
+          }
+
+          if (luts[i].ptr == nullptr) {
+            error = "not enough memory for the lut, use realtime=true";
+            return;
           }
 
           if (compute_error != Parser::Context::compute_error_t::CE_NONE) {

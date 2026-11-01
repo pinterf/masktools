@@ -32,7 +32,9 @@ class Lutxyza : public MaskTools::Filter
        Parser::Context ctx(expr, scale_inputs, clamp_float);
        size_t bufsize = ((size_t)1 << bits_per_pixel);
        bufsize = bufsize * bufsize*bufsize*bufsize;
-       uint8_t *lut = new uint8_t[bufsize];
+       uint8_t *lut = new (std::nothrow) uint8_t[bufsize];
+       if (!lut)
+         return nullptr;
        // expr = "x y + z + a + 4 /" -> 2 min lut calculation time on i7-3770
        // When is it worth? LUT or realtime?
        // Lut calculation takes 256*256*256*256 expr.evaluation
@@ -261,6 +263,11 @@ public:
               luts[4].ptr = calculateLut(parser.getExpression(), 8, scale_inputs, clamp_float, /*ref*/ compute_error);
             }
             luts[i].ptr = luts[4].ptr;
+          }
+
+          if (luts[i].ptr == nullptr) {
+            error = "not enough memory for the lut, use realtime=true";
+            return;
           }
 
           if (compute_error != Parser::Context::compute_error_t::CE_NONE) {
