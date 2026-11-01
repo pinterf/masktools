@@ -43,6 +43,8 @@ inline float convolution_below_32_c(float a11, float a21, float a31, float a12, 
    else return a22;
 }
 
+// anonymous: mappedblur16.cpp / mappedblur32.cpp have their own Thresholds (same name, other element type)
+namespace {
 class Thresholds {
    const float *pThreshold;
    ptrdiff_t nPitch;
@@ -58,6 +60,7 @@ public:
    float min(int x) const { return pThreshold[x]; }
    float max(int x) const { return pThreshold[x]; }
 };
+} // namespace
 
 template<Filters::Mask::Operator op>
 void mask32_t(float *pDst, ptrdiff_t nDstPitch, const float *pSrc, ptrdiff_t nSrcPitch, const float *pMask, ptrdiff_t nMaskPitch, const float matrix[10], int nWidth, int nHeight)

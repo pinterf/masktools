@@ -45,6 +45,8 @@ inline uint16_t convolution_below_16_t_c(uint16_t a11, uint16_t a21, uint16_t a3
    else return a22;
 }
 
+// anonymous: mappedblur.cpp / mappedblur32.cpp have their own Thresholds (same name, other element type)
+namespace {
 class Thresholds {
    const uint16_t *pThreshold;
    ptrdiff_t nPitch;
@@ -60,6 +62,7 @@ public:
    uint16_t min(int x) const { return pThreshold[x]; }
    uint16_t max(int x) const { return pThreshold[x]; }
 };
+} // namespace
 
 template<Filters::Mask::Operator op>
 void mask16_t(uint16_t *pDst, ptrdiff_t nDstPitch, const uint16_t *pSrc, ptrdiff_t nSrcPitch, const uint16_t *pMask, ptrdiff_t nMaskPitch, const int16_t matrix[10], int nWidth, int nHeight)
