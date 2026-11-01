@@ -40,11 +40,8 @@ static inline __m128i binarize_0_x_sse2_op(__m128i x, __m128i t, __m128i halfran
 }
 
 template<bool lessthan16bits>
-#if defined(GCC) || defined(CLANG)
-__attribute__((__target__("sse4.1")))
-#endif
 static inline __m128i binarize_t_x_sse2_op(__m128i x, __m128i t, __m128i, __m128i &) {
-    return _mm_min_epu16(t, x);
+    return _mm_sub_epi16(x, _mm_subs_epu16(x, t)); // min(x, t), SSE2 (_mm_min_epu16 is SSE4.1)
 }
 
 template<bool lessthan16bits>
@@ -54,11 +51,8 @@ static inline __m128i binarize_x_0_sse2_op(__m128i x, __m128i t, __m128i halfran
 }
 
 template<bool lessthan16bits>
-#if defined(GCC) || defined(CLANG)
-__attribute__((__target__("sse4.1")))
-#endif
 static inline __m128i binarize_x_t_sse2_op(__m128i x, __m128i t, __m128i, __m128i &) {
-    return _mm_max_epu16(t, x);
+    return _mm_add_epi16(t, _mm_subs_epu16(x, t)); // max(x, t), SSE2 (_mm_max_epu16 is SSE4.1)
 }
 
 template<bool lessthan16bits>
