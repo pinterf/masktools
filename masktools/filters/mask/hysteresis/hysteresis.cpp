@@ -65,7 +65,8 @@ void hysteresis_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrd
   const uint8_t *pSrc2, ptrdiff_t nSrc2Pitch, uint8_t *pTemp, int width, int height)
 {
 
-  memset(pDst, 0, nDstPitch * height); // dstPitch is byte size
+  for (int y = 0; y < height; y++) // the plane can be a window: clear only its rows
+    memset(pDst + y * nDstPitch, 0, width * sizeof(pixel_t));
   memset(pTemp, 0, width * height);
   CoordinatesList coordinates;
 

@@ -2,6 +2,7 @@
 #define __Mt_Hysteresis_H__
 
 #include "../../../common/base/filter.h"
+#include <vector>
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Mask { namespace Hysteresis {
 
@@ -23,7 +24,6 @@ extern Processor* hysteresis_32_nocorner_c;
 
 class Hysteresis : public MaskTools::Filter
 {
-    uint8_t *stack;
     Processor *processor;
 
 protected:
@@ -31,31 +31,27 @@ protected:
     {
         UNUSED(n);
         UNUSED(constraints);
+        // per call: the filter is MT_NICE, a shared buffer would be a data race
+        std::vector<uint8_t> stack(size_t(dst.width()) * dst.height());
         processor(dst.data(), dst.pitch(),
             frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
             frames[1].plane(nPlane).data(), frames[1].plane(nPlane).pitch(),
-            stack, dst.width(), dst.height());
+            stack.data(), dst.width(), dst.height());
     }
 
 public:
-    Hysteresis(const Parameters &parameters, CpuFlags cpuFlags) : MaskTools::Filter(parameters, FilterProcessingType::CHILD, (CpuFlags)cpuFlags), stack(nullptr) {
+    Hysteresis(const Parameters &parameters, CpuFlags cpuFlags) : MaskTools::Filter(parameters, FilterProcessingType::CHILD, (CpuFlags)cpuFlags) {
       int bits_per_pixel = bit_depths[C];
       const bool corners = parameters["corners"].toBool();
 
       switch (bits_per_pixel) {
       case 8: processor = corners ? hysteresis_8_c : hysteresis_8_nocorner_c; break;
-      case 10: processor = corners ? hysteresis_10_c : hysteresis_8_nocorner_c; break;
-      case 12: processor = corners ? hysteresis_12_c : hysteresis_8_nocorner_c; break;
-      case 14: processor = corners ? hysteresis_14_c : hysteresis_8_nocorner_c; break;
-      case 16: processor = corners ? hysteresis_16_c : hysteresis_8_nocorner_c; break;
-      case 32: processor = corners ? hysteresis_32_c : hysteresis_8_nocorner_c; break;
+      case 10: processor = corners ? hysteresis_10_c : hysteresis_10_nocorner_c; break;
+      case 12: processor = corners ? hysteresis_12_c : hysteresis_12_nocorner_c; break;
+      case 14: processor = corners ? hysteresis_14_c : hysteresis_14_nocorner_c; break;
+      case 16: processor = corners ? hysteresis_16_c : hysteresis_16_nocorner_c; break;
+      case 32: processor = corners ? hysteresis_32_c : hysteresis_32_nocorner_c; break;
       }
-
-      stack = reinterpret_cast<uint8_t*>(_aligned_malloc(nWidth*nHeight, 16));
-    }
-
-    ~Hysteresis() {
-        _aligned_free(stack);
     }
 
     InputConfiguration &input_configuration() const override { return TwoFrame(); }
