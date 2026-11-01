@@ -46,6 +46,7 @@ const Function functions[] = {
    { "@F", 1 }, { "scalef", 1 }, { "yscalef", 1 }, { "@B", 1 }, { "scaleb", 1 }, { "yscaleb", 1 },
    { "~u", 1 }, { "~s", 1 }, { "abs", 1 }, { "sin", 1 }, { "cos", 1 }, { "tan", 1 }, { "exp", 1 }, { "log", 1 },
    { "atan2", 2 }, { "atan", 1 }, { "acos", 1 }, { "asin", 1 }, { "round", 1 },
+   { "ceil", 1 }, { "floor", 1 }, { "trunc", 1 },
    { "dup0", 1 }, { "dup1", 1 }, { "dup2", 1 }, { "dup3", 1 }, { "dup4", 1 }, { "dup5", 1 }, { "dup6", 1 },
    { "dup7", 1 }, { "dup8", 1 }, { "dup9", 1 }, { "dup", 1 },
    { "swap1", 1 }, { "swap2", 1 }, { "swap3", 1 }, { "swap4", 1 }, { "swap5", 1 }, { "swap6", 1 }, { "swap7", 1 },
