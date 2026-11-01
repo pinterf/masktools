@@ -891,7 +891,7 @@ public:
            if (isAsmOk)
            {
 #ifdef INTEL_INTRINSICS
-             processors.push_back(Filtering::Processor<Processor>(convolution_sse2, Constraint(CPU_SSE2, 8, 1, 1, 17), 2)); // why is it mod 8????
+             processors.push_back(Filtering::Processor<Processor>(convolution_sse2, Constraint(CPU_SSE2, MODULO_8, MODULO_NONE, ALIGNMENT_NONE, 17), 2));
              processors.push_back(Filtering::Processor<Processor>(convolution_avx2, Constraint(CPU_AVX2, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 33), 3));
 #endif
            }
@@ -904,8 +904,8 @@ public:
            if (isAsmOk)
            {
 #ifdef INTEL_INTRINSICS
-             processors16.push_back(Filtering::Processor<Processor16>(convolution_10_sse2, Constraint(CPU_SSE2, 8, 1, 1, 1), 1));
-             processors16.push_back(Filtering::Processor<Processor16>(convolution_10_sse4, Constraint(CPU_SSE4_1, 8, 1, 1, 1), 2));
+             processors16.push_back(Filtering::Processor<Processor16>(convolution_10_sse2, Constraint(CPU_SSE2, MODULO_8, MODULO_NONE, ALIGNMENT_NONE, 9), 1));
+             processors16.push_back(Filtering::Processor<Processor16>(convolution_10_sse4, Constraint(CPU_SSE4_1, MODULO_8, MODULO_NONE, ALIGNMENT_NONE, 9), 2));
              processors16.push_back(Filtering::Processor<Processor16>(convolution_10_avx2, Constraint(CPU_AVX2, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 32), 3));
 #endif
            }
@@ -918,8 +918,8 @@ public:
            if (isAsmOk)
            {
 #ifdef INTEL_INTRINSICS
-             processors16.push_back(Filtering::Processor<Processor16>(convolution_12_sse2, Constraint(CPU_SSE2, 8, 1, 1, 1), 1));
-             processors16.push_back(Filtering::Processor<Processor16>(convolution_12_sse4, Constraint(CPU_SSE4_1, 8, 1, 1, 1), 2));
+             processors16.push_back(Filtering::Processor<Processor16>(convolution_12_sse2, Constraint(CPU_SSE2, MODULO_8, MODULO_NONE, ALIGNMENT_NONE, 9), 1));
+             processors16.push_back(Filtering::Processor<Processor16>(convolution_12_sse4, Constraint(CPU_SSE4_1, MODULO_8, MODULO_NONE, ALIGNMENT_NONE, 9), 2));
              processors16.push_back(Filtering::Processor<Processor16>(convolution_12_avx2, Constraint(CPU_AVX2, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 32), 3));
 #endif
            }
@@ -932,8 +932,8 @@ public:
            if (isAsmOk)
            {
 #ifdef INTEL_INTRINSICS
-             processors16.push_back(Filtering::Processor<Processor16>(convolution_14_sse2, Constraint(CPU_SSE2, 8, 1, 1, 1), 1));
-             processors16.push_back(Filtering::Processor<Processor16>(convolution_14_sse4, Constraint(CPU_SSE4_1, 8, 1, 1, 1), 2));
+             processors16.push_back(Filtering::Processor<Processor16>(convolution_14_sse2, Constraint(CPU_SSE2, MODULO_8, MODULO_NONE, ALIGNMENT_NONE, 9), 1));
+             processors16.push_back(Filtering::Processor<Processor16>(convolution_14_sse4, Constraint(CPU_SSE4_1, MODULO_8, MODULO_NONE, ALIGNMENT_NONE, 9), 2));
              processors16.push_back(Filtering::Processor<Processor16>(convolution_14_avx2, Constraint(CPU_AVX2, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 32), 3));
 #endif
            }
@@ -946,8 +946,8 @@ public:
            if (isAsmOk)
            {
 #ifdef INTEL_INTRINSICS
-             processors16.push_back(Filtering::Processor<Processor16>(convolution_16_sse2, Constraint(CPU_SSE2, 8, 1, 1, 1), 1));
-             processors16.push_back(Filtering::Processor<Processor16>(convolution_16_sse4, Constraint(CPU_SSE4_1, 8, 1, 1, 1), 2));
+             processors16.push_back(Filtering::Processor<Processor16>(convolution_16_sse2, Constraint(CPU_SSE2, MODULO_8, MODULO_NONE, ALIGNMENT_NONE, 9), 1));
+             processors16.push_back(Filtering::Processor<Processor16>(convolution_16_sse4, Constraint(CPU_SSE4_1, MODULO_8, MODULO_NONE, ALIGNMENT_NONE, 9), 2));
              processors16.push_back(Filtering::Processor<Processor16>(convolution_16_avx2, Constraint(CPU_AVX2, MODULO_NONE, MODULO_NONE, ALIGNMENT_NONE, 32), 3));
 #endif
            }
