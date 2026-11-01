@@ -46,7 +46,7 @@ public:
       processors16.push_back(Filtering::Processor<Processor16>(inflate_16_neon, Constraint(CPU_NEON, 9), 1));
 #endif
 #ifdef INTEL_INTRINSICS
-      processors16.push_back(Filtering::Processor<Processor16>(inflate_sse4_16, Constraint(CPU_SSE4_1, 16), 1));
+      processors16.push_back(Filtering::Processor<Processor16>(inflate_sse4_16, Constraint(CPU_SSE4_1, 9), 1));
 #endif
     }
     else {
