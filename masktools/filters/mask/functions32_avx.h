@@ -67,6 +67,7 @@ void generic32_as_avx_c(float *pDst, ptrdiff_t nDstPitch, const float *pSrc, ptr
    pDst[nWidth-1] = op(pSrcp[nWidth-2], pSrcp[nWidth-1], pSrcp[nWidth-1], pSrc[nWidth-2], pSrc[nWidth-1], pSrc[nWidth-1], pSrc[nWidth-2], pSrc[nWidth-1], pSrc[nWidth-1], matrix, thresholds.min(nWidth-1), thresholds.max(nWidth-1));
 }
 
+// nWidth >= 9 (one vector + 1; processor constraint): with one vector the right pass recomputes x=0, reading pSrc-1
 // nHeight >= 2: separate top and bottom row passes (smaller planes go to C, filter.h plane_flags)
 template<ProcessLineAvx process_line_left, ProcessLineAvx process_line, ProcessLineAvx process_line_right>
 static void generic32_avx(float *pDst0, ptrdiff_t nDstPitch, const float *pSrc0, ptrdiff_t nSrcPitch, const float matrix[10], float nLowThreshold, float nHighThreshold, int nWidth, int nHeight) {

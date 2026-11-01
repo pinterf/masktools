@@ -164,6 +164,8 @@ static void xxpand_sse2_vertical(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8
     }
 }
 
+// nWidth >= 17 (one vector + 1; processor constraint): the first block reads pSrc+1 .. one vector; with one vector
+// the right border would redo x=0 from the stored result (pDst may be pSrc)
 //this implemented in a somewhat retarded way to allow pDst and pSrc be the same pointer (used in 3x3 expand)
 template<decltype(_mm_max_epu8) op, Limit limit, decltype(expand_c_horizontal_core) c_core>
 static void xxpand_sse2_horizontal(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight) {
@@ -250,6 +252,7 @@ static void limit_by_source_sse2(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8
     }
 }
 
+// nWidth >= 17: the horizontal pass
 template<decltype(_mm_max_epu8) op, Limit limit, decltype(expand_c_horizontal_core) c_core>
 static void xxpand_sse2_square(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight) {
     // a limit in both passes would allow up to 2 * deviation: the passes unlimited, then the limit by the source
@@ -260,6 +263,7 @@ static void xxpand_sse2_square(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t
         limit_by_source_sse2<limit>(pDst, nDstPitch, pSrc, nSrcPitch, nMaxDeviation, nWidth, nHeight);
 }
 
+// nWidth >= 17 (one vector + 1; processor constraint): with one vector the right pass recomputes x=0, reading pSrc-1
 // nHeight >= 2: separate top and bottom row passes (smaller planes go to C, filter.h plane_flags)
 template<ProcessLineSse2 process_line_left, ProcessLineSse2 process_line, ProcessLineSse2 process_line_right>
 static void generic_sse2(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight) {

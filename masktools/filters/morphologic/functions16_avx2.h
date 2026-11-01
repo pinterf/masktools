@@ -284,6 +284,8 @@ static MT_FORCEINLINE uint16_t inpand_c_horizontal_core_16_avx2(uint16_t left, u
   return static_cast<uint16_t>(mi);
 }
 
+// nWidth >= 17 (one vector + 1; processor constraint): the first block reads pSrc+1 .. one vector; with one vector
+// the right border would redo x=0 from the stored result (pDst may be pSrc)
 //this implemented in a somewhat retarded way to allow pDst and pSrc be the same pointer (used in 3x3 expand)
 template<decltype(_mm256_max_epu16) op, Limit16 limit, decltype(expand_c_horizontal_core_16_avx2) c_core>
 static void xxpand_avx2_horizontal_16(uint16_t *pDst16, ptrdiff_t nDstPitch, const uint16_t *pSrc16, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, int nOrigHeight) {
@@ -379,6 +381,7 @@ static void limit_by_source_avx2_16(uint16_t *pDst, ptrdiff_t nDstPitch, const u
   }
 }
 
+// nWidth >= 17: the horizontal pass
 template<decltype(_mm256_max_epu16) op, Limit16 limit, decltype(expand_c_horizontal_core_16_avx2) c_core>
 static void xxpand_avx2_square_16(uint16_t *pDst, ptrdiff_t nDstPitch, const uint16_t *pSrc, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, int nOrigHeight) {
   // a limit in both passes would allow up to 2 * deviation: the passes unlimited, then the limit by the source
@@ -390,6 +393,7 @@ static void xxpand_avx2_square_16(uint16_t *pDst, ptrdiff_t nDstPitch, const uin
 }
 
 
+// nWidth >= 17 (one vector + 1; processor constraint): with one vector the right pass recomputes x=0, reading pSrc-1
 // nHeight >= 2: separate top and bottom row passes (smaller planes go to C, filter.h plane_flags)
 template<ProcessLine16Avx2 process_line_left, ProcessLine16Avx2 process_line, ProcessLine16Avx2 process_line_right>
 static void generic_16_avx2(uint16_t *pDst16, ptrdiff_t nDstPitch, const uint16_t *pSrc16, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, int nOrigHeight) {

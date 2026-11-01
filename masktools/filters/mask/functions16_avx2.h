@@ -68,6 +68,7 @@ void generic16_avx2_c(uint16_t *pDst, ptrdiff_t nDstPitch, const uint16_t *pSrc,
 }
 
 // todo bitdepth template
+// nWidth >= 17 (one vector + 1; processor constraint): with one vector the right pass recomputes x=0, reading pSrc-1
 // nHeight >= 2: separate top and bottom row passes (smaller planes go to C, filter.h plane_flags)
 template<int bits_per_pixel, ProcessLineAvx2 process_line_left, ProcessLineAvx2 process_line, ProcessLineAvx2 process_line_right>
 void generic16_avx2(uint16_t *pDst0, ptrdiff_t nDstPitch, const uint16_t *pSrc0, ptrdiff_t nSrcPitch, const int16_t matrix[10], int nLowThreshold, int nHighThreshold, int nWidth, int nHeight) {
