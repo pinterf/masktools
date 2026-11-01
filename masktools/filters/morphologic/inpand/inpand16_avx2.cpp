@@ -75,15 +75,18 @@ extern "C" MT_FORCEINLINE __m256i inpand_operator_avx2_16(__m256i a, __m256i b) 
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Morphologic { namespace Inpand {
 
+// anonymous: inpand16.cpp has its own copy (the C path must not get this AVX2 compiled one)
+  namespace {
     class NewValue16 {
-        int nMin;
-        int nMaxDeviation;
-        uint16_t nValue;
+      int nMin;
+      int nMaxDeviation;
+      uint16_t nValue;
     public:
-        NewValue16(uint16_t nValue, int nMaxDeviation) : nMin(65536), nMaxDeviation(nMaxDeviation), nValue(nValue) { }
-        void add(uint16_t _nValue) { if ( _nValue < nMin ) nMin = _nValue; }
-        uint16_t finalize() const { return static_cast<uint16_t>(nMin > 65535 ? nValue : (nValue - nMin > nMaxDeviation ? nValue - nMaxDeviation : nMin)); }
+      NewValue16(uint16_t nValue, int nMaxDeviation) : nMin(65536), nMaxDeviation(nMaxDeviation), nValue(nValue) {}
+      void add(uint16_t _nValue) { if (_nValue < nMin) nMin = _nValue; }
+      uint16_t finalize() const { return static_cast<uint16_t>(nMin > 65535 ? nValue : (nValue - nMin > nMaxDeviation ? nValue - nMaxDeviation : nMin)); }
     };
+  } // namespace
 
 
 Processor16 *inpand_square_16_avx2_c = &MorphologicProcessor<uint16_t>::generic_16_c<

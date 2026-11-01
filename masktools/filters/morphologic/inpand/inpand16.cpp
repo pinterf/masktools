@@ -64,15 +64,18 @@ static inline uint16_t minimumThresholded(uint16_t a1, uint16_t a2, uint16_t a3,
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Morphologic { namespace Inpand {
 
+// anonymous: inpand16_avx2.cpp has its own copy (inline members compiled with AVX2)
+  namespace {
     class NewValue16 {
-        int nMin;
-        int nMaxDeviation;
-        uint16_t nValue;
+      int nMin;
+      int nMaxDeviation;
+      uint16_t nValue;
     public:
-        NewValue16(uint16_t nValue, int nMaxDeviation) : nMin(65536), nMaxDeviation(nMaxDeviation), nValue(nValue) { }
-        void add(uint16_t _nValue) { if ( _nValue < nMin ) nMin = _nValue; }
-        uint16_t finalize() const { return static_cast<uint16_t>(nMin > 65535 ? nValue : (nValue - nMin > nMaxDeviation ? nValue - nMaxDeviation : nMin)); }
+      NewValue16(uint16_t nValue, int nMaxDeviation) : nMin(65536), nMaxDeviation(nMaxDeviation), nValue(nValue) {}
+      void add(uint16_t _nValue) { if (_nValue < nMin) nMin = _nValue; }
+      uint16_t finalize() const { return static_cast<uint16_t>(nMin > 65535 ? nValue : (nValue - nMin > nMaxDeviation ? nValue - nMaxDeviation : nMin)); }
     };
+  } // namespace
 
 
 
