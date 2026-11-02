@@ -117,7 +117,7 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Merge 
          // 1-2-1
          // 2-4-2
          // 1-2-1 weighted averaging from 9 pixels of full size mask
-         const int nMask = (left + 2 * mid + right + 16) >> 4;
+         const int nMask = (left + 2 * mid + right + 8) >> 4;
          if (nMask == 255)
            pDst[x] = pSrc1[x];
          else if (nMask != 0)
@@ -143,7 +143,7 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Merge 
          // 1-2-1
          // 2-4-2
          // 1-2-1 weighted averaging from 9 pixels of full size mask
-         const int nMask = (left + 2 * mid + right + 16) >> 4;
+         const int nMask = (left + 2 * mid + right + 8) >> 4;
          if (nMask == 255)
            pDst[x] = pSrc1[x];
          else if (nMask != 0)
