@@ -7,6 +7,7 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Morpho
 
 extern Processor *inflate_c;
 extern Processor *inflate_sse2;
+extern Processor *inflate_avx2;
 
 /* 16 bit */
 extern Processor16 *inflate_16_c;
@@ -39,6 +40,7 @@ public:
 #endif
 #ifdef INTEL_INTRINSICS
       processors.push_back(Filtering::Processor<Processor>(inflate_sse2, Constraint(CPU_SSE2, 17), 1));
+      processors.push_back(Filtering::Processor<Processor>(inflate_avx2, Constraint(CPU_AVX2, 33), 3));
 #endif
     }
     else if (_bits_per_pixel <= 16){

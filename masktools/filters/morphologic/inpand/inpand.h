@@ -8,15 +8,19 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Morpho
 
 extern Processor *inpand_square_c;
 extern Processor *inpand_square_sse2;
+extern Processor *inpand_square_avx2;
 
 extern Processor *inpand_horizontal_c;
 extern Processor *inpand_horizontal_sse2;
+extern Processor *inpand_horizontal_avx2;
 
 extern Processor *inpand_vertical_c;
 extern Processor *inpand_vertical_sse2;
+extern Processor *inpand_vertical_avx2;
 
 extern Processor *inpand_both_c;
 extern Processor *inpand_both_sse2;
+extern Processor *inpand_both_avx2;
 
 extern Processor *inpand_custom_c;
 
@@ -75,7 +79,8 @@ public:
         processors.push_back(Filtering::Processor<Processor>(inpand_square_neon, Constraint(CPU_NEON, 17), 1));
 #endif
 #ifdef INTEL_INTRINSICS
-        processors.push_back(Filtering::Processor<Processor>(inpand_square_sse2, Constraint(CPU_SSE2, 17), 3));
+        processors.push_back(Filtering::Processor<Processor>(inpand_square_sse2, Constraint(CPU_SSE2, 17), 1));
+        processors.push_back(Filtering::Processor<Processor>(inpand_square_avx2, Constraint(CPU_AVX2, 33), 3));
 #endif
       }
       else if (_bits_per_pixel <= 16) {
@@ -100,7 +105,8 @@ public:
         processors.push_back(Filtering::Processor<Processor>(inpand_horizontal_neon, Constraint(CPU_NEON, 17), 1));
 #endif
 #ifdef INTEL_INTRINSICS
-        processors.push_back(Filtering::Processor<Processor>(inpand_horizontal_sse2, Constraint(CPU_SSE2, 17), 3));
+        processors.push_back(Filtering::Processor<Processor>(inpand_horizontal_sse2, Constraint(CPU_SSE2, 17), 1));
+        processors.push_back(Filtering::Processor<Processor>(inpand_horizontal_avx2, Constraint(CPU_AVX2, 33), 3));
 #endif
       }
       else if (_bits_per_pixel <= 16) {
@@ -125,7 +131,8 @@ public:
         processors.push_back(Filtering::Processor<Processor>(inpand_vertical_neon, Constraint(CPU_NEON, 17), 1));
 #endif
 #ifdef INTEL_INTRINSICS
-        processors.push_back(Filtering::Processor<Processor>(inpand_vertical_sse2, Constraint(CPU_SSE2, 16), 3));
+        processors.push_back(Filtering::Processor<Processor>(inpand_vertical_sse2, Constraint(CPU_SSE2, 16), 1));
+        processors.push_back(Filtering::Processor<Processor>(inpand_vertical_avx2, Constraint(CPU_AVX2, 32), 3));
 #endif
       }
       else if (_bits_per_pixel <= 16) {
@@ -150,7 +157,8 @@ public:
         processors.push_back(Filtering::Processor<Processor>(inpand_both_neon, Constraint(CPU_NEON, 17), 1));
 #endif
 #ifdef INTEL_INTRINSICS
-        processors.push_back(Filtering::Processor<Processor>(inpand_both_sse2, Constraint(CPU_SSE2, 17), 3));
+        processors.push_back(Filtering::Processor<Processor>(inpand_both_sse2, Constraint(CPU_SSE2, 17), 1));
+        processors.push_back(Filtering::Processor<Processor>(inpand_both_avx2, Constraint(CPU_AVX2, 33), 3));
 #endif
       }
       else if (_bits_per_pixel <= 16) {

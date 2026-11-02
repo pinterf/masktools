@@ -8,15 +8,19 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Morpho
 
 extern Processor *expand_square_c;
 extern Processor *expand_square_sse2;
+extern Processor *expand_square_avx2;
 
 extern Processor *expand_horizontal_c;
 extern Processor *expand_horizontal_sse2;
+extern Processor *expand_horizontal_avx2;
 
 extern Processor *expand_vertical_c;
 extern Processor *expand_vertical_sse2;
+extern Processor *expand_vertical_avx2;
 
 extern Processor *expand_both_c;
 extern Processor *expand_both_sse2;
+extern Processor *expand_both_avx2;
 
 extern Processor *expand_custom_c;
 
@@ -77,6 +81,7 @@ public:
 #endif
 #ifdef INTEL_INTRINSICS
         processors.push_back(Filtering::Processor<Processor>(expand_square_sse2, Constraint(CPU_SSE2, 17), 1));
+        processors.push_back(Filtering::Processor<Processor>(expand_square_avx2, Constraint(CPU_AVX2, 33), 3));
 #endif
       }
       else if (_bits_per_pixel <= 16) {
@@ -102,6 +107,7 @@ public:
 #endif
 #ifdef INTEL_INTRINSICS
         processors.push_back(Filtering::Processor<Processor>(expand_horizontal_sse2, Constraint(CPU_SSE2, 17), 1));
+        processors.push_back(Filtering::Processor<Processor>(expand_horizontal_avx2, Constraint(CPU_AVX2, 33), 3));
 #endif
       }
       else if (_bits_per_pixel <= 16) {
@@ -127,6 +133,7 @@ public:
 #endif
 #ifdef INTEL_INTRINSICS
         processors.push_back(Filtering::Processor<Processor>(expand_vertical_sse2, Constraint(CPU_SSE2, 16), 1));
+        processors.push_back(Filtering::Processor<Processor>(expand_vertical_avx2, Constraint(CPU_AVX2, 32), 3));
 #endif
       }
       else if (_bits_per_pixel <= 16) {
@@ -152,6 +159,7 @@ public:
 #endif
 #ifdef INTEL_INTRINSICS
         processors.push_back(Filtering::Processor<Processor>(expand_both_sse2, Constraint(CPU_SSE2, 17), 1));
+        processors.push_back(Filtering::Processor<Processor>(expand_both_avx2, Constraint(CPU_AVX2, 33), 3));
 #endif
       }
       else if (_bits_per_pixel <= 16) {

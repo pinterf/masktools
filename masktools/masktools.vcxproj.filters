@@ -399,6 +399,9 @@
     <ClCompile Include="filters\morphologic\deflate\deflate32.cpp">
       <Filter>filters\morphologic\deflate</Filter>
     </ClCompile>
+    <ClCompile Include="filters\morphologic\deflate\deflate_avx2.cpp">
+      <Filter>filters\morphologic\deflate</Filter>
+    </ClCompile>
     <ClCompile Include="filters\morphologic\deflate\deflate_neon.cpp">
       <Filter>filters\morphologic\deflate</Filter>
     </ClCompile>
@@ -418,6 +421,9 @@
       <Filter>filters\morphologic\expand</Filter>
     </ClCompile>
     <ClCompile Include="filters\morphologic\expand\expand32.cpp">
+      <Filter>filters\morphologic\expand</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\morphologic\expand\expand_avx2.cpp">
       <Filter>filters\morphologic\expand</Filter>
     </ClCompile>
     <ClCompile Include="filters\morphologic\expand\expand_neon.cpp">
@@ -441,6 +447,9 @@
     <ClCompile Include="filters\morphologic\inflate\inflate32.cpp">
       <Filter>filters\morphologic\inflate</Filter>
     </ClCompile>
+    <ClCompile Include="filters\morphologic\inflate\inflate_avx2.cpp">
+      <Filter>filters\morphologic\inflate</Filter>
+    </ClCompile>
     <ClCompile Include="filters\morphologic\inflate\inflate_neon.cpp">
       <Filter>filters\morphologic\inflate</Filter>
     </ClCompile>
@@ -460,6 +469,9 @@
       <Filter>filters\morphologic\inpand</Filter>
     </ClCompile>
     <ClCompile Include="filters\morphologic\inpand\inpand32.cpp">
+      <Filter>filters\morphologic\inpand</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\morphologic\inpand\inpand_avx2.cpp">
       <Filter>filters\morphologic\inpand</Filter>
     </ClCompile>
     <ClCompile Include="filters\morphologic\inpand\inpand_neon.cpp">
@@ -771,6 +783,9 @@
       <Filter>filters\morphologic</Filter>
     </ClInclude>
     <ClInclude Include="filters\morphologic\functions32_sse.h">
+      <Filter>filters\morphologic</Filter>
+    </ClInclude>
+    <ClInclude Include="filters\morphologic\functions_avx2.h">
       <Filter>filters\morphologic</Filter>
     </ClInclude>
     <ClInclude Include="filters\morphologic\functions_neon.h">

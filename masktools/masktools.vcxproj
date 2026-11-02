@@ -239,6 +239,9 @@
     </ClCompile>
     <ClCompile Include="filters\morphologic\deflate\deflate16_sse2.cpp" />
     <ClCompile Include="filters\morphologic\deflate\deflate32.cpp" />
+    <ClCompile Include="filters\morphologic\deflate\deflate_avx2.cpp">
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+    </ClCompile>
     <ClCompile Include="filters\morphologic\deflate\deflate_neon.cpp" />
     <ClCompile Include="filters\morphologic\deflate\deflate_sse2.cpp" />
     <ClCompile Include="filters\morphologic\expand\expand.cpp" />
@@ -248,6 +251,9 @@
     </ClCompile>
     <ClCompile Include="filters\morphologic\expand\expand16_sse2.cpp" />
     <ClCompile Include="filters\morphologic\expand\expand32.cpp" />
+    <ClCompile Include="filters\morphologic\expand\expand_avx2.cpp">
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+    </ClCompile>
     <ClCompile Include="filters\morphologic\expand\expand_neon.cpp" />
     <ClCompile Include="filters\morphologic\expand\expand_sse2.cpp" />
     <ClCompile Include="filters\morphologic\inflate\inflate.cpp" />
@@ -257,6 +263,9 @@
     </ClCompile>
     <ClCompile Include="filters\morphologic\inflate\inflate16_sse2.cpp" />
     <ClCompile Include="filters\morphologic\inflate\inflate32.cpp" />
+    <ClCompile Include="filters\morphologic\inflate\inflate_avx2.cpp">
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+    </ClCompile>
     <ClCompile Include="filters\morphologic\inflate\inflate_neon.cpp" />
     <ClCompile Include="filters\morphologic\inflate\inflate_sse2.cpp" />
     <ClCompile Include="filters\morphologic\inpand\inpand.cpp" />
@@ -266,6 +275,9 @@
     </ClCompile>
     <ClCompile Include="filters\morphologic\inpand\inpand16_sse2.cpp" />
     <ClCompile Include="filters\morphologic\inpand\inpand32.cpp" />
+    <ClCompile Include="filters\morphologic\inpand\inpand_avx2.cpp">
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+    </ClCompile>
     <ClCompile Include="filters\morphologic\inpand\inpand_neon.cpp" />
     <ClCompile Include="filters\morphologic\inpand\inpand_sse2.cpp" />
     <ClCompile Include="filters\support\adddiff16\adddiff16.cpp" />
@@ -385,6 +397,7 @@
     <ClInclude Include="filters\morphologic\functions16_sse.h" />
     <ClInclude Include="filters\morphologic\functions32.h" />
     <ClInclude Include="filters\morphologic\functions32_sse.h" />
+    <ClInclude Include="filters\morphologic\functions_avx2.h" />
     <ClInclude Include="filters\morphologic\functions_neon.h" />
     <ClInclude Include="filters\morphologic\functions_sse.h" />
     <ClInclude Include="filters\morphologic\inflate\inflate.h" />
