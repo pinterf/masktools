@@ -390,7 +390,10 @@
     <ClCompile Include="filters\morphologic\deflate\deflate16.cpp">
       <Filter>filters\morphologic\deflate</Filter>
     </ClCompile>
-    <ClCompile Include="filters\morphologic\deflate\deflate16_sse41.cpp">
+    <ClCompile Include="filters\morphologic\deflate\deflate16_avx2.cpp">
+      <Filter>filters\morphologic\deflate</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\morphologic\deflate\deflate16_sse2.cpp">
       <Filter>filters\morphologic\deflate</Filter>
     </ClCompile>
     <ClCompile Include="filters\morphologic\deflate\deflate32.cpp">
@@ -411,7 +414,7 @@
     <ClCompile Include="filters\morphologic\expand\expand16_avx2.cpp">
       <Filter>filters\morphologic\expand</Filter>
     </ClCompile>
-    <ClCompile Include="filters\morphologic\expand\expand16_sse41.cpp">
+    <ClCompile Include="filters\morphologic\expand\expand16_sse2.cpp">
       <Filter>filters\morphologic\expand</Filter>
     </ClCompile>
     <ClCompile Include="filters\morphologic\expand\expand32.cpp">
@@ -429,7 +432,10 @@
     <ClCompile Include="filters\morphologic\inflate\inflate16.cpp">
       <Filter>filters\morphologic\inflate</Filter>
     </ClCompile>
-    <ClCompile Include="filters\morphologic\inflate\inflate16_sse41.cpp">
+    <ClCompile Include="filters\morphologic\inflate\inflate16_avx2.cpp">
+      <Filter>filters\morphologic\inflate</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\morphologic\inflate\inflate16_sse2.cpp">
       <Filter>filters\morphologic\inflate</Filter>
     </ClCompile>
     <ClCompile Include="filters\morphologic\inflate\inflate32.cpp">
@@ -450,7 +456,7 @@
     <ClCompile Include="filters\morphologic\inpand\inpand16_avx2.cpp">
       <Filter>filters\morphologic\inpand</Filter>
     </ClCompile>
-    <ClCompile Include="filters\morphologic\inpand\inpand16_sse41.cpp">
+    <ClCompile Include="filters\morphologic\inpand\inpand16_sse2.cpp">
       <Filter>filters\morphologic\inpand</Filter>
     </ClCompile>
     <ClCompile Include="filters\morphologic\inpand\inpand32.cpp">

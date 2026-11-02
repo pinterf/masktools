@@ -9,23 +9,18 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Morpho
 namespace {
 
 typedef __m128i (Limit16)(__m128i source, __m128i sum, __m128i deviation);
-typedef void (ProcessLine16Sse4)(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const __m128i &maxDeviation, int width);
+typedef __m128i (Operator16Sse2)(__m128i a, __m128i b);
+typedef void (ProcessLine16Sse2)(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const __m128i &maxDeviation, int width);
 
 //-------------------------extern "C" ----------------------------------------
-#if defined(GCC) || defined(CLANG)
-__attribute__((__target__("sse4.1")))
-#endif
-static MT_FORCEINLINE __m128i limit_up_sse4_16(__m128i source, __m128i sum, __m128i deviation) {
+static MT_FORCEINLINE __m128i limit_up_sse2_16(__m128i source, __m128i sum, __m128i deviation) {
   auto limit = _mm_adds_epu16(source, deviation);
-  return _mm_min_epu16(limit, _mm_max_epu16(source, sum));
+  return _MM_MIN_EPU16(limit, _MM_MAX_EPU16(source, sum));
 }
 
-#if defined(GCC) || defined(CLANG)
-__attribute__((__target__("sse4.1")))
-#endif
-static MT_FORCEINLINE __m128i limit_down_sse4_16(__m128i source, __m128i sum, __m128i deviation) {
+static MT_FORCEINLINE __m128i limit_down_sse2_16(__m128i source, __m128i sum, __m128i deviation) {
   auto limit = _mm_subs_epu16(source, deviation);
-  return _mm_max_epu16(limit, _mm_min_epu16(source, sum));
+  return _MM_MAX_EPU16(limit, _MM_MIN_EPU16(source, sum));
 }
 
 template<Border borderMode, Limit16 limit>
@@ -86,7 +81,7 @@ static void process_line_xxflate_16(uint8_t *pDst, const uint8_t *pSrcp, const u
     sum_lo = _mm_srai_epi32(sum_lo, 3);
     sum_hi = _mm_srai_epi32(sum_hi, 3);
 
-    auto result = _mm_packus_epi32(sum_lo, sum_hi);
+    auto result = _MM_PACKUS_EPI32(sum_lo, sum_hi); // exact: sum >> 3 is 0..65535
 
     auto middle_center = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pSrc + x));
 
@@ -96,7 +91,7 @@ static void process_line_xxflate_16(uint8_t *pDst, const uint8_t *pSrcp, const u
   }
 }
 
-template<Border borderMode, decltype(_mm_max_epu16) op, Limit16 limit>
+template<Border borderMode, Operator16Sse2 op, Limit16 limit>
 static MT_FORCEINLINE void process_line_xxpand_both_16(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const __m128i &maxDeviation, int byte_width) {
   for (int x = 0; x < byte_width; x += 16) {
     __m128i up_center = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pSrcp + x));
@@ -115,7 +110,7 @@ static MT_FORCEINLINE void process_line_xxpand_both_16(uint8_t *pDst, const uint
 
 /* Vertical mt_xxpand */
 
-template<decltype(_mm_max_epu16) op, Limit16 limit>
+template<Operator16Sse2 op, Limit16 limit>
 static MT_FORCEINLINE void process_line_xxpand_vertical_16(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const __m128i &maxDeviation, int byte_width) {
   for (int x = 0; x < byte_width; x += 16) {
     auto up_center = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pSrcp + x));
@@ -128,8 +123,8 @@ static MT_FORCEINLINE void process_line_xxpand_vertical_16(uint8_t *pDst, const 
 }
 
 // nHeight >= 2: separate top and bottom row passes (smaller planes go to C, filter.h plane_flags)
-template<decltype(_mm_max_epu16) op, Limit16 limit>
-static void xxpand_sse4_vertical_16(uint16_t *pDst16, ptrdiff_t nDstPitch, const uint16_t *pSrc16, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, int nOrigHeight) {
+template<Operator16Sse2 op, Limit16 limit>
+static void xxpand_sse2_vertical_16(uint16_t *pDst16, ptrdiff_t nDstPitch, const uint16_t *pSrc16, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, int nOrigHeight) {
   // back to byte level
   const BYTE* pSrc = reinterpret_cast<const BYTE *>(pSrc16);
   BYTE* pDst = reinterpret_cast<BYTE *>(pDst16);
@@ -180,8 +175,8 @@ static void xxpand_sse4_vertical_16(uint16_t *pDst16, ptrdiff_t nDstPitch, const
 // nWidth >= 9 (one vector + 1; processor constraint): the first block reads pSrc+1 .. one vector; with one vector
 // the right border would redo x=0 from the stored result (pDst may be pSrc)
 //this implemented in a somewhat retarded way to allow pDst and pSrc be the same pointer (used in 3x3 expand)
-template<decltype(_mm_max_epu16) op, Limit16 limit, decltype(expand_c_horizontal_core_16) c_core>
-static void xxpand_sse4_horizontal_16(uint16_t *pDst16, ptrdiff_t nDstPitch, const uint16_t *pSrc16, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, int nOrigHeight) {
+template<Operator16Sse2 op, Limit16 limit, decltype(expand_c_horizontal_core_16) c_core>
+static void xxpand_sse2_horizontal_16(uint16_t *pDst16, ptrdiff_t nDstPitch, const uint16_t *pSrc16, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, int nOrigHeight) {
   // back to byte level
   const BYTE* pSrc = reinterpret_cast<const BYTE *>(pSrc16);
   BYTE* pDst = reinterpret_cast<BYTE *>(pDst16);
@@ -258,7 +253,7 @@ static void xxpand_sse4_horizontal_16(uint16_t *pDst16, ptrdiff_t nDstPitch, con
 
 // dst = limit(src, dst, deviation); the 3x3 result is limited by the source pixel, not by the vertical pass
 template<Limit16 limit>
-static void limit_by_source_sse4_16(uint16_t *pDst, ptrdiff_t nDstPitch, const uint16_t *pSrc, ptrdiff_t nSrcPitch, int nMaxDeviation, int nWidth, int nHeight) {
+static void limit_by_source_sse2_16(uint16_t *pDst, ptrdiff_t nDstPitch, const uint16_t *pSrc, ptrdiff_t nSrcPitch, int nMaxDeviation, int nWidth, int nHeight) {
   auto max_dev_v = _mm_set1_epi16(uint16_t(nMaxDeviation));
   for (int y = 0; y < nHeight; y++) {
     for (int x = 0; x < nWidth; x += 8) {
@@ -273,20 +268,20 @@ static void limit_by_source_sse4_16(uint16_t *pDst, ptrdiff_t nDstPitch, const u
 }
 
 // nWidth >= 9: the horizontal pass
-template<decltype(_mm_max_epu16) op, Limit16 limit, decltype(expand_c_horizontal_core_16) c_core>
-static void xxpand_sse4_square_16(uint16_t *pDst, ptrdiff_t nDstPitch, const uint16_t *pSrc, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, int nOrigHeight) {
+template<Operator16Sse2 op, Limit16 limit, decltype(expand_c_horizontal_core_16) c_core>
+static void xxpand_sse2_square_16(uint16_t *pDst, ptrdiff_t nDstPitch, const uint16_t *pSrc, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, int nOrigHeight) {
   // a limit in both passes would allow up to 2 * deviation: the passes unlimited, then the limit by the source
   const int no_limit = 65535;
-  xxpand_sse4_vertical_16<op, limit>(pDst, nDstPitch, pSrc, nSrcPitch, no_limit, pCoordinates, nCoordinates, nWidth, nHeight, nOrigHeight);
-  xxpand_sse4_horizontal_16<op, limit, c_core>(pDst, nDstPitch, pDst, nDstPitch, no_limit, pCoordinates, nCoordinates, nWidth, nHeight, nOrigHeight);
+  xxpand_sse2_vertical_16<op, limit>(pDst, nDstPitch, pSrc, nSrcPitch, no_limit, pCoordinates, nCoordinates, nWidth, nHeight, nOrigHeight);
+  xxpand_sse2_horizontal_16<op, limit, c_core>(pDst, nDstPitch, pDst, nDstPitch, no_limit, pCoordinates, nCoordinates, nWidth, nHeight, nOrigHeight);
   if (nMaxDeviation < no_limit)
-    limit_by_source_sse4_16<limit>(pDst, nDstPitch, pSrc, nSrcPitch, nMaxDeviation, nWidth, nHeight);
+    limit_by_source_sse2_16<limit>(pDst, nDstPitch, pSrc, nSrcPitch, nMaxDeviation, nWidth, nHeight);
 }
 
 // nWidth >= 9 (one vector + 1; processor constraint): with one vector the right pass recomputes x=0, reading pSrc-1
 // nHeight >= 2: separate top and bottom row passes (smaller planes go to C, filter.h plane_flags)
-template<ProcessLine16Sse4 process_line_left, ProcessLine16Sse4 process_line, ProcessLine16Sse4 process_line_right>
-static void generic_sse4_16(uint16_t *pDst16, ptrdiff_t nDstPitch, const uint16_t *pSrc16, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, int nOrigHeight) {
+template<ProcessLine16Sse2 process_line_left, ProcessLine16Sse2 process_line, ProcessLine16Sse2 process_line_right>
+static void generic_sse2_16(uint16_t *pDst16, ptrdiff_t nDstPitch, const uint16_t *pSrc16, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, int nOrigHeight) {
   // back to byte level
   const BYTE* pSrc = reinterpret_cast<const BYTE *>(pSrc16);
   BYTE* pDst = reinterpret_cast<BYTE *>(pDst16);

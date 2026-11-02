@@ -234,9 +234,10 @@
     </ClCompile>
     <ClCompile Include="filters\morphologic\deflate\deflate.cpp" />
     <ClCompile Include="filters\morphologic\deflate\deflate16.cpp" />
-    <ClCompile Include="filters\morphologic\deflate\deflate16_sse41.cpp">
-      <AdditionalOptions Condition="'$(Configuration)'=='Rel_Clang'">-msse4.1 %(AdditionalOptions)</AdditionalOptions>
+    <ClCompile Include="filters\morphologic\deflate\deflate16_avx2.cpp">
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
     </ClCompile>
+    <ClCompile Include="filters\morphologic\deflate\deflate16_sse2.cpp" />
     <ClCompile Include="filters\morphologic\deflate\deflate32.cpp" />
     <ClCompile Include="filters\morphologic\deflate\deflate_neon.cpp" />
     <ClCompile Include="filters\morphologic\deflate\deflate_sse2.cpp" />
@@ -245,17 +246,16 @@
     <ClCompile Include="filters\morphologic\expand\expand16_avx2.cpp">
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
     </ClCompile>
-    <ClCompile Include="filters\morphologic\expand\expand16_sse41.cpp">
-      <AdditionalOptions Condition="'$(Configuration)'=='Rel_Clang'">-msse4.1 %(AdditionalOptions)</AdditionalOptions>
-    </ClCompile>
+    <ClCompile Include="filters\morphologic\expand\expand16_sse2.cpp" />
     <ClCompile Include="filters\morphologic\expand\expand32.cpp" />
     <ClCompile Include="filters\morphologic\expand\expand_neon.cpp" />
     <ClCompile Include="filters\morphologic\expand\expand_sse2.cpp" />
     <ClCompile Include="filters\morphologic\inflate\inflate.cpp" />
     <ClCompile Include="filters\morphologic\inflate\inflate16.cpp" />
-    <ClCompile Include="filters\morphologic\inflate\inflate16_sse41.cpp">
-      <AdditionalOptions Condition="'$(Configuration)'=='Rel_Clang'">-msse4.1 %(AdditionalOptions)</AdditionalOptions>
+    <ClCompile Include="filters\morphologic\inflate\inflate16_avx2.cpp">
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
     </ClCompile>
+    <ClCompile Include="filters\morphologic\inflate\inflate16_sse2.cpp" />
     <ClCompile Include="filters\morphologic\inflate\inflate32.cpp" />
     <ClCompile Include="filters\morphologic\inflate\inflate_neon.cpp" />
     <ClCompile Include="filters\morphologic\inflate\inflate_sse2.cpp" />
@@ -264,9 +264,7 @@
     <ClCompile Include="filters\morphologic\inpand\inpand16_avx2.cpp">
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
     </ClCompile>
-    <ClCompile Include="filters\morphologic\inpand\inpand16_sse41.cpp">
-      <AdditionalOptions Condition="'$(Configuration)'=='Rel_Clang'">-msse4.1 %(AdditionalOptions)</AdditionalOptions>
-    </ClCompile>
+    <ClCompile Include="filters\morphologic\inpand\inpand16_sse2.cpp" />
     <ClCompile Include="filters\morphologic\inpand\inpand32.cpp" />
     <ClCompile Include="filters\morphologic\inpand\inpand_neon.cpp" />
     <ClCompile Include="filters\morphologic\inpand\inpand_sse2.cpp" />
