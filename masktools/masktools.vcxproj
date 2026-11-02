@@ -165,9 +165,6 @@
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
     </ClCompile>
     <ClCompile Include="filters\logic\logic16_sse2.cpp" />
-    <ClCompile Include="filters\logic\logic16_sse41.cpp">
-      <AdditionalOptions Condition="'$(Configuration)'=='Rel_Clang'">-msse4.1 %(AdditionalOptions)</AdditionalOptions>
-    </ClCompile>
     <ClCompile Include="filters\logic\logic32.cpp" />
     <ClCompile Include="filters\logic\logic32_avx.cpp">
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
@@ -344,7 +341,6 @@
     <ClInclude Include="filters\invert\invert.h" />
     <ClInclude Include="filters\logic\logic.h" />
     <ClInclude Include="filters\logic\logic16_c.h" />
-    <ClInclude Include="filters\logic\logic16_sse.h" />
     <ClInclude Include="filters\logic\logic32_c.h" />
     <ClInclude Include="filters\logic\logic_c.h" />
     <ClInclude Include="filters\lut\functions.h" />

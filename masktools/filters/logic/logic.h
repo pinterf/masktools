@@ -231,27 +231,25 @@ public:
     }
     else if (bits_per_pixel <= 16) {
       /* 16 bit */
-#define SET_MODE(mode, needSSE4) \
+#define SET_MODE(mode) \
     do { \
         processors16.push_back( Filtering::Processor<Processor16>( mode##_native_c, Constraint(CPU_NONE), 0 ) ); \
-        MT_X86(processors16.push_back( Filtering::Processor<Processor16>( mode##_native_sse2, Constraint((needSSE4) ? CPU_SSE4_1 : CPU_SSE2), 1 ) )); \
+        MT_X86(processors16.push_back( Filtering::Processor<Processor16>( mode##_native_sse2, Constraint(CPU_SSE2), 1 ) )); \
         MT_X86(processors16.push_back( Filtering::Processor<Processor16>( mode##_native_avx2, Constraint(CPU_AVX2), 3 ) )); \
         MT_NEON(processors16.push_back( Filtering::Processor<Processor16>( mode##_native_neon, Constraint(CPU_NEON), 1 ) )); \
     } while(0)
 
-      // modes containing min, max, add require SSE4
-
       if (parameters["mode"].toString() == "and") {
-        SET_MODE(and16, false);
+        SET_MODE(and16);
       }
       else if (parameters["mode"].toString() == "or") {
-        SET_MODE(or16, false);
+        SET_MODE(or16);
       }
       else if (parameters["mode"].toString() == "xor") {
-        SET_MODE(xor16, false);
+        SET_MODE(xor16);
       }
       else if (parameters["mode"].toString() == "andn") {
-        SET_MODE(andn16, false);
+        SET_MODE(andn16);
       }
       else {
         bool isDstSub = nTh1 < 0;
@@ -265,27 +263,27 @@ public:
 
         if (parameters["mode"].toString() == "min")
         {
-          if (isDstAdd && isSrcAdd) SET_MODE(addminadd, true);
-          else if (isDstAdd && isSrcSub) SET_MODE(addminsub, true);
-          else if (isDstSub && isSrcAdd) SET_MODE(subminadd, true);
-          else if (isDstSub && isSrcSub) SET_MODE(subminsub, true);
-          else if (isDstAdd) SET_MODE(addmin, true);
-          else if (isSrcAdd) SET_MODE(minadd, true);
-          else if (isDstSub) SET_MODE(submin, true);
-          else if (isSrcSub) SET_MODE(minsub, true);
-          else SET_MODE(min, true);
+          if (isDstAdd && isSrcAdd) SET_MODE(addminadd);
+          else if (isDstAdd && isSrcSub) SET_MODE(addminsub);
+          else if (isDstSub && isSrcAdd) SET_MODE(subminadd);
+          else if (isDstSub && isSrcSub) SET_MODE(subminsub);
+          else if (isDstAdd) SET_MODE(addmin);
+          else if (isSrcAdd) SET_MODE(minadd);
+          else if (isDstSub) SET_MODE(submin);
+          else if (isSrcSub) SET_MODE(minsub);
+          else SET_MODE(min);
         }
         else if (parameters["mode"].toString() == "max")
         {
-          if (isDstAdd && isSrcAdd) SET_MODE(addmaxadd, true);
-          else if (isDstAdd && isSrcSub) SET_MODE(addmaxsub, true);
-          else if (isDstSub && isSrcAdd) SET_MODE(submaxadd, true);
-          else if (isDstSub && isSrcSub) SET_MODE(submaxsub, true);
-          else if (isDstAdd) SET_MODE(addmax, true);
-          else if (isSrcAdd) SET_MODE(maxadd, true);
-          else if (isDstSub) SET_MODE(submax, true);
-          else if (isSrcSub) SET_MODE(maxsub, true);
-          else SET_MODE(max, true);
+          if (isDstAdd && isSrcAdd) SET_MODE(addmaxadd);
+          else if (isDstAdd && isSrcSub) SET_MODE(addmaxsub);
+          else if (isDstSub && isSrcAdd) SET_MODE(submaxadd);
+          else if (isDstSub && isSrcSub) SET_MODE(submaxsub);
+          else if (isDstAdd) SET_MODE(addmax);
+          else if (isSrcAdd) SET_MODE(maxadd);
+          else if (isDstSub) SET_MODE(submax);
+          else if (isSrcSub) SET_MODE(maxsub);
+          else SET_MODE(max);
         }
         else
           error = "\"mode\" must be either \"and\", \"or\", \"xor\", \"andn\", \"min\" or \"max\"";

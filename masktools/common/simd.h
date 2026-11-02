@@ -248,6 +248,17 @@ namespace {
     return _mm_cmpeq_epi16(_mm_subs_epu16(x, y), _mm_setzero_si128());
   }
 
+  // SSE2 simulations of the SSE4.1 _mm_min_epu16 / _mm_max_epu16, bit-exact: subs(x, y) = x - min(x, y) = max(x, y) - y
+  static MT_FORCEINLINE __m128i _MM_MIN_EPU16(__m128i x, __m128i y)
+  {
+    return _mm_sub_epi16(x, _mm_subs_epu16(x, y));
+  }
+
+  static MT_FORCEINLINE __m128i _MM_MAX_EPU16(__m128i x, __m128i y)
+  {
+    return _mm_add_epi16(y, _mm_subs_epu16(x, y));
+  }
+
   // SSE2 version of SSE4.1-only _mm_max_epu16
   template<CpuFlags flags>
   static MT_FORCEINLINE __m128i simd_max_epu16(__m128i x, __m128i y)
