@@ -245,7 +245,7 @@ public:
     { \
         processors16.push_back( Filtering::Processor<Processor16>( mode##_native_c, Constraint(CPU_NONE), 0 ) ); \
         MT_X86(processors16.push_back( Filtering::Processor<Processor16>( mode##_native_sse2, Constraint((needSSE4) ? CPU_SSE4_1 : CPU_SSE2), 1 ) )); \
-        MT_X86(processors16.push_back( Filtering::Processor<Processor16>( mode##_native_avx2, Constraint(CPU_AVX2), 1 ) )); \
+        MT_X86(processors16.push_back( Filtering::Processor<Processor16>( mode##_native_avx2, Constraint(CPU_AVX2), 3 ) )); \
         MT_NEON(processors16.push_back( Filtering::Processor<Processor16>( mode##_native_neon, Constraint(CPU_NEON), 1 ) )); \
     }
 
