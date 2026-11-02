@@ -363,12 +363,6 @@
     <ClCompile Include="filters\merge\merge16_sse2.cpp">
       <Filter>filters\merge</Filter>
     </ClCompile>
-    <ClCompile Include="filters\merge\merge16_sse41.cpp">
-      <Filter>filters\merge</Filter>
-    </ClCompile>
-    <ClCompile Include="filters\merge\merge16_ssse3.cpp">
-      <Filter>filters\merge</Filter>
-    </ClCompile>
     <ClCompile Include="filters\merge\merge32.cpp">
       <Filter>filters\merge</Filter>
     </ClCompile>
@@ -741,9 +735,6 @@
       <Filter>filters\merge</Filter>
     </ClInclude>
     <ClInclude Include="filters\merge\merge16_c.h">
-      <Filter>filters\merge</Filter>
-    </ClInclude>
-    <ClInclude Include="filters\merge\merge16_sse.h">
       <Filter>filters\merge</Filter>
     </ClInclude>
     <ClInclude Include="filters\merge\merge_sse.h">

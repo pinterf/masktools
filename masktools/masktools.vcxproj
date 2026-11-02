@@ -219,12 +219,6 @@
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
     </ClCompile>
     <ClCompile Include="filters\merge\merge16_sse2.cpp" />
-    <ClCompile Include="filters\merge\merge16_sse41.cpp">
-      <AdditionalOptions Condition="'$(Configuration)'=='Rel_Clang'">-msse4.1 %(AdditionalOptions)</AdditionalOptions>
-    </ClCompile>
-    <ClCompile Include="filters\merge\merge16_ssse3.cpp">
-      <AdditionalOptions Condition="'$(Configuration)'=='Rel_Clang'">-mssse3 %(AdditionalOptions)</AdditionalOptions>
-    </ClCompile>
     <ClCompile Include="filters\merge\merge32.cpp" />
     <ClCompile Include="filters\merge\merge32_avx2.cpp">
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
@@ -381,7 +375,6 @@
     <ClInclude Include="filters\mask\motion\motionmask_c.h" />
     <ClInclude Include="filters\merge\merge.h" />
     <ClInclude Include="filters\merge\merge16_c.h" />
-    <ClInclude Include="filters\merge\merge16_sse.h" />
     <ClInclude Include="filters\merge\merge_sse.h" />
     <ClInclude Include="filters\morphologic\deflate\deflate.h" />
     <ClInclude Include="filters\morphologic\expand\expand.h" />
