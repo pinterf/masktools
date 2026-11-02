@@ -22,29 +22,16 @@ enum MaskMode {
     MASK444
 };
 
-template<int bits_per_pixel>
-MT_FORCEINLINE static uint16_t merge16_core_c(uint16_t dst, uint16_t src, uint16_t mask) {
+// 10-14 bit: dst + (((src - dst) * mask) >> bits); 16 bit: (mask >> 1) and >> 15 to avoid the int overflow
+MT_FORCEINLINE static uint16_t merge16_core_c(uint16_t dst, uint16_t src, uint16_t mask, uint16_t max, int mask_shift, int shift) {
     if (mask == 0) {
         return dst;
-    } else if (mask == ((1 << bits_per_pixel) - 1)) {
+    } else if (mask == max) {
         return src;
     } else {
-      if(bits_per_pixel < 16)
-        return dst + (((src - dst) * mask) >> bits_per_pixel);
-      else
-        return dst + (((src - dst) * (mask >> 1)) >> (bits_per_pixel - 1)); // >> 1: avoid overflow
+        return dst + (((src - dst) * (mask >> mask_shift)) >> shift);
     }
 }
-
-
-
-
-
-
-
-
-
-
 
 /* Native */
 
@@ -95,10 +82,13 @@ MT_FORCEINLINE static uint16_t get_mask_422_mpeg2_c(const uint8_t *ptr, int x, i
   return (uint16_t)((left + 2 * mid + right + 2) >> 2);
 }
 
-template<MaskMode mode, int bits_per_pixel, bool allow_leftminus1>
+template<MaskMode mode, bool allow_leftminus1>
 static void internal_merge16_t_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
-                         const uint8_t *pMask, ptrdiff_t nMaskPitch, int nWidth, int nHeight, int /*nOrigHeight*/)
+                         const uint8_t *pMask, ptrdiff_t nMaskPitch, int nWidth, int nHeight, int bits_per_pixel)
 {
+    const uint16_t max = (uint16_t)((1 << bits_per_pixel) - 1);
+    const int mask_shift = bits_per_pixel == 16 ? 1 : 0;
+    const int shift = bits_per_pixel - mask_shift;
     for ( int y = 0; y < nHeight; ++y )
     {
         constexpr auto left_or_same = allow_leftminus1 ? -1 : 0;
@@ -132,7 +122,7 @@ static void internal_merge16_t_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8
             else
               mask = reinterpret_cast<const uint16_t*>(pMask)[x];
 
-            uint16_t output = merge16_core_c<bits_per_pixel>(dst, src, mask);
+            uint16_t output = merge16_core_c(dst, src, mask, max, mask_shift, shift);
 
             reinterpret_cast<uint16_t*>(pDst)[x] = output;
         }
@@ -147,18 +137,18 @@ static void internal_merge16_t_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8
     }
 }
 
-template<MaskMode mode, int bits_per_pixel>
+template<MaskMode mode>
 static void merge16_t_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
-  const uint8_t *pMask, ptrdiff_t nMaskPitch, int nWidth, int nHeight, int nOrigHeight)
+  const uint8_t *pMask, ptrdiff_t nMaskPitch, int nWidth, int nHeight, int bits_per_pixel)
 {
-  internal_merge16_t_c<mode, bits_per_pixel, false>(pDst, nDstPitch, pSrc1, nSrc1Pitch, pMask, nMaskPitch, nWidth, nHeight, nOrigHeight);
+  internal_merge16_t_c<mode, false>(pDst, nDstPitch, pSrc1, nSrc1Pitch, pMask, nMaskPitch, nWidth, nHeight, bits_per_pixel);
 }
 
-template<MaskMode mode, int bits_per_pixel>
+template<MaskMode mode>
 static void merge16_t_allow_leftminus1_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
-  const uint8_t *pMask, ptrdiff_t nMaskPitch, int nWidth, int nHeight, int nOrigHeight)
+  const uint8_t *pMask, ptrdiff_t nMaskPitch, int nWidth, int nHeight, int bits_per_pixel)
 { // used for mpeg2 simd, for nonMod16 right side
-  internal_merge16_t_c<mode, bits_per_pixel, true>(pDst, nDstPitch, pSrc1, nSrc1Pitch, pMask, nMaskPitch, nWidth, nHeight, nOrigHeight);
+  internal_merge16_t_c<mode, true>(pDst, nDstPitch, pSrc1, nSrc1Pitch, pMask, nMaskPitch, nWidth, nHeight, bits_per_pixel);
 }
 
 } // namespace

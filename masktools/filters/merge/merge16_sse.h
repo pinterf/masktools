@@ -146,8 +146,8 @@ MT_FORCEINLINE static __m128i get_single_mask_value_422_mpeg2(const __m128i &row
   return simd_packus_epi32<flags>(avg_lo, avg_hi);
 }
 
-template<CpuFlags flags, int bits_per_pixel>
-MT_FORCEINLINE static __m128i merge_core_simd(const __m128i &dst, const __m128i &src, const __m128i &mask, const __m128i &max_pixel_value, const __m128i &zero) {
+template<CpuFlags flags, bool lessThan16bits>
+MT_FORCEINLINE static __m128i merge_core_simd(const __m128i &dst, const __m128i &src, const __m128i &mask, const __m128i &max_pixel_value, const __m128i &zero, const __m128i &shift) {
   auto dst_lo = _mm_unpacklo_epi16(dst, zero);
   auto dst_hi = _mm_unpackhi_epi16(dst, zero);
 
@@ -165,29 +165,29 @@ MT_FORCEINLINE static __m128i merge_core_simd(const __m128i &dst, const __m128i 
 
   __m128i lerp_lo, lerp_hi;
 
-  if (bits_per_pixel == 16) {
+  if constexpr (!lessThan16bits) {
     auto smask_lo = _mm_srai_epi32(mask_lo, 1); // smask = mask>>1
     auto smask_hi = _mm_srai_epi32(mask_hi, 1);
 
     lerp_lo = simd_mullo_epi32<flags>(diff_lo, smask_lo);
     lerp_hi = simd_mullo_epi32<flags>(diff_hi, smask_hi);
 
-    lerp_lo = _mm_srai_epi32(lerp_lo, bits_per_pixel - 1); // for n bit, shr (n-1), scale back
-    lerp_hi = _mm_srai_epi32(lerp_hi, bits_per_pixel - 1);
+    lerp_lo = _mm_srai_epi32(lerp_lo, 15); // shr (16 - 1), scale back
+    lerp_hi = _mm_srai_epi32(lerp_hi, 15);
   }
   else {
     lerp_lo = simd_mullo_epi32<flags>(diff_lo, mask_lo);
     lerp_hi = simd_mullo_epi32<flags>(diff_hi, mask_hi);
 
-    lerp_lo = _mm_srai_epi32(lerp_lo, bits_per_pixel);
-    lerp_hi = _mm_srai_epi32(lerp_hi, bits_per_pixel);
+    lerp_lo = _mm_sra_epi32(lerp_lo, shift); // shift: bits_per_pixel
+    lerp_hi = _mm_sra_epi32(lerp_hi, shift);
   }
 
   auto result_lo = _mm_add_epi32(dst_lo, lerp_lo);
   auto result_hi = _mm_add_epi32(dst_hi, lerp_hi);
 
   auto result = simd_packus_epi32<flags>(result_lo, result_hi);
-  if (bits_per_pixel < 16) // otherwise no clamp needed
+  if constexpr (lessThan16bits) // otherwise no clamp needed
     result = simd_min_epu16<flags>(result, max_pixel_value);
 
   auto mask_FFFF = _mm_cmpeq_epi16(mask, max_pixel_value); // mask == max ? FFFF : 0000
@@ -262,9 +262,9 @@ MT_FORCEINLINE static __m128i get_mask_422_mpeg2_simd(const uint8_t *ptr, int x,
   return get_single_mask_value_422_mpeg2<flags>(row1_lo, row1_hi, right_hi); // right: in-out
 }
 
-template <CpuFlags flags, MaskMode mode, Processor16 merge_c, Processor16 merge_allow_leftminus1_c, int bits_per_pixel>
+template <CpuFlags flags, MaskMode mode, Processor16 merge_c, Processor16 merge_allow_leftminus1_c, bool lessThan16bits>
 static void merge16_t_simd(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
-                            const uint8_t *pMask, ptrdiff_t nMaskPitch, int nWidth, int nHeight, int nOrigHeight)
+                            const uint8_t *pMask, ptrdiff_t nMaskPitch, int nWidth, int nHeight, int bits_per_pixel)
 {
     nWidth *= 2; // really rowsize: width * sizeof(uint16), see also division at C trailer
 
@@ -279,6 +279,7 @@ static void merge16_t_simd(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pS
 #pragma warning(disable: 4244)
     auto max_pixel_value = _mm_set1_epi16(max); // for checking max
 #pragma warning(default: 4244)
+    const auto shift = _mm_cvtsi32_si128(bits_per_pixel);
 
     for ( int j = 0; j < nHeight; ++j ) {
       const auto top_or_same = j == 0 ? 0 : -nMaskPitch; // for MASK420_TOPLEFT
@@ -340,7 +341,7 @@ static void merge16_t_simd(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pS
             else
               mask = _mm_loadu_si128(reinterpret_cast<const __m128i*>(reinterpret_cast<const __m128i*>(pMask + i)));
 
-            __m128i result = merge_core_simd<flags, bits_per_pixel>(dst, src, mask, max_pixel_value, zero);
+            __m128i result = merge_core_simd<flags, lessThan16bits>(dst, src, mask, max_pixel_value, zero, shift);
 
             _mm_storeu_si128(reinterpret_cast<__m128i*>(reinterpret_cast<__m128i*>(pDst+i)), result);
         }
@@ -358,10 +359,21 @@ static void merge16_t_simd(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pS
     if (nWidth > wMod16) {
         const int maskShift = (mode == MASK420 || mode == MASK420_MPEG2 || mode == MASK420_TOPLEFT || mode == MASK422 || mode == MASK422_MPEG2) ? wMod16 * 2 : wMod16;
         if(wMod16 != 0 && (mode == MASK420_MPEG2 || mode == MASK420_TOPLEFT || mode == MASK422_MPEG2)) // indexing leftmost - 1 is allowed
-          merge_allow_leftminus1_c(pDst_s + wMod16, nDstPitch, pSrc1_s + wMod16, nSrc1Pitch, pMask_s + maskShift, nMaskPitch, (nWidth - wMod16) / sizeof(uint16_t), nHeight, nOrigHeight);
+          merge_allow_leftminus1_c(pDst_s + wMod16, nDstPitch, pSrc1_s + wMod16, nSrc1Pitch, pMask_s + maskShift, nMaskPitch, (nWidth - wMod16) / sizeof(uint16_t), nHeight, bits_per_pixel);
         else
-          merge_c(pDst_s + wMod16, nDstPitch, pSrc1_s + wMod16, nSrc1Pitch, pMask_s + maskShift, nMaskPitch, (nWidth-wMod16) / sizeof(uint16_t), nHeight, nOrigHeight);
+          merge_c(pDst_s + wMod16, nDstPitch, pSrc1_s + wMod16, nSrc1Pitch, pMask_s + maskShift, nMaskPitch, (nWidth-wMod16) / sizeof(uint16_t), nHeight, bits_per_pixel);
     }
+}
+
+// the exported processors: one kernel switch per call
+template <CpuFlags flags, MaskMode mode, Processor16 merge_c, Processor16 merge_allow_leftminus1_c>
+static void merge16_simd(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
+                          const uint8_t *pMask, ptrdiff_t nMaskPitch, int nWidth, int nHeight, int bits_per_pixel)
+{
+  if (bits_per_pixel == 16)
+    merge16_t_simd<flags, mode, merge_c, merge_allow_leftminus1_c, false>(pDst, nDstPitch, pSrc1, nSrc1Pitch, pMask, nMaskPitch, nWidth, nHeight, bits_per_pixel);
+  else
+    merge16_t_simd<flags, mode, merge_c, merge_allow_leftminus1_c, true>(pDst, nDstPitch, pSrc1, nSrc1Pitch, pMask, nMaskPitch, nWidth, nHeight, bits_per_pixel);
 }
 
 } // namespace

@@ -3,34 +3,13 @@
 #ifdef INTEL_INTRINSICS
 
 #include "../../common/simd_avx2.h"
+#include "merge16_c.h"
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Merge {
 
 namespace {
 
-/* Common */
-
 // no MASK420_MPEG2, MASK420_TOPLEFT and MASK422_MPEG2 support in AVX2
-
-enum MaskMode {
-    MASK420,
-    MASK422,
-    MASK444
-};
-
-template<int bits_per_pixel>
-MT_FORCEINLINE static uint16_t merge16_core_avx2_c(uint16_t dst, uint16_t src, uint16_t mask) {
-    if (mask == 0) {
-        return dst;
-    } else if (mask == ((1 << bits_per_pixel) - 1)) {
-        return src;
-    } else {
-      if (bits_per_pixel < 16)
-        return dst + (((src - dst) * mask) >> bits_per_pixel);
-      else
-        return dst + (((src - dst) * (mask >> 1)) >> (bits_per_pixel - 1)); // >> 1: avoid overflow
-    }
-}
 
 MT_FORCEINLINE static __m256i get_single_mask_value_420(const __m256i &row1_lo, const __m256i &row1_hi, const __m256i &row2_lo, const __m256i &row2_hi) {
   auto avg_lo = _mm256_avg_epu16(row1_lo, row2_lo);
@@ -69,8 +48,8 @@ MT_FORCEINLINE static __m256i get_single_mask_value_422(const __m256i &row1_lo, 
   return _mm256_permute4x64_epi64(avg, (0 << 0) + (2 << 2) + (1 << 4) + (3 << 6));
 }
 
-template<int bits_per_pixel>
-MT_FORCEINLINE static __m256i merge_core_simd(const __m256i &dst, const __m256i &src, const __m256i &mask, const __m256i &max_pixel_value, const __m256i &zero) {
+template<bool lessThan16bits>
+MT_FORCEINLINE static __m256i merge_core_simd(const __m256i &dst, const __m256i &src, const __m256i &mask, const __m256i &max_pixel_value, const __m256i &zero, const __m128i &shift) {
   auto dst_lo = _mm256_unpacklo_epi16(dst, zero);
   auto dst_hi = _mm256_unpackhi_epi16(dst, zero);
 
@@ -88,31 +67,31 @@ MT_FORCEINLINE static __m256i merge_core_simd(const __m256i &dst, const __m256i 
   __m256i lerp_lo, lerp_hi;
   __m256i result_lo, result_hi;
 
-  if (bits_per_pixel == 16) {
+  if constexpr (!lessThan16bits) {
     auto smask_lo = _mm256_srai_epi32(mask_lo, 1); // smask = mask>>1 to avoid int mul overflow
     auto smask_hi = _mm256_srai_epi32(mask_hi, 1);
 
     lerp_lo = simd256_mullo_epi32(diff_lo, smask_lo);
-    lerp_lo = _mm256_srai_epi32(lerp_lo, bits_per_pixel - 1); // for n bit, shr (n-1), scale back
+    lerp_lo = _mm256_srai_epi32(lerp_lo, 15); // shr (16 - 1), scale back
 
     lerp_hi = simd256_mullo_epi32(diff_hi, smask_hi);
-    lerp_hi = _mm256_srai_epi32(lerp_hi, bits_per_pixel - 1);
+    lerp_hi = _mm256_srai_epi32(lerp_hi, 15);
 
     result_lo = _mm256_add_epi32(dst_lo, lerp_lo);
     result_hi = _mm256_add_epi32(dst_hi, lerp_hi);
   }
   else {
     lerp_lo = simd256_mullo_epi32(diff_lo, mask_lo);
-    lerp_lo = _mm256_srai_epi32(lerp_lo, bits_per_pixel);
+    lerp_lo = _mm256_sra_epi32(lerp_lo, shift); // shift: bits_per_pixel
     result_lo = _mm256_add_epi32(dst_lo, lerp_lo);
 
     lerp_hi = simd256_mullo_epi32(diff_hi, mask_hi);
-    lerp_hi = _mm256_srai_epi32(lerp_hi, bits_per_pixel);
+    lerp_hi = _mm256_sra_epi32(lerp_hi, shift);
     result_hi = _mm256_add_epi32(dst_hi, lerp_hi);
   }
 
   auto result = _mm256_packus_epi32(result_lo, result_hi);
-  if (bits_per_pixel < 16) // otherwise no clamp needed
+  if constexpr (lessThan16bits) // otherwise no clamp needed
     result = _mm256_min_epu16(result, max_pixel_value); 
 
   auto mask_FFFF = _mm256_cmpeq_epi16(mask, max_pixel_value); // mask == max ? FFFF : 0000
@@ -122,56 +101,6 @@ MT_FORCEINLINE static __m256i merge_core_simd(const __m256i &dst, const __m256i 
 
   return result;
 }
-
-/* Native */
-
-MT_FORCEINLINE static uint16_t get_mask_420_c(const uint8_t *ptr, ptrdiff_t pitch, int x) {
-    x = x*2;
-
-    return (((reinterpret_cast<const uint16_t*>(ptr)[x] + reinterpret_cast<const uint16_t*>(ptr+pitch)[x] + 1) >> 1) + 
-        ((reinterpret_cast<const uint16_t*>(ptr)[x+1] +  reinterpret_cast<const uint16_t*>(ptr+pitch)[x+1] + 1) >> 1) + 1) >> 1;
-}
-
-MT_FORCEINLINE static uint16_t get_mask_422_c(const uint8_t *ptr, int x) {
-  x = x * 2;
-
-  return (reinterpret_cast<const uint16_t*>(ptr)[x] + reinterpret_cast<const uint16_t*>(ptr)[x + 1] + 1) >> 1;
-}
-
-template<MaskMode mode, int bits_per_pixel>
-static void merge16_t_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
-                         const uint8_t *pMask, ptrdiff_t nMaskPitch, int nWidth, int nHeight, int /*nOrigHeight*/)
-{
-    for ( int y = 0; y < nHeight; ++y )
-    {
-        for ( int x = 0; x < nWidth; ++x ) { 
-            uint16_t dst = reinterpret_cast<const uint16_t*>(pDst)[x];
-            uint16_t src = reinterpret_cast<const uint16_t*>(pSrc1)[x];
-            uint16_t mask;
-
-            if (mode == MASK420) {
-                mask = get_mask_420_c(pMask, nMaskPitch, x);
-            } else if(mode == MASK422)
-                mask = get_mask_422_c(pMask, x);
-            else {
-                mask = reinterpret_cast<const uint16_t*>(pMask)[x];
-            }
-
-            uint16_t output = merge16_core_avx2_c<bits_per_pixel>(dst, src, mask);
-
-            reinterpret_cast<uint16_t*>(pDst)[x] = output;
-        }
-        pDst += nDstPitch;
-        pSrc1 += nSrc1Pitch;
-
-        if (mode == MASK420) {
-            pMask += nMaskPitch * 2;
-        } else {
-            pMask += nMaskPitch; // 422, 444
-        }
-    }
-}
-
 
 MT_FORCEINLINE static __m256i get_mask_420_simd(const uint8_t *ptr, ptrdiff_t pitch, int x) {
     x = x*2;
@@ -193,9 +122,9 @@ MT_FORCEINLINE static __m256i get_mask_422_simd(const uint8_t *ptr, int x) {
   return get_single_mask_value_422(row1_lo, row1_hi);
 }
 
-template <MaskMode mode, Processor16 merge_c, int bits_per_pixel>
+template <MaskMode mode, bool lessThan16bits>
 static void merge16_t_simd(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
-                            const uint8_t *pMask, ptrdiff_t nMaskPitch, int nWidth, int nHeight, int nOrigHeight)
+                            const uint8_t *pMask, ptrdiff_t nMaskPitch, int nWidth, int nHeight, int bits_per_pixel)
 {
     nWidth *= 2; // really rowsize: width * sizeof(uint16), see also division at C trailer
 
@@ -210,6 +139,7 @@ static void merge16_t_simd(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pS
 #pragma warning(disable: 4310)
     auto max_pixel_value = _mm256_set1_epi16((short)max); // for checking max
 #pragma warning(default: 4310)
+    const auto shift = _mm_cvtsi32_si128(bits_per_pixel);
 
     for ( int j = 0; j < nHeight; ++j ) {
         for ( int i = 0; i < wMod32; i+=32 ) {
@@ -225,7 +155,7 @@ static void merge16_t_simd(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pS
               mask = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(reinterpret_cast<const __m256i*>(pMask + i)));
             }
 
-            __m256i result = merge_core_simd<bits_per_pixel>(dst, src, mask, max_pixel_value, zero);
+            __m256i result = merge_core_simd<lessThan16bits>(dst, src, mask, max_pixel_value, zero, shift);
 
             _mm256_storeu_si256(reinterpret_cast<__m256i*>(reinterpret_cast<__m256i*>(pDst+i)), result);
         }
@@ -242,40 +172,25 @@ static void merge16_t_simd(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pS
 
     if (nWidth > wMod32) {
       const int maskShift = (mode == MASK420 || mode == MASK422) ? wMod32 * 2 : wMod32;
-      merge_c(pDst_s + wMod32, nDstPitch, pSrc1_s + wMod32, nSrc1Pitch, pMask_s + maskShift, nMaskPitch, (nWidth - wMod32) / sizeof(uint16_t), nHeight, nOrigHeight);
+      merge16_t_c<mode>(pDst_s + wMod32, nDstPitch, pSrc1_s + wMod32, nSrc1Pitch, pMask_s + maskShift, nMaskPitch, (nWidth - wMod32) / sizeof(uint16_t), nHeight, bits_per_pixel);
     }
 }
 
-/* Native */
-// specialize them
-// 4:1:1 is only in 8 bits
-// no MPEG2 option here in 16bit AVX2
-#define MAKE_TEMPLATES(bits_per_pixel) \
-template void merge16_t_c<MASK444, bits_per_pixel>(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch, const uint8_t *pMask, ptrdiff_t nMaskPitch, int nWidth, int nHeight, int nOrigHeight); \
-template void merge16_t_c<MASK420, bits_per_pixel>(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch, const uint8_t *pMask, ptrdiff_t nMaskPitch, int nWidth, int nHeight, int nOrigHeight); \
-template void merge16_t_c<MASK422, bits_per_pixel>(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch, const uint8_t *pMask, ptrdiff_t nMaskPitch, int nWidth, int nHeight, int nOrigHeight); \
-template void merge16_t_simd<MASK444, merge16_t_c<MASK444, bits_per_pixel>, bits_per_pixel>(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch, const uint8_t *pMask, ptrdiff_t nMaskPitch, int nWidth, int nHeight, int nOrigHeight); \
-template void merge16_t_simd<MASK420, merge16_t_c<MASK420, bits_per_pixel>, bits_per_pixel>(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch, const uint8_t *pMask, ptrdiff_t nMaskPitch, int nWidth, int nHeight, int nOrigHeight); \
-template void merge16_t_simd<MASK422, merge16_t_c<MASK422, bits_per_pixel>, bits_per_pixel>(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch, const uint8_t *pMask, ptrdiff_t nMaskPitch, int nWidth, int nHeight, int nOrigHeight); \
-
-MAKE_TEMPLATES(10)
-MAKE_TEMPLATES(12)
-MAKE_TEMPLATES(14)
-MAKE_TEMPLATES(16)
-#undef MAKE_TEMPLATES
+template <MaskMode mode>
+static void merge16_avx2_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
+                          const uint8_t *pMask, ptrdiff_t nMaskPitch, int nWidth, int nHeight, int bits_per_pixel)
+{
+  if (bits_per_pixel == 16)
+    merge16_t_simd<mode, false>(pDst, nDstPitch, pSrc1, nSrc1Pitch, pMask, nMaskPitch, nWidth, nHeight, bits_per_pixel);
+  else
+    merge16_t_simd<mode, true>(pDst, nDstPitch, pSrc1, nSrc1Pitch, pMask, nMaskPitch, nWidth, nHeight, bits_per_pixel);
+}
 
 } // namespace
 
-#define MAKE_EXPORTS(bits_per_pixel) \
-Processor16 *merge16_##bits_per_pixel##_avx2 = merge16_t_simd< MASK444, merge16_t_c<MASK444, bits_per_pixel>, bits_per_pixel>; \
-Processor16 *merge16_luma_420_##bits_per_pixel##_avx2 = merge16_t_simd<MASK420, merge16_t_c<MASK420, bits_per_pixel>, bits_per_pixel>; \
-Processor16 *merge16_luma_422_##bits_per_pixel##_avx2 = merge16_t_simd<MASK422, merge16_t_c<MASK422, bits_per_pixel>, bits_per_pixel>; \
-
-MAKE_EXPORTS(10)
-MAKE_EXPORTS(12)
-MAKE_EXPORTS(14)
-MAKE_EXPORTS(16)
-#undef MAKE_EXPORTS
+Processor16 *merge16_avx2 = merge16_avx2_t<MASK444>;
+Processor16 *merge16_luma_420_avx2 = merge16_avx2_t<MASK420>;
+Processor16 *merge16_luma_422_avx2 = merge16_avx2_t<MASK422>;
 
 } } } }
 

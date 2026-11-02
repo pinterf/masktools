@@ -93,32 +93,33 @@ MT_FORCEINLINE uint16x8_t mask16(const uint8_t *pMask, ptrdiff_t pitch, int x)
   }
 }
 
-// d + (((s - d) * m) >> bpp), at 16 bit (m >> 1) and >> 15; arithmetic shift as in C; m == max: s
-template<int bits_per_pixel>
-MT_FORCEINLINE int32x4_t merge16_half(uint16x4_t d, uint16x4_t s, uint16x4_t m)
+// d + (((s - d) * (m >> mask_shift)) >> shift): 10-14 bit mask_shift 0, shift bpp; 16 bit 1 and 15 (no int overflow);
+// arithmetic shift as in C (vshl by a negative count); m == max: s
+MT_FORCEINLINE int32x4_t merge16_half(uint16x4_t d, uint16x4_t s, uint16x4_t m, int16x4_t neg_mask_shift, int32x4_t neg_shift)
 {
   int32x4_t d32 = vreinterpretq_s32_u32(vmovl_u16(d));
   int32x4_t diff = vsubq_s32(vreinterpretq_s32_u32(vmovl_u16(s)), d32);
-  if constexpr (bits_per_pixel < 16)
-    return vaddq_s32(d32, vshrq_n_s32(vmulq_s32(diff, vreinterpretq_s32_u32(vmovl_u16(m))), bits_per_pixel));
-  else
-    return vaddq_s32(d32, vshrq_n_s32(vmulq_s32(diff, vreinterpretq_s32_u32(vmovl_u16(vshr_n_u16(m, 1)))), 15));
+  int32x4_t m32 = vreinterpretq_s32_u32(vmovl_u16(vshl_u16(m, neg_mask_shift)));
+  return vaddq_s32(d32, vshlq_s32(vmulq_s32(diff, m32), neg_shift));
 }
 
-template<int bits_per_pixel>
-MT_FORCEINLINE uint16x8_t merge16_core(uint16x8_t d, uint16x8_t s, uint16x8_t m)
+MT_FORCEINLINE uint16x8_t merge16_core(uint16x8_t d, uint16x8_t s, uint16x8_t m, uint16x8_t max, int16x4_t neg_mask_shift, int32x4_t neg_shift)
 {
-  int32x4_t lo = merge16_half<bits_per_pixel>(vget_low_u16(d), vget_low_u16(s), vget_low_u16(m));
-  int32x4_t hi = merge16_half<bits_per_pixel>(vget_high_u16(d), vget_high_u16(s), vget_high_u16(m));
+  int32x4_t lo = merge16_half(vget_low_u16(d), vget_low_u16(s), vget_low_u16(m), neg_mask_shift, neg_shift);
+  int32x4_t hi = merge16_half(vget_high_u16(d), vget_high_u16(s), vget_high_u16(m), neg_mask_shift, neg_shift);
   uint16x8_t r = vcombine_u16(vmovn_u32(vreinterpretq_u32_s32(lo)), vmovn_u32(vreinterpretq_u32_s32(hi)));
-  return vbslq_u16(vceqq_u16(m, vdupq_n_u16((uint16_t)((1 << bits_per_pixel) - 1))), s, r);
+  return vbslq_u16(vceqq_u16(m, max), s, r);
 }
 
-template<Mode mode, int bits_per_pixel>
+template<Mode mode>
 void merge16_neon_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
-                    const uint8_t *pMask, ptrdiff_t nMaskPitch, int nWidth, int nHeight, int nOrigHeight)
+                    const uint8_t *pMask, ptrdiff_t nMaskPitch, int nWidth, int nHeight, int bits_per_pixel)
 {
   constexpr int mstep = mode == Mode::M420 || mode == Mode::M422 ? 2 : mode == Mode::M411 ? 4 : 1;
+  const int mask_shift = bits_per_pixel == 16 ? 1 : 0;
+  const uint16x8_t max = vdupq_n_u16((uint16_t)((1 << bits_per_pixel) - 1));
+  const int16x4_t neg_mask_shift = vdup_n_s16((int16_t)-mask_shift);
+  const int32x4_t neg_shift = vdupq_n_s32(-(bits_per_pixel - mask_shift));
   const int wmod = nWidth / 8 * 8;
   uint8_t *pDst0 = pDst;
   const uint8_t *pSrc0 = pSrc1, *pMask0 = pMask;
@@ -126,22 +127,14 @@ void merge16_neon_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, pt
     uint16_t *d16 = reinterpret_cast<uint16_t *>(pDst);
     const uint16_t *s16 = reinterpret_cast<const uint16_t *>(pSrc1);
     for (int x = 0; x < wmod; x += 8)
-      vst1q_u16(d16 + x, merge16_core<bits_per_pixel>(vld1q_u16(d16 + x), vld1q_u16(s16 + x), mask16<mode>(pMask, nMaskPitch, x)));
+      vst1q_u16(d16 + x, merge16_core(vld1q_u16(d16 + x), vld1q_u16(s16 + x), mask16<mode>(pMask, nMaskPitch, x), max, neg_mask_shift, neg_shift));
     pDst += nDstPitch;
     pSrc1 += nSrc1Pitch;
     pMask += mode == Mode::M420 ? nMaskPitch * 2 : nMaskPitch;
   }
   if (nWidth > wmod) {
-    Processor16 *c;
-    if constexpr (mode == Mode::M444)
-      c = bits_per_pixel == 10 ? merge16_10_c : bits_per_pixel == 12 ? merge16_12_c : bits_per_pixel == 14 ? merge16_14_c : merge16_16_c;
-    else if constexpr (mode == Mode::M420)
-      c = bits_per_pixel == 10 ? merge16_luma_420_10_c : bits_per_pixel == 12 ? merge16_luma_420_12_c : bits_per_pixel == 14 ? merge16_luma_420_14_c : merge16_luma_420_16_c;
-    else if constexpr (mode == Mode::M422)
-      c = bits_per_pixel == 10 ? merge16_luma_422_10_c : bits_per_pixel == 12 ? merge16_luma_422_12_c : bits_per_pixel == 14 ? merge16_luma_422_14_c : merge16_luma_422_16_c;
-    else
-      c = bits_per_pixel == 10 ? merge16_luma_411_10_c : bits_per_pixel == 12 ? merge16_luma_411_12_c : bits_per_pixel == 14 ? merge16_luma_411_14_c : merge16_luma_411_16_c;
-    c(pDst0 + wmod * 2, nDstPitch, pSrc0 + wmod * 2, nSrc1Pitch, pMask0 + wmod * 2 * mstep, nMaskPitch, nWidth - wmod, nHeight, nOrigHeight);
+    Processor16 *c = mode == Mode::M444 ? merge16_c : mode == Mode::M420 ? merge16_luma_420_c : mode == Mode::M422 ? merge16_luma_422_c : merge16_luma_411_c;
+    c(pDst0 + wmod * 2, nDstPitch, pSrc0 + wmod * 2, nSrc1Pitch, pMask0 + wmod * 2 * mstep, nMaskPitch, nWidth - wmod, nHeight, bits_per_pixel);
   }
 }
 
@@ -200,17 +193,10 @@ Processor *merge_luma_420_neon = &merge8_neon_t<Mode::M420>;
 Processor *merge_luma_422_neon = &merge8_neon_t<Mode::M422>;
 Processor *merge_luma_411_neon = &merge8_neon_t<Mode::M411>;
 
-#define MAKE_NEON16(bits_per_pixel) \
-Processor16 *merge16_##bits_per_pixel##_neon = &merge16_neon_t<Mode::M444, bits_per_pixel>; \
-Processor16 *merge16_luma_420_##bits_per_pixel##_neon = &merge16_neon_t<Mode::M420, bits_per_pixel>; \
-Processor16 *merge16_luma_422_##bits_per_pixel##_neon = &merge16_neon_t<Mode::M422, bits_per_pixel>; \
-Processor16 *merge16_luma_411_##bits_per_pixel##_neon = &merge16_neon_t<Mode::M411, bits_per_pixel>;
-
-MAKE_NEON16(10)
-MAKE_NEON16(12)
-MAKE_NEON16(14)
-MAKE_NEON16(16)
-#undef MAKE_NEON16
+Processor16 *merge16_neon = &merge16_neon_t<Mode::M444>;
+Processor16 *merge16_luma_420_neon = &merge16_neon_t<Mode::M420>;
+Processor16 *merge16_luma_422_neon = &merge16_neon_t<Mode::M422>;
+Processor16 *merge16_luma_411_neon = &merge16_neon_t<Mode::M411>;
 
 Processor32 *merge32_neon = &merge32_neon_t<Mode::M444>;
 Processor32 *merge32_luma_420_neon = &merge32_neon_t<Mode::M420>;
