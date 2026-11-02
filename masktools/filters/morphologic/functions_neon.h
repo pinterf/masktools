@@ -154,9 +154,9 @@ void morpho8_neon(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdi
 }
 
 template<class Op>
-void morpho16_neon(uint16_t *pDst, ptrdiff_t nDstPitch, const uint16_t *pSrc, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, int nOrigHeight)
+void morpho16_neon(uint16_t *pDst, ptrdiff_t nDstPitch, const uint16_t *pSrc, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight)
 {
-  UNUSED(pCoordinates); UNUSED(nCoordinates); UNUSED(nOrigHeight);
+  UNUSED(pCoordinates); UNUSED(nCoordinates);
   generic_neon<Op, uint16_t>(pDst, nDstPitch, pSrc, nSrcPitch, nMaxDeviation, nWidth, nHeight);
 }
 

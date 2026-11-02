@@ -4,7 +4,7 @@
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Support  { namespace Average {
 
 
-void average16_native_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight, int)
+void average16_native_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight)
 {
     for (int y = 0; y < nHeight; y++) {
         auto pDstWord = reinterpret_cast<uint16_t*>(pDst);

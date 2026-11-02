@@ -23,9 +23,8 @@ void average8_neon_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, pt
   }
 }
 
-void average16_neon_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight, int nOrigHeight)
+void average16_neon_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight)
 {
-  UNUSED(nOrigHeight);
   const int wmod = nWidth / 8 * 8;
   for (int y = 0; y < nHeight; y++) {
     uint16_t *d = reinterpret_cast<uint16_t *>(pDst);

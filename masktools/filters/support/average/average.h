@@ -7,7 +7,7 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Suppor
 
 /* 8 bits */
 typedef void(Processor)(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight);
-typedef void(Processor16)(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight, int nOrigHeight);
+typedef void(Processor16)(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight);
 typedef void(Processor32)(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight);
 
 Processor average_c;
@@ -49,7 +49,7 @@ protected:
         else if (bits_per_pixel <= 16)
           processors16.best_processor(constraints[nPlane])(dst.data(), dst.pitch(),
             frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
-            dst.width(), dst.height(), dst.origheight());
+            dst.width(), dst.height());
         else
           processors32.best_processor(constraints[nPlane])(dst.data(), dst.pitch(),
             frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),

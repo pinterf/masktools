@@ -12,7 +12,7 @@ namespace {
 } // namespace
 
 
-void average16_native_sse2(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight, int nOrigHeight)
+void average16_native_sse2(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight)
 {
     nWidth *= 2; // really rowsize: width * sizeof(uint16), see also division at C trailer
   
@@ -34,7 +34,7 @@ void average16_native_sse2(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pS
         pSrc += nSrcPitch;
     }
     if (nWidth > wMod16) {
-        average16_native_c(pDst2 + wMod16, nDstPitch, pSrc2 + wMod16, nSrcPitch, (nWidth - wMod16) / sizeof(uint16_t), nHeight, nOrigHeight);
+        average16_native_c(pDst2 + wMod16, nDstPitch, pSrc2 + wMod16, nSrcPitch, (nWidth - wMod16) / sizeof(uint16_t), nHeight);
     }
 }
 

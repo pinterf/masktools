@@ -18,11 +18,10 @@ enum Directions {
     Square = 7
 };
 
-//height should be already divised by 2
 
 template<Border borderMode, Operator16 op>
-void process_line_morpho_16_c(uint16_t *pDst, const uint16_t *pSrcp, const uint16_t *pSrc, const uint16_t *pSrcn, int maxDeviation, int width, int height, ptrdiff_t srcPitch, ptrdiff_t dstPitch, int nOrigHeight) {
-    UNUSED(dstPitch); UNUSED(srcPitch); UNUSED(height); UNUSED(nOrigHeight);
+void process_line_morpho_16_c(uint16_t *pDst, const uint16_t *pSrcp, const uint16_t *pSrc, const uint16_t *pSrcn, int maxDeviation, int width, int height, ptrdiff_t srcPitch, ptrdiff_t dstPitch) {
+    UNUSED(dstPitch); UNUSED(srcPitch); UNUSED(height);
 
     const int leftOffset = borderMode == Border::Left ? 0 : 1;
     const int rightOffset = borderMode == Border::Right ? 0 : 1;
@@ -44,10 +43,10 @@ void process_line_morpho_16_c(uint16_t *pDst, const uint16_t *pSrcp, const uint1
 
 template<class T>
 struct MorphologicProcessor {
-    typedef void (ProcessLineC)(T *pDst, const T *pSrcp, const T *pSrc, const T *pSrcn, int maxDeviation, int width, int height, ptrdiff_t srcPitch, ptrdiff_t dstPitch, int nOrigHeight);
+    typedef void (ProcessLineC)(T *pDst, const T *pSrcp, const T *pSrc, const T *pSrcn, int maxDeviation, int width, int height, ptrdiff_t srcPitch, ptrdiff_t dstPitch);
 
     template<ProcessLineC process_line_left, ProcessLineC process_line, ProcessLineC process_line_right>
-    static void generic_16_c(T *pDst, ptrdiff_t nDstPitch, const T *pSrc, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, int nOrigHeight)
+    static void generic_16_c(T *pDst, ptrdiff_t nDstPitch, const T *pSrc, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight)
     {
         UNUSED(nCoordinates); UNUSED(pCoordinates);
 
@@ -61,16 +60,16 @@ struct MorphologicProcessor {
             {
                 // the left border line reads x and x+1: give it the pixel twice
                 const T p[2] = { pSrcp[0], pSrcp[0] }, c[2] = { pSrc[0], pSrc[0] }, n[2] = { pSrcn[0], pSrcn[0] };
-                process_line_left(pDst, p, c, n, nMaxDeviation, 1, nHeight, nSrcPitch, nDstPitch, nOrigHeight);
+                process_line_left(pDst, p, c, n, nMaxDeviation, 1, nHeight, nSrcPitch, nDstPitch);
             }
             else
             {
                 /* left */
-                process_line_left(pDst, pSrcp, pSrc, pSrcn, nMaxDeviation, 1, nHeight, nSrcPitch, nDstPitch, nOrigHeight);
+                process_line_left(pDst, pSrcp, pSrc, pSrcn, nMaxDeviation, 1, nHeight, nSrcPitch, nDstPitch);
                 /* center */
-                process_line(pDst + 1, pSrcp+1, pSrc+1, pSrcn+1, nMaxDeviation, nWidth - 2, nHeight, nSrcPitch, nDstPitch, nOrigHeight);
+                process_line(pDst + 1, pSrcp+1, pSrc+1, pSrcn+1, nMaxDeviation, nWidth - 2, nHeight, nSrcPitch, nDstPitch);
                 /* right */
-                process_line_right(pDst + nWidth - 1, pSrcp + nWidth - 1, pSrc + nWidth - 1, pSrcn + nWidth - 1, nMaxDeviation, 1, nHeight, nSrcPitch, nDstPitch, nOrigHeight);
+                process_line_right(pDst + nWidth - 1, pSrcp + nWidth - 1, pSrc + nWidth - 1, pSrcn + nWidth - 1, nMaxDeviation, 1, nHeight, nSrcPitch, nDstPitch);
             }
 
             pDst += nDstPitch;
@@ -104,9 +103,8 @@ static MT_FORCEINLINE uint16_t inpand_c_horizontal_core_16(uint16_t left, uint16
 
 
 template<class T>
-void generic_custom_16_c(uint16_t *pDst, ptrdiff_t nDstPitch, const uint16_t *pSrc, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, int nOrigHeight)
+void generic_custom_16_c(uint16_t *pDst, ptrdiff_t nDstPitch, const uint16_t *pSrc, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight)
 {
-    UNUSED(nOrigHeight);
 
     for ( int j = 0; j < nHeight; j++ )
     {

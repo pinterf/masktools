@@ -124,7 +124,7 @@ static MT_FORCEINLINE void process_line_xxpand_vertical_16(uint8_t *pDst, const 
 
 // nHeight >= 2: separate top and bottom row passes (smaller planes go to C, filter.h plane_flags)
 template<Operator16Sse2 op, Limit16 limit>
-static void xxpand_sse2_vertical_16(uint16_t *pDst16, ptrdiff_t nDstPitch, const uint16_t *pSrc16, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, int nOrigHeight) {
+static void xxpand_sse2_vertical_16(uint16_t *pDst16, ptrdiff_t nDstPitch, const uint16_t *pSrc16, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight) {
   // back to byte level
   const BYTE* pSrc = reinterpret_cast<const BYTE *>(pSrc16);
   BYTE* pDst = reinterpret_cast<BYTE *>(pDst16);
@@ -134,7 +134,7 @@ static void xxpand_sse2_vertical_16(uint16_t *pDst16, ptrdiff_t nDstPitch, const
   const uint8_t *pSrcp = pSrc - nSrcPitch;
   const uint8_t *pSrcn = pSrc + nSrcPitch;
 
-  UNUSED(nCoordinates); UNUSED(pCoordinates); UNUSED(nOrigHeight);
+  UNUSED(nCoordinates); UNUSED(pCoordinates);
   int byte_width = nWidth * sizeof(uint16_t);
   auto max_dev_v = _mm_set1_epi16(uint16_t(nMaxDeviation));
   int mod16_width = byte_width / 16 * 16;
@@ -176,14 +176,14 @@ static void xxpand_sse2_vertical_16(uint16_t *pDst16, ptrdiff_t nDstPitch, const
 // the right border would redo x=0 from the stored result (pDst may be pSrc)
 //this implemented in a somewhat retarded way to allow pDst and pSrc be the same pointer (used in 3x3 expand)
 template<Operator16Sse2 op, Limit16 limit, decltype(expand_c_horizontal_core_16) c_core>
-static void xxpand_sse2_horizontal_16(uint16_t *pDst16, ptrdiff_t nDstPitch, const uint16_t *pSrc16, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, int nOrigHeight) {
+static void xxpand_sse2_horizontal_16(uint16_t *pDst16, ptrdiff_t nDstPitch, const uint16_t *pSrc16, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight) {
   // back to byte level
   const BYTE* pSrc = reinterpret_cast<const BYTE *>(pSrc16);
   BYTE* pDst = reinterpret_cast<BYTE *>(pDst16);
   nSrcPitch *= sizeof(uint16_t);
   nDstPitch *= sizeof(uint16_t);
 
-  UNUSED(nCoordinates); UNUSED(pCoordinates); UNUSED(nOrigHeight);
+  UNUSED(nCoordinates); UNUSED(pCoordinates);
   const int byte_width = nWidth * sizeof(uint16_t);
   int mod16_width = (byte_width / 16) * 16;
   int sse_loop_limit = byte_width == mod16_width ? mod16_width - 16 : mod16_width;
@@ -269,11 +269,11 @@ static void limit_by_source_sse2_16(uint16_t *pDst, ptrdiff_t nDstPitch, const u
 
 // nWidth >= 9: the horizontal pass
 template<Operator16Sse2 op, Limit16 limit, decltype(expand_c_horizontal_core_16) c_core>
-static void xxpand_sse2_square_16(uint16_t *pDst, ptrdiff_t nDstPitch, const uint16_t *pSrc, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, int nOrigHeight) {
+static void xxpand_sse2_square_16(uint16_t *pDst, ptrdiff_t nDstPitch, const uint16_t *pSrc, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight) {
   // a limit in both passes would allow up to 2 * deviation: the passes unlimited, then the limit by the source
   const int no_limit = 65535;
-  xxpand_sse2_vertical_16<op, limit>(pDst, nDstPitch, pSrc, nSrcPitch, no_limit, pCoordinates, nCoordinates, nWidth, nHeight, nOrigHeight);
-  xxpand_sse2_horizontal_16<op, limit, c_core>(pDst, nDstPitch, pDst, nDstPitch, no_limit, pCoordinates, nCoordinates, nWidth, nHeight, nOrigHeight);
+  xxpand_sse2_vertical_16<op, limit>(pDst, nDstPitch, pSrc, nSrcPitch, no_limit, pCoordinates, nCoordinates, nWidth, nHeight);
+  xxpand_sse2_horizontal_16<op, limit, c_core>(pDst, nDstPitch, pDst, nDstPitch, no_limit, pCoordinates, nCoordinates, nWidth, nHeight);
   if (nMaxDeviation < no_limit)
     limit_by_source_sse2_16<limit>(pDst, nDstPitch, pSrc, nSrcPitch, nMaxDeviation, nWidth, nHeight);
 }
@@ -281,7 +281,7 @@ static void xxpand_sse2_square_16(uint16_t *pDst, ptrdiff_t nDstPitch, const uin
 // nWidth >= 9 (one vector + 1; processor constraint): with one vector the right pass recomputes x=0, reading pSrc-1
 // nHeight >= 2: separate top and bottom row passes (smaller planes go to C, filter.h plane_flags)
 template<ProcessLine16Sse2 process_line_left, ProcessLine16Sse2 process_line, ProcessLine16Sse2 process_line_right>
-static void generic_sse2_16(uint16_t *pDst16, ptrdiff_t nDstPitch, const uint16_t *pSrc16, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, int nOrigHeight) {
+static void generic_sse2_16(uint16_t *pDst16, ptrdiff_t nDstPitch, const uint16_t *pSrc16, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight) {
   // back to byte level
   const BYTE* pSrc = reinterpret_cast<const BYTE *>(pSrc16);
   BYTE* pDst = reinterpret_cast<BYTE *>(pDst16);
@@ -291,7 +291,7 @@ static void generic_sse2_16(uint16_t *pDst16, ptrdiff_t nDstPitch, const uint16_
   const uint8_t *pSrcp = pSrc - nSrcPitch;
   const uint8_t *pSrcn = pSrc + nSrcPitch;
 
-  UNUSED(nCoordinates); UNUSED(pCoordinates); UNUSED(nOrigHeight);
+  UNUSED(nCoordinates); UNUSED(pCoordinates);
   auto max_dev_v = _mm_set1_epi16(uint16_t(nMaxDeviation));
   int byte_width = nWidth * sizeof(uint16_t);
   int mod16_width = (byte_width - sizeof(uint16_t) - 16) / 16 * 16 + 16;

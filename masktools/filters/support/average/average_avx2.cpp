@@ -30,7 +30,7 @@ static void average_avx2_t(uint8_t *pDst, ptrdiff_t dst_pitch, const uint8_t *pS
     average_c(pDst2 + mod32_width, dst_pitch, pSrc2 + mod32_width, src_pitch, width - mod32_width, height);
 }
 
-static void average16_avx2_t(uint8_t *pDst, ptrdiff_t dst_pitch, const uint8_t *pSrc, ptrdiff_t src_pitch, int width, int height, int nOrigHeight)
+static void average16_avx2_t(uint8_t *pDst, ptrdiff_t dst_pitch, const uint8_t *pSrc, ptrdiff_t src_pitch, int width, int height)
 {
   const int rowsize = width * sizeof(uint16_t);
   const int mod32_width = (rowsize / 32) * 32;
@@ -48,7 +48,7 @@ static void average16_avx2_t(uint8_t *pDst, ptrdiff_t dst_pitch, const uint8_t *
   }
 
   if (rowsize > mod32_width)
-    average16_native_c(pDst2 + mod32_width, dst_pitch, pSrc2 + mod32_width, src_pitch, (rowsize - mod32_width) / sizeof(uint16_t), height, nOrigHeight);
+    average16_native_c(pDst2 + mod32_width, dst_pitch, pSrc2 + mod32_width, src_pitch, (rowsize - mod32_width) / sizeof(uint16_t), height);
 }
 
 static void average32_avx2_t(uint8_t *pDst, ptrdiff_t dst_pitch, const uint8_t *pSrc, ptrdiff_t src_pitch, int width, int height)

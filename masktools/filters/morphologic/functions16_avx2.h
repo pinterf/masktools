@@ -22,8 +22,8 @@ enum Directions {
 
 
 template<Border borderMode, Operator16 op>
-void process_line_morpho_16_avx2_c(uint16_t *pDst, const uint16_t *pSrcp, const uint16_t *pSrc, const uint16_t *pSrcn, int maxDeviation, int width, int height, ptrdiff_t srcPitch, ptrdiff_t dstPitch, int nOrigHeight) {
-    UNUSED(dstPitch); UNUSED(srcPitch); UNUSED(height); UNUSED(nOrigHeight);
+void process_line_morpho_16_avx2_c(uint16_t *pDst, const uint16_t *pSrcp, const uint16_t *pSrc, const uint16_t *pSrcn, int maxDeviation, int width, int height, ptrdiff_t srcPitch, ptrdiff_t dstPitch) {
+    UNUSED(dstPitch); UNUSED(srcPitch); UNUSED(height);
 
     const int leftOffset = borderMode == Border::Left ? 0 : 1;
     const int rightOffset = borderMode == Border::Right ? 0 : 1;
@@ -45,10 +45,10 @@ void process_line_morpho_16_avx2_c(uint16_t *pDst, const uint16_t *pSrcp, const 
 
 template<class T>
 struct MorphologicProcessor {
-    typedef void (ProcessLineC)(T *pDst, const T *pSrcp, const T *pSrc, const T *pSrcn, int maxDeviation, int width, int height, ptrdiff_t srcPitch, ptrdiff_t dstPitch, int nOrigHeight);
+    typedef void (ProcessLineC)(T *pDst, const T *pSrcp, const T *pSrc, const T *pSrcn, int maxDeviation, int width, int height, ptrdiff_t srcPitch, ptrdiff_t dstPitch);
 
     template<ProcessLineC process_line_left, ProcessLineC process_line, ProcessLineC process_line_right>
-    static void generic_16_c(T *pDst, ptrdiff_t nDstPitch, const T *pSrc, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, int nOrigHeight)
+    static void generic_16_c(T *pDst, ptrdiff_t nDstPitch, const T *pSrc, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight)
     {
         const T *pSrcp = pSrc - nSrcPitch;
         const T *pSrcn = pSrc + nSrcPitch;
@@ -57,13 +57,13 @@ struct MorphologicProcessor {
         UNUSED(nCoordinates); UNUSED(pCoordinates);
 
         /* top-left */
-        process_line_left(pDst, pSrc, pSrc, pSrcn, nMaxDeviation, 1, nHeight, nSrcPitch, nDstPitch, nOrigHeight);
+        process_line_left(pDst, pSrc, pSrc, pSrcn, nMaxDeviation, 1, nHeight, nSrcPitch, nDstPitch);
 
         /* top */
-        process_line(pDst + 1, pSrc+1, pSrc+1, pSrcn+1, nMaxDeviation, nWidth - 2, nHeight, nSrcPitch, nDstPitch, nOrigHeight);
+        process_line(pDst + 1, pSrc+1, pSrc+1, pSrcn+1, nMaxDeviation, nWidth - 2, nHeight, nSrcPitch, nDstPitch);
 
         /* top-right */
-        process_line_right(pDst + nWidth - 1, pSrc + nWidth - 1, pSrc + nWidth - 1, pSrcn + nWidth - 1, nMaxDeviation, 1, nHeight, nSrcPitch, nDstPitch, nOrigHeight);
+        process_line_right(pDst + nWidth - 1, pSrc + nWidth - 1, pSrc + nWidth - 1, pSrcn + nWidth - 1, nMaxDeviation, 1, nHeight, nSrcPitch, nDstPitch);
 
         pDst  += nDstPitch;
         pSrcp += nSrcPitch;
@@ -73,11 +73,11 @@ struct MorphologicProcessor {
         for ( int y = 1; y < nHeight - 1; y++ )
         {
             /* left */
-            process_line_left(pDst, pSrcp, pSrc, pSrcn, nMaxDeviation, 1, nHeight, nSrcPitch, nDstPitch, nOrigHeight);
+            process_line_left(pDst, pSrcp, pSrc, pSrcn, nMaxDeviation, 1, nHeight, nSrcPitch, nDstPitch);
             /* center */
-            process_line(pDst + 1, pSrcp+1, pSrc+1, pSrcn+1, nMaxDeviation, nWidth - 2, nHeight, nSrcPitch, nDstPitch, nOrigHeight);
+            process_line(pDst + 1, pSrcp+1, pSrc+1, pSrcn+1, nMaxDeviation, nWidth - 2, nHeight, nSrcPitch, nDstPitch);
             /* right */
-            process_line_right(pDst + nWidth - 1, pSrcp + nWidth - 1, pSrc + nWidth - 1, pSrcn + nWidth - 1, nMaxDeviation, 1, nHeight, nSrcPitch, nDstPitch, nOrigHeight);
+            process_line_right(pDst + nWidth - 1, pSrcp + nWidth - 1, pSrc + nWidth - 1, pSrcn + nWidth - 1, nMaxDeviation, 1, nHeight, nSrcPitch, nDstPitch);
 
             pDst  += nDstPitch;
             pSrcp += nSrcPitch;
@@ -86,11 +86,11 @@ struct MorphologicProcessor {
         }
 
         /* bottom-left */
-        process_line_left(pDst, pSrcp, pSrc, pSrc, nMaxDeviation, 1, nHeight, nSrcPitch, nDstPitch, nOrigHeight);
+        process_line_left(pDst, pSrcp, pSrc, pSrc, nMaxDeviation, 1, nHeight, nSrcPitch, nDstPitch);
         /* bottom */
-        process_line(pDst + 1, pSrcp+1, pSrc+1, pSrc+1, nMaxDeviation, nWidth - 2, nHeight, nSrcPitch, nDstPitch, nOrigHeight);
+        process_line(pDst + 1, pSrcp+1, pSrc+1, pSrc+1, nMaxDeviation, nWidth - 2, nHeight, nSrcPitch, nDstPitch);
         /* bottom-right */
-        process_line_right(pDst + nWidth - 1, pSrcp + nWidth - 1, pSrc + nWidth - 1, pSrc + nWidth - 1, nMaxDeviation, 1, nHeight, nSrcPitch, nDstPitch, nOrigHeight);
+        process_line_right(pDst + nWidth - 1, pSrcp + nWidth - 1, pSrc + nWidth - 1, pSrc + nWidth - 1, nMaxDeviation, 1, nHeight, nSrcPitch, nDstPitch);
     }
 };
 
@@ -213,7 +213,7 @@ static MT_FORCEINLINE void process_line_xxpand_vertical_16_avx2(uint8_t *pDst, c
 
 // nHeight >= 2: separate top and bottom row passes (smaller planes go to C, filter.h plane_flags)
 template<decltype(_mm256_max_epu16) op, Limit16 limit>
-static void xxpand_avx2_vertical_16(uint16_t *pDst16, ptrdiff_t nDstPitch, const uint16_t *pSrc16, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, int nOrigHeight) {
+static void xxpand_avx2_vertical_16(uint16_t *pDst16, ptrdiff_t nDstPitch, const uint16_t *pSrc16, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight) {
   // back to byte level
   const BYTE* pSrc = reinterpret_cast<const BYTE *>(pSrc16);
   BYTE* pDst = reinterpret_cast<BYTE *>(pDst16);
@@ -223,7 +223,7 @@ static void xxpand_avx2_vertical_16(uint16_t *pDst16, ptrdiff_t nDstPitch, const
   const uint8_t *pSrcp = pSrc - nSrcPitch;
   const uint8_t *pSrcn = pSrc + nSrcPitch;
 
-  UNUSED(nCoordinates); UNUSED(pCoordinates); UNUSED(nOrigHeight);
+  UNUSED(nCoordinates); UNUSED(pCoordinates);
   int byte_width = nWidth * sizeof(uint16_t);
   auto max_dev_v = _mm256_set1_epi16(uint16_t(nMaxDeviation));
   int mod32_width = byte_width / 32 * 32;
@@ -288,14 +288,14 @@ static MT_FORCEINLINE uint16_t inpand_c_horizontal_core_16_avx2(uint16_t left, u
 // the right border would redo x=0 from the stored result (pDst may be pSrc)
 //this implemented in a somewhat retarded way to allow pDst and pSrc be the same pointer (used in 3x3 expand)
 template<decltype(_mm256_max_epu16) op, Limit16 limit, decltype(expand_c_horizontal_core_16_avx2) c_core>
-static void xxpand_avx2_horizontal_16(uint16_t *pDst16, ptrdiff_t nDstPitch, const uint16_t *pSrc16, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, int nOrigHeight) {
+static void xxpand_avx2_horizontal_16(uint16_t *pDst16, ptrdiff_t nDstPitch, const uint16_t *pSrc16, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight) {
   // back to byte level
   const BYTE* pSrc = reinterpret_cast<const BYTE *>(pSrc16);
   BYTE* pDst = reinterpret_cast<BYTE *>(pDst16);
   nSrcPitch *= sizeof(uint16_t);
   nDstPitch *= sizeof(uint16_t);
 
-  UNUSED(nCoordinates); UNUSED(pCoordinates); UNUSED(nOrigHeight);
+  UNUSED(nCoordinates); UNUSED(pCoordinates);
   const int byte_width = nWidth * sizeof(uint16_t);
   int mod32_width = byte_width / 32 * 32;
   int sse_loop_limit = byte_width == mod32_width ? mod32_width - 32 : mod32_width;
@@ -383,11 +383,11 @@ static void limit_by_source_avx2_16(uint16_t *pDst, ptrdiff_t nDstPitch, const u
 
 // nWidth >= 17: the horizontal pass
 template<decltype(_mm256_max_epu16) op, Limit16 limit, decltype(expand_c_horizontal_core_16_avx2) c_core>
-static void xxpand_avx2_square_16(uint16_t *pDst, ptrdiff_t nDstPitch, const uint16_t *pSrc, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, int nOrigHeight) {
+static void xxpand_avx2_square_16(uint16_t *pDst, ptrdiff_t nDstPitch, const uint16_t *pSrc, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight) {
   // a limit in both passes would allow up to 2 * deviation: the passes unlimited, then the limit by the source
   const int no_limit = 65535;
-  xxpand_avx2_vertical_16<op, limit>(pDst, nDstPitch, pSrc, nSrcPitch, no_limit, pCoordinates, nCoordinates, nWidth, nHeight, nOrigHeight);
-  xxpand_avx2_horizontal_16<op, limit, c_core>(pDst, nDstPitch, pDst, nDstPitch, no_limit, pCoordinates, nCoordinates, nWidth, nHeight, nOrigHeight);
+  xxpand_avx2_vertical_16<op, limit>(pDst, nDstPitch, pSrc, nSrcPitch, no_limit, pCoordinates, nCoordinates, nWidth, nHeight);
+  xxpand_avx2_horizontal_16<op, limit, c_core>(pDst, nDstPitch, pDst, nDstPitch, no_limit, pCoordinates, nCoordinates, nWidth, nHeight);
   if (nMaxDeviation < no_limit)
     limit_by_source_avx2_16<limit>(pDst, nDstPitch, pSrc, nSrcPitch, nMaxDeviation, nWidth, nHeight);
 }
@@ -396,7 +396,7 @@ static void xxpand_avx2_square_16(uint16_t *pDst, ptrdiff_t nDstPitch, const uin
 // nWidth >= 17 (one vector + 1; processor constraint): with one vector the right pass recomputes x=0, reading pSrc-1
 // nHeight >= 2: separate top and bottom row passes (smaller planes go to C, filter.h plane_flags)
 template<ProcessLine16Avx2 process_line_left, ProcessLine16Avx2 process_line, ProcessLine16Avx2 process_line_right>
-static void generic_16_avx2(uint16_t *pDst16, ptrdiff_t nDstPitch, const uint16_t *pSrc16, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, int nOrigHeight) {
+static void generic_16_avx2(uint16_t *pDst16, ptrdiff_t nDstPitch, const uint16_t *pSrc16, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight) {
   // back to byte level
   const BYTE* pSrc = reinterpret_cast<const BYTE *>(pSrc16);
   BYTE* pDst = reinterpret_cast<BYTE *>(pDst16);
@@ -406,7 +406,7 @@ static void generic_16_avx2(uint16_t *pDst16, ptrdiff_t nDstPitch, const uint16_
   const uint8_t *pSrcp = pSrc - nSrcPitch;
   const uint8_t *pSrcn = pSrc + nSrcPitch;
 
-  UNUSED(nCoordinates); UNUSED(pCoordinates); UNUSED(nOrigHeight);
+  UNUSED(nCoordinates); UNUSED(pCoordinates);
   auto max_dev_v = _mm256_set1_epi16(uint16_t(nMaxDeviation));
   int byte_width = nWidth * sizeof(uint16_t);
   int mod32_width = (byte_width - sizeof(uint16_t) - 32) / 32 * 32 + 32;
@@ -450,9 +450,8 @@ static void generic_16_avx2(uint16_t *pDst16, ptrdiff_t nDstPitch, const uint16_
 
 
 template<class T>
-void generic_custom_16_avx2_c(uint16_t *pDst, ptrdiff_t nDstPitch, const uint16_t *pSrc, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, int nOrigHeight)
+void generic_custom_16_avx2_c(uint16_t *pDst, ptrdiff_t nDstPitch, const uint16_t *pSrc, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight)
 {
-    UNUSED(nOrigHeight);
 
     for ( int j = 0; j < nHeight; j++ )
     {

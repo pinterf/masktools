@@ -16,7 +16,7 @@ protected:
    int nWidth;
    int nHeight;
    int nPixelSize; // 1 for 8 bit, 2 for 10-16 bit, 4 for float
-   int nOrigHeight; // for stacked
+   int nOrigHeight; // the frame height, kept by offset(): stacked.h finds the LSB half at origheight / 2
 
 public:
 

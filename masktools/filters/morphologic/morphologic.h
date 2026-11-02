@@ -7,7 +7,7 @@
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Morphologic {
 
 typedef void (Processor)(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight);
-typedef void (Processor16)(uint16_t *pDst, ptrdiff_t nDstPitch, const uint16_t *pSrc, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, int nOrigHeight);
+typedef void (Processor16)(uint16_t *pDst, ptrdiff_t nDstPitch, const uint16_t *pSrc, ptrdiff_t nSrcPitch, int nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight);
 typedef void (Processor32)(float *pDst, ptrdiff_t nDstPitch, const float *pSrc, ptrdiff_t nSrcPitch, float nMaxDeviation, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight);
 
 class MorphologicFilter : public MaskTools::Filter
@@ -39,7 +39,7 @@ protected:
       else if(bits_per_pixel <= 16) {
         processors16.best_processor(constraints[nPlane])(reinterpret_cast<uint16_t*>((uint8_t*)dst.data()), dst.pitch() / sizeof(uint16_t), /* /2: word sized */
           reinterpret_cast<const uint16_t*>((const uint8_t*)(frames[0].plane(nPlane).data())), frames[0].plane(nPlane).pitch() / sizeof(uint16_t),
-          nMaxDeviations[nPlane], coordinates_list, coordinates_count, dst.width(), dst.height(), dst.origheight());
+          nMaxDeviations[nPlane], coordinates_list, coordinates_count, dst.width(), dst.height());
       }
       else {
         processors32.best_processor(constraints[nPlane])((float *)dst.data(), dst.pitch() / sizeof(float),
