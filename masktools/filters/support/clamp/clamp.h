@@ -16,7 +16,6 @@ extern Processor *clamp_sse2;
 
 Processor16 clamp16_native_c;
 extern Processor16 *clamp16_native_sse2;
-extern Processor16 *clamp16_native_sse4_1;
 
 /* 32 bit */
 Processor32 clamp32_c;
@@ -117,7 +116,6 @@ public:
 #endif
 #ifdef INTEL_INTRINSICS
           processors16.push_back(Filtering::Processor<Processor16>(clamp16_native_sse2, Constraint(CPU_SSE2), 1));
-          processors16.push_back(Filtering::Processor<Processor16>(clamp16_native_sse4_1, Constraint(CPU_SSE4_1), 2));
 #endif
           break;
         case 32:

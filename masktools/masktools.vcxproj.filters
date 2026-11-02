@@ -507,9 +507,6 @@
     <ClCompile Include="filters\support\clamp16\clamp16_sse2.cpp">
       <Filter>filters\support\clamp16</Filter>
     </ClCompile>
-    <ClCompile Include="filters\support\clamp16\clamp16_sse41.cpp">
-      <Filter>filters\support\clamp16</Filter>
-    </ClCompile>
     <ClCompile Include="filters\support\clamp\clamp.cpp">
       <Filter>filters\support\clamp</Filter>
     </ClCompile>
@@ -787,9 +784,6 @@
     </ClInclude>
     <ClInclude Include="filters\support\average\average.h">
       <Filter>filters\support\average</Filter>
-    </ClInclude>
-    <ClInclude Include="filters\support\clamp16\clamp16_sse.h">
-      <Filter>filters\support\clamp16</Filter>
     </ClInclude>
     <ClInclude Include="filters\support\clamp\clamp.h">
       <Filter>filters\support\clamp</Filter>

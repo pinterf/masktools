@@ -291,9 +291,6 @@
     <ClCompile Include="filters\support\average\average_sse2.cpp" />
     <ClCompile Include="filters\support\clamp16\clamp16.cpp" />
     <ClCompile Include="filters\support\clamp16\clamp16_sse2.cpp" />
-    <ClCompile Include="filters\support\clamp16\clamp16_sse41.cpp">
-      <AdditionalOptions Condition="'$(Configuration)'=='Rel_Clang'">-msse4.1 %(AdditionalOptions)</AdditionalOptions>
-    </ClCompile>
     <ClCompile Include="filters\support\clamp\clamp.cpp" />
     <ClCompile Include="filters\support\clamp\clamp_neon.cpp" />
     <ClCompile Include="filters\support\clamp\clamp_sse2.cpp" />
@@ -390,7 +387,6 @@
     <ClInclude Include="filters\support\adddiff16\adddiff16_sse.h" />
     <ClInclude Include="filters\support\adddiff\adddiff.h" />
     <ClInclude Include="filters\support\average\average.h" />
-    <ClInclude Include="filters\support\clamp16\clamp16_sse.h" />
     <ClInclude Include="filters\support\clamp\clamp.h" />
     <ClInclude Include="filters\support\makediff16\makediff16_sse.h" />
     <ClInclude Include="filters\support\makediff\makediff.h" />
