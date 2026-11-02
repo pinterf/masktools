@@ -54,6 +54,17 @@ void generic_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_
  
    int x, y;
 
+   // the source block spans (size - 1) * precision + 1 pixels: it must fit in the plane, else no position is valid
+   const int nBlockWidth = (nBlockSizeX - 1) * nPrecision + 1;
+   const int nBlockHeight = (nBlockSizeY - 1) * nPrecision + 1;
+   if (nWidth < nBlockWidth || nHeight < nBlockHeight) {
+      for (y = 0; y < nHeight; y++)
+         memset(&pDst[y * nDstPitch], 0, nWidth);
+      return;
+   }
+   if (nX > nWidth - nBlockWidth) nX = nWidth - nBlockWidth;
+   if (nY > nHeight - nBlockHeight) nY = nHeight - nBlockHeight;
+
    pSrc += nX + nY * nSrcPitch;
 
    const int max_pixel_value = 255;
@@ -79,6 +90,17 @@ void generic16_c(uint16_t *pDst, ptrdiff_t nDstPitch, const uint16_t *pSrc, ptrd
 
   int x, y;
 
+  // the source block spans (size - 1) * precision + 1 pixels: it must fit in the plane, else no position is valid
+  const int nBlockWidth = (nBlockSizeX - 1) * nPrecision + 1;
+  const int nBlockHeight = (nBlockSizeY - 1) * nPrecision + 1;
+  if (nWidth < nBlockWidth || nHeight < nBlockHeight) {
+    for (y = 0; y < nHeight; y++)
+      memset(&pDst[y * nDstPitch], 0, nWidth * sizeof(uint16_t));
+    return;
+  }
+  if (nX > nWidth - nBlockWidth) nX = nWidth - nBlockWidth;
+  if (nY > nHeight - nBlockHeight) nY = nHeight - nBlockHeight;
+
   pSrc += nX + nY * nSrcPitch;
 
   const int max_pixel_value = (1 << bits_per_pixel) - 1;
@@ -103,6 +125,17 @@ void generic_f_c(float *pDst, ptrdiff_t nDstPitch, const float *pSrc, ptrdiff_t 
   nRefPitch /= sizeof(float);
 
   int x, y;
+
+  // the source block spans (size - 1) * precision + 1 pixels: it must fit in the plane, else no position is valid
+  const int nBlockWidth = (nBlockSizeX - 1) * nPrecision + 1;
+  const int nBlockHeight = (nBlockSizeY - 1) * nPrecision + 1;
+  if (nWidth < nBlockWidth || nHeight < nBlockHeight) {
+    for (y = 0; y < nHeight; y++)
+      memset(&pDst[y * nDstPitch], 0, nWidth * sizeof(float));
+    return;
+  }
+  if (nX > nWidth - nBlockWidth) nX = nWidth - nBlockWidth;
+  if (nY > nHeight - nBlockHeight) nY = nHeight - nBlockHeight;
 
   pSrc += nX + nY * nSrcPitch;
 
