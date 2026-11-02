@@ -30,8 +30,7 @@ void clamp8_neon_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptr
     clamp_c(pDst0 + wmod, nDstPitch, pSrc10 + wmod, nSrc1Pitch, pSrc20 + wmod, nSrc2Pitch, nWidth - wmod, nHeight, nOvershoot, nUndershoot);
 }
 
-template<int bits_per_pixel>
-void clamp16_neon_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pUpLimit, ptrdiff_t nUpLimitPitch, const uint8_t *pLowLimit, ptrdiff_t nLowLimitPitch, int nWidth, int nHeight, int nOrigHeight, int nOvershoot, int nUndershoot)
+void clamp16_neon_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pUpLimit, ptrdiff_t nUpLimitPitch, const uint8_t *pLowLimit, ptrdiff_t nLowLimitPitch, int nWidth, int nHeight, int bits_per_pixel, int nOvershoot, int nUndershoot)
 {
   const uint16x8_t over = vdupq_n_u16(uint16_t(nOvershoot)), under = vdupq_n_u16(uint16_t(nUndershoot));
   const uint16x8_t mx = vdupq_n_u16(uint16_t((1 << bits_per_pixel) - 1));
@@ -45,19 +44,15 @@ void clamp16_neon_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pUpLimit,
     for (int x = 0; x < wmod; x += 8) {
       uint16x8_t r = vminq_u16(vld1q_u16(d + x), vqaddq_u16(vld1q_u16(up + x), over));
       r = vmaxq_u16(r, vqsubq_u16(vld1q_u16(low + x), under));
-      if constexpr (bits_per_pixel < 16)
-        r = vminq_u16(r, mx);
+      r = vminq_u16(r, mx); // no-op at 16 bit
       vst1q_u16(d + x, r);
     }
     pDst += nDstPitch;
     pUpLimit += nUpLimitPitch;
     pLowLimit += nLowLimitPitch;
   }
-  if (nWidth > wmod) {
-    Processor16 *c = bits_per_pixel == 10 ? clamp16_native_10_c : bits_per_pixel == 12 ? clamp16_native_12_c :
-                     bits_per_pixel == 14 ? clamp16_native_14_c : clamp16_native_16_c;
-    c(pDst0 + wmod * 2, nDstPitch, pUp0 + wmod * 2, nUpLimitPitch, pLow0 + wmod * 2, nLowLimitPitch, nWidth - wmod, nHeight, nOrigHeight, nOvershoot, nUndershoot);
-  }
+  if (nWidth > wmod)
+    clamp16_native_c(pDst0 + wmod * 2, nDstPitch, pUp0 + wmod * 2, nUpLimitPitch, pLow0 + wmod * 2, nLowLimitPitch, nWidth - wmod, nHeight, bits_per_pixel, nOvershoot, nUndershoot);
 }
 
 // dst > up + over ? up + over : dst, then r < low - under ? low - under : r (the C)
@@ -89,10 +84,7 @@ void clamp32_neon_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pUpLimit,
 } // namespace
 
 Processor *clamp_neon = &clamp8_neon_t;
-Processor16 *clamp16_native_10_neon = &clamp16_neon_t<10>;
-Processor16 *clamp16_native_12_neon = &clamp16_neon_t<12>;
-Processor16 *clamp16_native_14_neon = &clamp16_neon_t<14>;
-Processor16 *clamp16_native_16_neon = &clamp16_neon_t<16>;
+Processor16 *clamp16_native_neon = &clamp16_neon_t;
 Processor32 *clamp32_neon = &clamp32_neon_t;
 
 } } } } }
