@@ -12,13 +12,12 @@ struct Coordinates {
 
 typedef std::vector<Coordinates> CoordinatesList;
 
-template<typename pixel_t, int bits_per_pixel, bool corners>
-static void expand_mask(pixel_t* pDst, ptrdiff_t nDstPitch, const pixel_t* pSrc2, ptrdiff_t nSrc2Pitch, uint8_t* pTemp, int x, int y, int nWidth, int nHeight, CoordinatesList& coordinates)
+template<typename pixel_t, bool corners>
+static void expand_mask(pixel_t* pDst, ptrdiff_t nDstPitch, const pixel_t* pSrc2, ptrdiff_t nSrc2Pitch, uint8_t* pTemp, int x, int y, int nWidth, int nHeight, CoordinatesList& coordinates, const pixel_t mask_value)
 {
     //CoordinatesList coordinates;
     coordinates.clear();
     
-    const pixel_t mask_value = sizeof(pixel_t) == 4 ? (pixel_t)1.0f : (pixel_t)((1 << bits_per_pixel) - 1);
     nDstPitch /= sizeof(pixel_t);
     nSrc2Pitch /= sizeof(pixel_t);
 
@@ -60,10 +59,11 @@ static void expand_mask(pixel_t* pDst, ptrdiff_t nDstPitch, const pixel_t* pSrc2
 }
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Mask { namespace Hysteresis {
-template<typename pixel_t, int bits_per_pixel, bool corners>
-void hysteresis_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
-  const uint8_t *pSrc2, ptrdiff_t nSrc2Pitch, uint8_t *pTemp, int width, int height)
+template<typename pixel_t, bool corners>
+static void hysteresis_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
+  const uint8_t *pSrc2, ptrdiff_t nSrc2Pitch, uint8_t *pTemp, int width, int height, int bits_per_pixel)
 {
+  const pixel_t mask_value = sizeof(pixel_t) == 4 ? (pixel_t)1.0f : (pixel_t)((1 << bits_per_pixel) - 1);
 
   for (int y = 0; y < height; y++) // the plane can be a window: clear only its rows
     memset(pDst + y * nDstPitch, 0, width * sizeof(pixel_t));
@@ -74,7 +74,7 @@ void hysteresis_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrd
   {
     for (int x = 0; x < width; x++) {
       if (!pTemp[x] && ((pixel_t *)pSrc1)[x] && ((pixel_t *)pSrc2)[x]) {
-        expand_mask<pixel_t, bits_per_pixel, corners>((pixel_t *)pDst + x, nDstPitch, (pixel_t *)pSrc2 + x, nSrc2Pitch, pTemp + x, x, y, width, height, coordinates);
+        expand_mask<pixel_t, corners>((pixel_t *)pDst + x, nDstPitch, (pixel_t *)pSrc2 + x, nSrc2Pitch, pTemp + x, x, y, width, height, coordinates, mask_value);
       }
       
     }
@@ -85,30 +85,11 @@ void hysteresis_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrd
   }
 }
 
-template void hysteresis_c<uint8_t, 8, true>(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch, const uint8_t *pSrc2, ptrdiff_t nSrc2Pitch, uint8_t *pTemp, int width, int height);
-template void hysteresis_c<uint16_t, 10, true>(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch, const uint8_t *pSrc2, ptrdiff_t nSrc2Pitch, uint8_t *pTemp, int width, int height);
-template void hysteresis_c<uint16_t, 12, true>(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch, const uint8_t *pSrc2, ptrdiff_t nSrc2Pitch, uint8_t *pTemp, int width, int height);
-template void hysteresis_c<uint16_t, 14, true>(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch, const uint8_t *pSrc2, ptrdiff_t nSrc2Pitch, uint8_t *pTemp, int width, int height);
-template void hysteresis_c<uint16_t, 16, true>(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch, const uint8_t *pSrc2, ptrdiff_t nSrc2Pitch, uint8_t *pTemp, int width, int height);
-template void hysteresis_c<float, 0, true>(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch, const uint8_t *pSrc2, ptrdiff_t nSrc2Pitch, uint8_t *pTemp, int width, int height);
-template void hysteresis_c<uint8_t, 8, false>(uint8_t* pDst, ptrdiff_t nDstPitch, const uint8_t* pSrc1, ptrdiff_t nSrc1Pitch, const uint8_t* pSrc2, ptrdiff_t nSrc2Pitch, uint8_t* pTemp, int width, int height);
-template void hysteresis_c<uint16_t, 10, false>(uint8_t* pDst, ptrdiff_t nDstPitch, const uint8_t* pSrc1, ptrdiff_t nSrc1Pitch, const uint8_t* pSrc2, ptrdiff_t nSrc2Pitch, uint8_t* pTemp, int width, int height);
-template void hysteresis_c<uint16_t, 12, false>(uint8_t* pDst, ptrdiff_t nDstPitch, const uint8_t* pSrc1, ptrdiff_t nSrc1Pitch, const uint8_t* pSrc2, ptrdiff_t nSrc2Pitch, uint8_t* pTemp, int width, int height);
-template void hysteresis_c<uint16_t, 14, false>(uint8_t* pDst, ptrdiff_t nDstPitch, const uint8_t* pSrc1, ptrdiff_t nSrc1Pitch, const uint8_t* pSrc2, ptrdiff_t nSrc2Pitch, uint8_t* pTemp, int width, int height);
-template void hysteresis_c<uint16_t, 16, false>(uint8_t* pDst, ptrdiff_t nDstPitch, const uint8_t* pSrc1, ptrdiff_t nSrc1Pitch, const uint8_t* pSrc2, ptrdiff_t nSrc2Pitch, uint8_t* pTemp, int width, int height);
-template void hysteresis_c<float, 0, false>(uint8_t* pDst, ptrdiff_t nDstPitch, const uint8_t* pSrc1, ptrdiff_t nSrc1Pitch, const uint8_t* pSrc2, ptrdiff_t nSrc2Pitch, uint8_t* pTemp, int width, int height);
-
-Processor *hysteresis_8_c = &hysteresis_c<uint8_t, 8, true>;
-Processor *hysteresis_10_c = &hysteresis_c<uint16_t, 10, true>;
-Processor *hysteresis_12_c = &hysteresis_c<uint16_t, 12, true>;
-Processor *hysteresis_14_c = &hysteresis_c<uint16_t, 14, true>;
-Processor *hysteresis_16_c = &hysteresis_c<uint16_t, 16, true>;
-Processor *hysteresis_32_c = &hysteresis_c<float, 0, true>; // float: bit_per_pixel n/a
-Processor* hysteresis_8_nocorner_c = &hysteresis_c<uint8_t, 8, false>;
-Processor* hysteresis_10_nocorner_c = &hysteresis_c<uint16_t, 10, false>;
-Processor* hysteresis_12_nocorner_c = &hysteresis_c<uint16_t, 12, false>;
-Processor* hysteresis_14_nocorner_c = &hysteresis_c<uint16_t, 14, false>;
-Processor* hysteresis_16_nocorner_c = &hysteresis_c<uint16_t, 16, false>;
-Processor* hysteresis_32_nocorner_c = &hysteresis_c<float, 0, false>; // float: bit_per_pixel n/a
+Processor *hysteresis_8_c = &hysteresis_c<uint8_t, true>;
+Processor *hysteresis_16_c = &hysteresis_c<uint16_t, true>;
+Processor *hysteresis_32_c = &hysteresis_c<float, true>;
+Processor *hysteresis_8_nocorner_c = &hysteresis_c<uint8_t, false>;
+Processor *hysteresis_16_nocorner_c = &hysteresis_c<uint16_t, false>;
+Processor *hysteresis_32_nocorner_c = &hysteresis_c<float, false>;
 
 } } } } }

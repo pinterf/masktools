@@ -6,13 +6,10 @@
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Gradient {
 
 typedef void(Processor)(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, const uint8_t *pRef, ptrdiff_t nRefPitch, int nWidth, int nHeight, int nX, int nY, int nMinimum, int nMaximum, int nPrecision);
-typedef void(Processor16)(uint16_t *pDst, ptrdiff_t nDstPitch, const uint16_t *pSrc, ptrdiff_t nSrcPitch, const uint16_t *pRef, ptrdiff_t nRefPitch, int nWidth, int nHeight, int nX, int nY, int nMinimum, int nMaximum, int nPrecision);
+typedef void(Processor16)(uint16_t *pDst, ptrdiff_t nDstPitch, const uint16_t *pSrc, ptrdiff_t nSrcPitch, const uint16_t *pRef, ptrdiff_t nRefPitch, int nWidth, int nHeight, int nX, int nY, int nMinimum, int nMaximum, int nPrecision, int bits_per_pixel);
 typedef void(Processor32)(float *pDst, ptrdiff_t nDstPitch, const float *pSrc, ptrdiff_t nSrcPitch, const float *pRef, ptrdiff_t nRefPitch, int nWidth, int nHeight, int nX, int nY, float nMinimum, float nMaximum, int nPrecision);
 
 extern Processor *sad_c;
-extern Processor16 *sad_10_c;
-extern Processor16 *sad_12_c;
-extern Processor16 *sad_14_c;
 extern Processor16 *sad_16_c;
 extern Processor32 *sad_32_c;
 
@@ -46,7 +43,7 @@ protected:
       processors16.best_processor(constraints[nPlane])((uint16_t *)dst.data(), dst.pitch(),
       (uint16_t *)frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
         (uint16_t *)frames[1].plane(nPlane).data(), frames[1].plane(nPlane).pitch(),
-        dst.width(), dst.height(), nX[nPlane], nY[nPlane], nMinimum, nMaximum, nPrecision);
+        dst.width(), dst.height(), nX[nPlane], nY[nPlane], nMinimum, nMaximum, nPrecision, bits_per_pixel);
     else // 32
       processors32.best_processor(constraints[nPlane])((float *)dst.data(), dst.pitch(),
       (float *)frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
@@ -64,10 +61,7 @@ public:
       {
         switch (bits_per_pixel) {
         case 8: processors.push_back(Filtering::Processor<Processor>(sad_c, Constraint(CPU_NONE), 0)); break;
-        case 10: processors16.push_back(Filtering::Processor<Processor16>(sad_10_c, Constraint(CPU_NONE), 0)); break;
-        case 12: processors16.push_back(Filtering::Processor<Processor16>(sad_12_c, Constraint(CPU_NONE), 0)); break;
-        case 14: processors16.push_back(Filtering::Processor<Processor16>(sad_14_c, Constraint(CPU_NONE), 0)); break;
-        case 16: processors16.push_back(Filtering::Processor<Processor16>(sad_16_c, Constraint(CPU_NONE), 0)); break;
+        case 10: case 12: case 14: case 16: processors16.push_back(Filtering::Processor<Processor16>(sad_16_c, Constraint(CPU_NONE), 0)); break;
         case 32: processors32.push_back(Filtering::Processor<Processor32>(sad_32_c, Constraint(CPU_NONE), 0)); break;
         }
         if (bits_per_pixel <= 16) {

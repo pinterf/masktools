@@ -70,8 +70,8 @@ void generic_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_
       memcpy( &pDst[y * nDstPitch], pDst - nDstPitch, nWidth );
 }
 
-template<Distorsion16 distorsion, int nBlockSizeX, int nBlockSizeY, int bits_per_pixel>
-void generic16_c(uint16_t *pDst, ptrdiff_t nDstPitch, const uint16_t *pSrc, ptrdiff_t nSrcPitch, const uint16_t *pRef, ptrdiff_t nRefPitch, int nWidth, int nHeight, int nX, int nY, int nMinimum, int nMaximum, int nPrecision)
+template<Distorsion16 distorsion, int nBlockSizeX, int nBlockSizeY>
+void generic16_c(uint16_t *pDst, ptrdiff_t nDstPitch, const uint16_t *pSrc, ptrdiff_t nSrcPitch, const uint16_t *pRef, ptrdiff_t nRefPitch, int nWidth, int nHeight, int nX, int nY, int nMinimum, int nMaximum, int nPrecision, int bits_per_pixel)
 {
   nSrcPitch /= sizeof(uint16_t);
   nDstPitch /= sizeof(uint16_t);
@@ -121,10 +121,7 @@ void generic_f_c(float *pDst, ptrdiff_t nDstPitch, const float *pSrc, ptrdiff_t 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Gradient {
 
 Processor *sad_c  = &generic_c<sad<16, 16>, 16, 16>;
-Processor16 *sad_10_c = &generic16_c<sad16<16, 16>, 16, 16, 10>;
-Processor16 *sad_12_c = &generic16_c<sad16<16, 16>, 16, 16, 12>;
-Processor16 *sad_14_c = &generic16_c<sad16<16, 16>, 16, 16, 14>;
-Processor16 *sad_16_c = &generic16_c<sad16<16, 16>, 16, 16, 16>;
+Processor16 *sad_16_c = &generic16_c<sad16<16, 16>, 16, 16>;
 Processor32 *sad_32_c = &generic_f_c<sad32<16, 16>, 16, 16>;
 
 } } } }
