@@ -241,13 +241,6 @@ namespace {
 #pragma warning(default: 4309)
 
 
-  // non-existant in simd
-  static MT_FORCEINLINE __m128i _MM_CMPLE_EPU16(__m128i x, __m128i y)
-  {
-    // Returns 0xFFFF where x <= y:
-    return _mm_cmpeq_epi16(_mm_subs_epu16(x, y), _mm_setzero_si128());
-  }
-
   // SSE2 simulations of the SSE4.1 _mm_min_epu16 / _mm_max_epu16, bit-exact: subs(x, y) = x - min(x, y) = max(x, y) - y
   static MT_FORCEINLINE __m128i _MM_MIN_EPU16(__m128i x, __m128i y)
   {
@@ -267,7 +260,7 @@ namespace {
       return _mm_max_epu16(x, y);
     }
     else {
-      return simd_blendv_epi8<flags>(x, y, _MM_CMPLE_EPU16(x, y)); // blendv (not blend) watch param order !
+      return _MM_MAX_EPU16(x, y);
     }
   }
 
@@ -279,7 +272,7 @@ namespace {
       return _mm_min_epu16(x, y);
     }
     else {
-      return simd_blendv_epi8<flags>(y, x, _MM_CMPLE_EPU16(x, y)); // blendv (not blend) watch param order !
+      return _MM_MIN_EPU16(x, y);
     }
   }
 
