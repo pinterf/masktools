@@ -7,7 +7,7 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Suppor
 
 /* 8 bit */
 typedef void(Processor)(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight);
-typedef void(Processor16)(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight, int nOrigHeight);
+typedef void(Processor16)(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight, int bits_per_pixel);
 typedef void(Processor32)(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight, bool chroma);
 
 Processor makediff_c;
@@ -16,18 +16,9 @@ extern Processor *makediff_sse2;
 /* 16 bit */
 
 
-extern Processor16 *makediff16_native_10_c;
-extern Processor16 *makediff16_native_12_c;
-extern Processor16 *makediff16_native_14_c;
-extern Processor16 *makediff16_native_16_c;
-extern Processor16 *makediff16_native_10_sse2;
-extern Processor16 *makediff16_native_12_sse2;
-extern Processor16 *makediff16_native_14_sse2;
-extern Processor16 *makediff16_native_16_sse2;
-extern Processor16 *makediff16_native_10_sse4_1;
-extern Processor16 *makediff16_native_12_sse4_1;
-extern Processor16 *makediff16_native_14_sse4_1;
-extern Processor16 *makediff16_native_16_sse4_1;
+Processor16 makediff16_native_c;
+extern Processor16 *makediff16_native_sse2;
+extern Processor16 *makediff16_native_sse4_1;
 
 /* 32 bit */
 Processor32 makediff32_c;
@@ -35,10 +26,7 @@ extern Processor32 *makediff32_sse2;
 
 #ifdef NEON_INTRINSICS
 extern Processor *makediff_neon;
-extern Processor16 *makediff16_native_10_neon;
-extern Processor16 *makediff16_native_12_neon;
-extern Processor16 *makediff16_native_14_neon;
-extern Processor16 *makediff16_native_16_neon;
+extern Processor16 *makediff16_native_neon;
 extern Processor32 *makediff32_neon;
 #endif
 
@@ -62,7 +50,7 @@ protected:
         else if (bits_per_pixel <= 16)
           processors16.best_processor(constraints[nPlane])(dst.data(), dst.pitch(),
             frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
-            dst.width(), dst.height(), dst.origheight());
+            dst.width(), dst.height(), bits_per_pixel);
         else {
           const bool chroma = ((nPlane == 1 || nPlane == 2) && !planes_isRGB[C]); // chroma center is 0.0 others are 0.5
           processors32.best_processor(constraints[nPlane])(dst.data(), dst.pitch(),
@@ -96,44 +84,14 @@ public:
         processors.push_back(Filtering::Processor<Processor>(makediff_neon, Constraint(CPU_NEON), 1));
 #endif
         break;
-      case 10:
-        processors16.push_back(Filtering::Processor<Processor16>(makediff16_native_10_c, Constraint(CPU_NONE), 0));
+      case 10: case 12: case 14: case 16:
+        processors16.push_back(Filtering::Processor<Processor16>(&makediff16_native_c, Constraint(CPU_NONE), 0));
 #ifdef INTEL_INTRINSICS
-        processors16.push_back(Filtering::Processor<Processor16>(makediff16_native_10_sse2, Constraint(CPU_SSE2), 1));
-        processors16.push_back(Filtering::Processor<Processor16>(makediff16_native_10_sse4_1, Constraint(CPU_SSE4_1), 2));
+        processors16.push_back(Filtering::Processor<Processor16>(makediff16_native_sse2, Constraint(CPU_SSE2), 1));
+        processors16.push_back(Filtering::Processor<Processor16>(makediff16_native_sse4_1, Constraint(CPU_SSE4_1), 2));
 #endif
 #ifdef NEON_INTRINSICS
-        processors16.push_back(Filtering::Processor<Processor16>(makediff16_native_10_neon, Constraint(CPU_NEON), 1));
-#endif
-        break;
-      case 12:
-        processors16.push_back(Filtering::Processor<Processor16>(makediff16_native_12_c, Constraint(CPU_NONE), 0));
-#ifdef INTEL_INTRINSICS
-        processors16.push_back(Filtering::Processor<Processor16>(makediff16_native_12_sse2, Constraint(CPU_SSE2), 1));
-        processors16.push_back(Filtering::Processor<Processor16>(makediff16_native_12_sse4_1, Constraint(CPU_SSE4_1), 2));
-#endif
-#ifdef NEON_INTRINSICS
-        processors16.push_back(Filtering::Processor<Processor16>(makediff16_native_12_neon, Constraint(CPU_NEON), 1));
-#endif
-        break;
-      case 14:
-        processors16.push_back(Filtering::Processor<Processor16>(makediff16_native_14_c, Constraint(CPU_NONE), 0));
-#ifdef INTEL_INTRINSICS
-        processors16.push_back(Filtering::Processor<Processor16>(makediff16_native_14_sse2, Constraint(CPU_SSE2), 1));
-        processors16.push_back(Filtering::Processor<Processor16>(makediff16_native_14_sse4_1, Constraint(CPU_SSE4_1), 2));
-#endif
-#ifdef NEON_INTRINSICS
-        processors16.push_back(Filtering::Processor<Processor16>(makediff16_native_14_neon, Constraint(CPU_NEON), 1));
-#endif
-        break;
-      case 16:
-        processors16.push_back(Filtering::Processor<Processor16>(makediff16_native_16_c, Constraint(CPU_NONE), 0));
-#ifdef INTEL_INTRINSICS
-        processors16.push_back(Filtering::Processor<Processor16>(makediff16_native_16_sse2, Constraint(CPU_SSE2), 1));
-        processors16.push_back(Filtering::Processor<Processor16>(makediff16_native_16_sse4_1, Constraint(CPU_SSE4_1), 2));
-#endif
-#ifdef NEON_INTRINSICS
-        processors16.push_back(Filtering::Processor<Processor16>(makediff16_native_16_neon, Constraint(CPU_NEON), 1));
+        processors16.push_back(Filtering::Processor<Processor16>(makediff16_native_neon, Constraint(CPU_NEON), 1));
 #endif
         break;
       case 32:

@@ -3,45 +3,22 @@
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Support  { namespace MakeDiff {
 
-template<int bits_per_pixel>
-static MT_FORCEINLINE uint16_t makediff16_core_c(uint16_t dst, uint16_t src) {
-  const int max_pixel_value = (1 << bits_per_pixel) - 1;
-  const int half = 1 << (bits_per_pixel - 1);
-  return clip<uint16_t, int>(int(dst) - src + (half), 0, max_pixel_value);
-}
-
-
-
-template<int bits_per_pixel>
-void makediff16_native_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight, int )
+void makediff16_native_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight, int bits_per_pixel)
 {
+    const int max_pixel_value = (1 << bits_per_pixel) - 1;
+    const int half = 1 << (bits_per_pixel - 1);
     for (int y = 0; y < nHeight; y++) {
         auto pDstWord = reinterpret_cast<uint16_t*>(pDst);
         auto pSrcWord = reinterpret_cast<const uint16_t*>(pSrc);
 
         for (int x = 0; x < nWidth; x++) {
-            pDstWord[x] = makediff16_core_c<bits_per_pixel>(pDstWord[x], pSrcWord[x]);
+            const int dst = pDstWord[x];
+            const int src = pSrcWord[x];
+            pDstWord[x] = clip<uint16_t, int>(int(dst) - src + half, 0, max_pixel_value);
         }
         pDst += nDstPitch;
         pSrc += nSrcPitch;
     }
 }
 
-#define MAKE_TEMPLATES(bits_per_pixel) \
-template void makediff16_native_c<bits_per_pixel>(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight, int nOrigHeight);
-
-MAKE_TEMPLATES(10)
-MAKE_TEMPLATES(12)
-MAKE_TEMPLATES(14)
-MAKE_TEMPLATES(16)
-#undef MAKE_TEMPLATES
-
-#define MAKE_EXPORTS(bits_per_pixel) \
-Processor16 *makediff16_native_##bits_per_pixel##_c = &makediff16_native_c<bits_per_pixel>;
-
-MAKE_EXPORTS(10)
-MAKE_EXPORTS(12)
-MAKE_EXPORTS(14)
-MAKE_EXPORTS(16)
-#undef MAKE_EXPORTS
 } } } } }

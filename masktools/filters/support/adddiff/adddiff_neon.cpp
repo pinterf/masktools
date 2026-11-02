@@ -28,8 +28,8 @@ void adddiff_neon_t(uint8_t *pDst, ptrdiff_t dst_pitch, const uint8_t *pSrc, ptr
     adddiff_c(pDst0 + wmod, dst_pitch, pSrc0 + wmod, src_pitch, width - wmod, height);
 }
 
-template<int bits_per_pixel>
-void adddiff16_neon_t(uint8_t *pDst, ptrdiff_t dst_pitch, const uint8_t *pSrc, ptrdiff_t src_pitch, int width, int height, int origheight)
+template<bool lessThan16bits>
+void adddiff16_neon_t(uint8_t *pDst, ptrdiff_t dst_pitch, const uint8_t *pSrc, ptrdiff_t src_pitch, int width, int height, int bits_per_pixel)
 {
   const int wmod = width / 8 * 8;
   const uint16x8_t half = vdupq_n_u16((uint16_t)(1 << (bits_per_pixel - 1)));
@@ -43,7 +43,7 @@ void adddiff16_neon_t(uint8_t *pDst, ptrdiff_t dst_pitch, const uint8_t *pSrc, p
       uint16x8_t d = vld1q_u16(d16 + x);
       uint16x8_t s = vld1q_u16(s16 + x);
       uint16x8_t r;
-      if constexpr (bits_per_pixel < 16) {
+      if constexpr (lessThan16bits) {
         // dst + src fits in 16 bits; the saturating subtraction clips at 0, min at max
         r = vminq_u16(vqsubq_u16(vaddq_u16(d, s), half), maxv);
       }
@@ -58,10 +58,16 @@ void adddiff16_neon_t(uint8_t *pDst, ptrdiff_t dst_pitch, const uint8_t *pSrc, p
     pSrc += src_pitch;
   }
   if (width > wmod) {
-    Processor16 *c = bits_per_pixel == 10 ? adddiff16_native_10_c : bits_per_pixel == 12 ? adddiff16_native_12_c :
-                     bits_per_pixel == 14 ? adddiff16_native_14_c : adddiff16_native_16_c;
-    c(pDst0 + wmod * 2, dst_pitch, pSrc0 + wmod * 2, src_pitch, width - wmod, height, origheight);
+    adddiff16_native_c(pDst0 + wmod * 2, dst_pitch, pSrc0 + wmod * 2, src_pitch, width - wmod, height, bits_per_pixel);
   }
+}
+
+void adddiff16_neon_dispatch(uint8_t *pDst, ptrdiff_t dst_pitch, const uint8_t *pSrc, ptrdiff_t src_pitch, int width, int height, int bits_per_pixel)
+{
+  if (bits_per_pixel == 16)
+    adddiff16_neon_t<false>(pDst, dst_pitch, pSrc, src_pitch, width, height, bits_per_pixel);
+  else
+    adddiff16_neon_t<true>(pDst, dst_pitch, pSrc, src_pitch, width, height, bits_per_pixel);
 }
 
 // dst = (dst + src) - middle, the C order
@@ -92,10 +98,7 @@ void adddiff32_neon_t(uint8_t *pDst, ptrdiff_t dst_pitch, const uint8_t *pSrc, p
 } // namespace
 
 Processor *adddiff_neon = &adddiff_neon_t;
-Processor16 *adddiff16_native_10_neon = &adddiff16_neon_t<10>;
-Processor16 *adddiff16_native_12_neon = &adddiff16_neon_t<12>;
-Processor16 *adddiff16_native_14_neon = &adddiff16_neon_t<14>;
-Processor16 *adddiff16_native_16_neon = &adddiff16_neon_t<16>;
+Processor16 *adddiff16_native_neon = &adddiff16_neon_dispatch;
 Processor32 *adddiff32_neon = &adddiff32_neon_t;
 
 } } } } }
