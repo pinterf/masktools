@@ -12,16 +12,19 @@ typedef void(Processor32)(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSr
 
 Processor makediff_c;
 extern Processor *makediff_sse2;
+extern Processor *makediff_avx2;
 
 /* 16 bit */
 
 
 Processor16 makediff16_native_c;
 extern Processor16 *makediff16_native_sse2;
+extern Processor16 *makediff16_native_avx2;
 
 /* 32 bit */
 Processor32 makediff32_c;
 extern Processor32 *makediff32_sse2;
+extern Processor32 *makediff32_avx2;
 
 #ifdef NEON_INTRINSICS
 extern Processor *makediff_neon;
@@ -78,6 +81,7 @@ public:
         processors.push_back(Filtering::Processor<Processor>(&makediff_c, Constraint(CPU_NONE), 0));
 #ifdef INTEL_INTRINSICS
         processors.push_back(Filtering::Processor<Processor>(makediff_sse2, Constraint(CPU_SSE2), 1));
+        processors.push_back(Filtering::Processor<Processor>(makediff_avx2, Constraint(CPU_AVX2), 3));
 #endif
 #ifdef NEON_INTRINSICS
         processors.push_back(Filtering::Processor<Processor>(makediff_neon, Constraint(CPU_NEON), 1));
@@ -87,6 +91,7 @@ public:
         processors16.push_back(Filtering::Processor<Processor16>(&makediff16_native_c, Constraint(CPU_NONE), 0));
 #ifdef INTEL_INTRINSICS
         processors16.push_back(Filtering::Processor<Processor16>(makediff16_native_sse2, Constraint(CPU_SSE2), 1));
+        processors16.push_back(Filtering::Processor<Processor16>(makediff16_native_avx2, Constraint(CPU_AVX2), 3));
 #endif
 #ifdef NEON_INTRINSICS
         processors16.push_back(Filtering::Processor<Processor16>(makediff16_native_neon, Constraint(CPU_NEON), 1));
@@ -96,6 +101,7 @@ public:
         processors32.push_back(Filtering::Processor<Processor32>(&makediff32_c, Constraint(CPU_NONE), 0));
 #ifdef INTEL_INTRINSICS
         processors32.push_back(Filtering::Processor<Processor32>(makediff32_sse2, Constraint(CPU_SSE2), 1));
+        processors32.push_back(Filtering::Processor<Processor32>(makediff32_avx2, Constraint(CPU_AVX2), 3));
 #endif
 #ifdef NEON_INTRINSICS
         processors32.push_back(Filtering::Processor<Processor32>(makediff32_neon, Constraint(CPU_NEON), 1));

@@ -277,8 +277,14 @@
     <ClCompile Include="filters\morphologic\inpand\inpand_neon.cpp" />
     <ClCompile Include="filters\morphologic\inpand\inpand_sse2.cpp" />
     <ClCompile Include="filters\support\adddiff16\adddiff16.cpp" />
+    <ClCompile Include="filters\support\adddiff16\adddiff16_avx2.cpp">
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+    </ClCompile>
     <ClCompile Include="filters\support\adddiff16\adddiff16_sse2.cpp" />
     <ClCompile Include="filters\support\adddiff\adddiff.cpp" />
+    <ClCompile Include="filters\support\adddiff\adddiff_avx2.cpp">
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+    </ClCompile>
     <ClCompile Include="filters\support\adddiff\adddiff_neon.cpp" />
     <ClCompile Include="filters\support\adddiff\adddiff_sse2.cpp" />
     <ClCompile Include="filters\support\average16\average16.cpp" />
@@ -298,8 +304,14 @@
     <ClCompile Include="filters\support\clamp\clamp_neon.cpp" />
     <ClCompile Include="filters\support\clamp\clamp_sse2.cpp" />
     <ClCompile Include="filters\support\makediff16\makediff16.cpp" />
+    <ClCompile Include="filters\support\makediff16\makediff16_avx2.cpp">
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+    </ClCompile>
     <ClCompile Include="filters\support\makediff16\makediff16_sse2.cpp" />
     <ClCompile Include="filters\support\makediff\makediff.cpp" />
+    <ClCompile Include="filters\support\makediff\makediff_avx2.cpp">
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+    </ClCompile>
     <ClCompile Include="filters\support\makediff\makediff_neon.cpp" />
     <ClCompile Include="filters\support\makediff\makediff_sse2.cpp" />
     <ClCompile Include="helpers\avs2x\helpers_avs2x.cpp" />

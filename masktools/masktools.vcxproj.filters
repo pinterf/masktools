@@ -471,10 +471,16 @@
     <ClCompile Include="filters\support\adddiff16\adddiff16.cpp">
       <Filter>filters\support\adddiff16</Filter>
     </ClCompile>
+    <ClCompile Include="filters\support\adddiff16\adddiff16_avx2.cpp">
+      <Filter>filters\support\adddiff16</Filter>
+    </ClCompile>
     <ClCompile Include="filters\support\adddiff16\adddiff16_sse2.cpp">
       <Filter>filters\support\adddiff16</Filter>
     </ClCompile>
     <ClCompile Include="filters\support\adddiff\adddiff.cpp">
+      <Filter>filters\support\adddiff</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\support\adddiff\adddiff_avx2.cpp">
       <Filter>filters\support\adddiff</Filter>
     </ClCompile>
     <ClCompile Include="filters\support\adddiff\adddiff_neon.cpp">
@@ -522,10 +528,16 @@
     <ClCompile Include="filters\support\makediff16\makediff16.cpp">
       <Filter>filters\support\makediff16</Filter>
     </ClCompile>
+    <ClCompile Include="filters\support\makediff16\makediff16_avx2.cpp">
+      <Filter>filters\support\makediff16</Filter>
+    </ClCompile>
     <ClCompile Include="filters\support\makediff16\makediff16_sse2.cpp">
       <Filter>filters\support\makediff16</Filter>
     </ClCompile>
     <ClCompile Include="filters\support\makediff\makediff.cpp">
+      <Filter>filters\support\makediff</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\support\makediff\makediff_avx2.cpp">
       <Filter>filters\support\makediff</Filter>
     </ClCompile>
     <ClCompile Include="filters\support\makediff\makediff_neon.cpp">
