@@ -53,47 +53,40 @@ namespace {
     return sad;
   }
 
-#if 0
-  // todo simd
-  static void mask32_sse2_op(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nLowThreshold, int nHighThreshold, int nWidth, int nHeight)
+  // threshold<float>(abs(d - s)): x <= lo ? 0 : x > hi ? 1 : x, abs as the C x < 0 ? -x : x
+  static void mask32_sse2_op(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, float nLowThreshold, float nHighThreshold, int nWidth, int nHeight)
   {
     nWidth *= sizeof(float);
     int wMod16 = (nWidth / 16) * 16;
     auto pDst2 = pDst;
     auto pSrc2 = pSrc;
 
-    auto v128 = _mm_set1_epi32(0x80808080);
-    auto lowThresh = _mm_set1_epi8(uint8_t(nLowThreshold));
-    auto highThresh = _mm_set1_epi8(uint8_t(nHighThreshold));
-    lowThresh = _mm_sub_epi8(lowThresh, v128);
-    highThresh = _mm_sub_epi8(highThresh, v128);
+    const auto lo = _mm_set1_ps(nLowThreshold);
+    const auto hi = _mm_set1_ps(nHighThreshold);
+    const auto one = _mm_set1_ps(1.0f);
+    const auto zero = _mm_setzero_ps();
+    const auto sign = _mm_castsi128_ps(_mm_set1_epi32(int(0x80000000)));
 
     for (int j = 0; j < nHeight; ++j) {
       for (int i = 0; i < wMod16; i += 16) {
-        auto dst1 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pDst + i));
-        auto src1 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pSrc + i));
-
-        auto greater = _mm_subs_epu8(dst1, src1);
-        auto smaller = _mm_subs_epu8(src1, dst1);
-        auto diff = _mm_add_epi8(greater, smaller);
-
-        auto mask = threshold_sse2(diff, lowThresh, highThresh, v128);
-
-        _mm_storeu_si128(reinterpret_cast<__m128i*>(pDst + i), mask);
+        auto a = _mm_sub_ps(_mm_loadu_ps(reinterpret_cast<const float*>(pDst + i)), _mm_loadu_ps(reinterpret_cast<const float*>(pSrc + i)));
+        a = _mm_xor_ps(a, _mm_and_ps(_mm_cmplt_ps(a, zero), sign));
+        auto high = _mm_cmpgt_ps(a, hi);
+        auto r = _mm_or_ps(_mm_and_ps(high, one), _mm_andnot_ps(high, a));
+        _mm_storeu_ps(reinterpret_cast<float*>(pDst + i), _mm_andnot_ps(_mm_cmple_ps(a, lo), r));
       }
       pDst += nDstPitch;
       pSrc += nSrcPitch;
     }
 
     if (nWidth > wMod16) {
-      mask16_c_op(pDst2 + wMod16, nDstPitch, pSrc2 + wMod16, nSrcPitch, nLowThreshold, nHighThreshold, (nWidth - wMod16) / sizeof(uint16_t), nHeight);
+      mask32_c_op(pDst2 + wMod16, nDstPitch, pSrc2 + wMod16, nSrcPitch, nLowThreshold, nHighThreshold, (nWidth - wMod16) / sizeof(float), nHeight);
     }
   }
-#endif
 
 } // namespace
 
-Processor32 *mask32_sse2 = &mask32_t<sad32_sse2_op, mask32_c_op /*mask16_sse2_op*/>;
+Processor32 *mask32_sse2 = &mask32_t<sad32_sse2_op, mask32_sse2_op>;
 
 } } } } }
 

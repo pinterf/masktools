@@ -342,6 +342,9 @@
     <ClCompile Include="filters\mask\motion\motionmask32_sse2.cpp">
       <Filter>filters\mask\motion</Filter>
     </ClCompile>
+    <ClCompile Include="filters\mask\motion\motionmask_avx2.cpp">
+      <Filter>filters\mask\motion</Filter>
+    </ClCompile>
     <ClCompile Include="filters\mask\motion\motionmask_neon.cpp">
       <Filter>filters\mask\motion</Filter>
     </ClCompile>

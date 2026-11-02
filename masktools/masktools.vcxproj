@@ -208,6 +208,9 @@
     <ClCompile Include="filters\mask\motion\motionmask16_sse2.cpp" />
     <ClCompile Include="filters\mask\motion\motionmask32.cpp" />
     <ClCompile Include="filters\mask\motion\motionmask32_sse2.cpp" />
+    <ClCompile Include="filters\mask\motion\motionmask_avx2.cpp">
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+    </ClCompile>
     <ClCompile Include="filters\mask\motion\motionmask_neon.cpp" />
     <ClCompile Include="filters\mask\motion\motionmask_sse2.cpp" />
     <ClCompile Include="filters\merge\merge.cpp" />

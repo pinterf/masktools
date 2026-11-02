@@ -11,12 +11,15 @@ typedef bool (Processor32)(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pS
 
 extern Processor *mask_c;
 extern Processor *mask_sse2;
+extern Processor *mask_avx2;
 
 extern Processor16* mask16_c;
 extern Processor16* mask16_sse2;
+extern Processor16 *mask16_avx2;
 
 extern Processor32 *mask32_c;
 extern Processor32 *mask32_sse2;
+extern Processor32 *mask32_avx2;
 
 #ifdef NEON_INTRINSICS
 extern Processor *mask_neon;
@@ -191,6 +194,7 @@ public:
 #endif
 #ifdef INTEL_INTRINSICS
       processors.push_back(Filtering::Processor<Processor>(mask_sse2, Constraint(CPU_SSE2), 1));
+      processors.push_back(Filtering::Processor<Processor>(mask_avx2, Constraint(CPU_AVX2), 3));
 #endif
       break;
     case 10: case 12: case 14: case 16:
@@ -200,6 +204,7 @@ public:
 #endif
 #ifdef INTEL_INTRINSICS
       processors16.push_back(Filtering::Processor<Processor16>(mask16_sse2, Constraint(CPU_SSE2), 1));
+      processors16.push_back(Filtering::Processor<Processor16>(mask16_avx2, Constraint(CPU_AVX2), 3));
 #endif
       break;
     case 32:
@@ -208,7 +213,8 @@ public:
       processors32.push_back(Filtering::Processor<Processor32>(mask32_neon, Constraint(CPU_NEON), 1));
 #endif
 #ifdef INTEL_INTRINSICS
-      processors32.push_back(Filtering::Processor<Processor32>(mask32_sse2, Constraint(CPU_SSE2), 1)); // only sad is sse2
+      processors32.push_back(Filtering::Processor<Processor32>(mask32_sse2, Constraint(CPU_SSE2), 1));
+      processors32.push_back(Filtering::Processor<Processor32>(mask32_avx2, Constraint(CPU_AVX2), 3));
 #endif
       break;
     }

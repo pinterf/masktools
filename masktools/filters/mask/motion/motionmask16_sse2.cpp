@@ -58,31 +58,26 @@ namespace {
     return sad;
   }
 
-#if 0
-  todo simd
-  static void mask16_sse2_op(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nLowThreshold, int nHighThreshold, int nWidth, int nHeight)
+  // x <= lo ? 0 : x > hi ? max : x; the thresholds are 0..max (ScaleParam)
+  static void mask16_sse2_op(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nLowThreshold, int nHighThreshold, int nWidth, int nHeight, int bits_per_pixel)
   {
     nWidth *= sizeof(uint16_t);
     int wMod16 = (nWidth / 16) * 16;
     auto pDst2 = pDst;
     auto pSrc2 = pSrc;
 
-    auto v128 = _mm_set1_epi32(0x80808080);
-    auto lowThresh = _mm_set1_epi8(uint8_t(nLowThreshold));
-    auto highThresh = _mm_set1_epi8(uint8_t(nHighThreshold));
-    lowThresh = _mm_sub_epi8(lowThresh, v128);
-    highThresh = _mm_sub_epi8(highThresh, v128);
+    auto lowThresh = _mm_set1_epi16(int16_t(nLowThreshold ^ 0x8000));
+    auto highThresh = _mm_set1_epi16(int16_t(nHighThreshold ^ 0x8000));
+    auto vMax = _mm_set1_epi16(int16_t((1 << bits_per_pixel) - 1));
 
     for (int j = 0; j < nHeight; ++j) {
       for (int i = 0; i < wMod16; i += 16) {
         auto dst1 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pDst + i));
         auto src1 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pSrc + i));
 
-        auto greater = _mm_subs_epu8(dst1, src1);
-        auto smaller = _mm_subs_epu8(src1, dst1);
-        auto diff = _mm_add_epi8(greater, smaller);
+        auto diff = _mm_or_si128(_mm_subs_epu16(dst1, src1), _mm_subs_epu16(src1, dst1));
 
-        auto mask = threshold_sse2(diff, lowThresh, highThresh, v128);
+        auto mask = threshold16_sse2(diff, lowThresh, highThresh, vMax);
 
         _mm_storeu_si128(reinterpret_cast<__m128i*>(pDst + i), mask);
       }
@@ -91,14 +86,13 @@ namespace {
     }
 
     if (nWidth > wMod16) {
-      mask16_c_op(pDst2 + wMod16, nDstPitch, pSrc2 + wMod16, nSrcPitch, nLowThreshold, nHighThreshold, (nWidth - wMod16) / sizeof(uint16_t), nHeight);
+      mask16_c_op(pDst2 + wMod16, nDstPitch, pSrc2 + wMod16, nSrcPitch, nLowThreshold, nHighThreshold, (nWidth - wMod16) / sizeof(uint16_t), nHeight, bits_per_pixel);
     }
   }
-#endif
 
 } // namespace
 
-Processor16* mask16_sse2 = &mask16_t<sad16_sse2_op, mask16_c_op /* mask16_sse2_op*/>;
+Processor16* mask16_sse2 = &mask16_t<sad16_sse2_op, mask16_sse2_op>;
 
 } } } } }
 
