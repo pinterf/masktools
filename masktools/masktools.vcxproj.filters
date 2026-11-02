@@ -492,6 +492,9 @@
     <ClCompile Include="filters\support\average\average.cpp">
       <Filter>filters\support\average</Filter>
     </ClCompile>
+    <ClCompile Include="filters\support\average\average_avx2.cpp">
+      <Filter>filters\support\average</Filter>
+    </ClCompile>
     <ClCompile Include="filters\support\average\average_neon.cpp">
       <Filter>filters\support\average</Filter>
     </ClCompile>

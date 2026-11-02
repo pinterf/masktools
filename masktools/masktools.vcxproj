@@ -284,6 +284,9 @@
     <ClCompile Include="filters\support\average16\average16.cpp" />
     <ClCompile Include="filters\support\average16\average16_sse2.cpp" />
     <ClCompile Include="filters\support\average\average.cpp" />
+    <ClCompile Include="filters\support\average\average_avx2.cpp">
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+    </ClCompile>
     <ClCompile Include="filters\support\average\average_neon.cpp" />
     <ClCompile Include="filters\support\average\average_sse2.cpp" />
     <ClCompile Include="filters\support\clamp16\clamp16.cpp" />
