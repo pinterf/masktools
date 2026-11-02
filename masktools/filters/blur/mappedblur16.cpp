@@ -5,8 +5,7 @@ using namespace Filtering;
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Blur {
 
-template<int bits_per_pixel>
-inline uint16_t convolution_all_16_t_c(uint16_t a11, uint16_t a21, uint16_t a31, uint16_t a12, uint16_t a22, uint16_t a32, uint16_t a13, uint16_t a23, uint16_t a33, const int16_t matrix[10], int nLowThreshold, int nHighThreshold)
+inline uint16_t convolution_all_16_t_c(uint16_t a11, uint16_t a21, uint16_t a31, uint16_t a12, uint16_t a22, uint16_t a32, uint16_t a13, uint16_t a23, uint16_t a33, const int16_t matrix[10], int nLowThreshold, int nHighThreshold, int pixelMax)
 {
    int nSum = a22 * matrix[4];
 
@@ -21,11 +20,10 @@ inline uint16_t convolution_all_16_t_c(uint16_t a11, uint16_t a21, uint16_t a31,
    if ( abs(a23 - a22) < nLowThreshold ) nSum += a23 * matrix[7]; else nSum += a22 * matrix[7];
    if ( abs(a33 - a22) < nLowThreshold ) nSum += a33 * matrix[8]; else nSum += a22 * matrix[8];
 
-   return clip<uint16_t, int>((nSum + matrix[9] / 2)/ matrix[9], 0, (1 << bits_per_pixel) - 1);
+   return clip<uint16_t, int>((nSum + matrix[9] / 2)/ matrix[9], 0, pixelMax);
 }
 
-template<int bits_per_pixel>
-inline uint16_t convolution_below_16_t_c(uint16_t a11, uint16_t a21, uint16_t a31, uint16_t a12, uint16_t a22, uint16_t a32, uint16_t a13, uint16_t a23, uint16_t a33, const int16_t matrix[10], int nLowThreshold, int nHighThreshold)
+inline uint16_t convolution_below_16_t_c(uint16_t a11, uint16_t a21, uint16_t a31, uint16_t a12, uint16_t a22, uint16_t a32, uint16_t a13, uint16_t a23, uint16_t a33, const int16_t matrix[10], int nLowThreshold, int nHighThreshold, int pixelMax)
 {
    int nSum = a22 * matrix[4];
    int nSumCoeff = matrix[4];
@@ -41,7 +39,7 @@ inline uint16_t convolution_below_16_t_c(uint16_t a11, uint16_t a21, uint16_t a3
    if ( abs(a23 - a22) < nLowThreshold ) { nSum += a23 * matrix[7]; nSumCoeff += matrix[7]; }
    if ( abs(a33 - a22) < nLowThreshold ) { nSum += a33 * matrix[8]; nSumCoeff += matrix[8]; }
 
-   if ( nSumCoeff ) return clip<uint16_t, int>((nSum + nSumCoeff / 2) / nSumCoeff, 0, (1 << bits_per_pixel) - 1);
+   if ( nSumCoeff ) return clip<uint16_t, int>((nSum + nSumCoeff / 2) / nSumCoeff, 0, pixelMax);
    else return a22;
 }
 
@@ -64,20 +62,20 @@ public:
 };
 } // namespace
 
-template<Filters::Mask::Operator op>
+template<Filters::Mask::Operator op, int bits_per_pixel>
 void mask16_t(uint16_t *pDst, ptrdiff_t nDstPitch, const uint16_t *pSrc, ptrdiff_t nSrcPitch, const uint16_t *pMask, ptrdiff_t nMaskPitch, const int16_t matrix[10], int nWidth, int nHeight)
 {
    Thresholds thresholds(pMask, nMaskPitch);
-   Filters::Mask::generic16_c<op, Thresholds>(pDst, nDstPitch, pSrc, nSrcPitch, thresholds, matrix, nWidth, nHeight);
+   Filters::Mask::generic16_c<op, Thresholds>(pDst, nDstPitch, pSrc, nSrcPitch, thresholds, matrix, nWidth, nHeight, (1 << bits_per_pixel) - 1);
 }
 
-Processor16 *mapped_below_10_c = &mask16_t<convolution_below_16_t_c<10>>;
-Processor16 *mapped_all_10_c = &mask16_t<convolution_all_16_t_c<10>>;
-Processor16 *mapped_below_12_c = &mask16_t<convolution_below_16_t_c<12>>;
-Processor16 *mapped_all_12_c = &mask16_t<convolution_all_16_t_c<12>>;
-Processor16 *mapped_below_14_c = &mask16_t<convolution_below_16_t_c<14>>;
-Processor16 *mapped_all_14_c = &mask16_t<convolution_all_16_t_c<14>>;
-Processor16 *mapped_below_16_c = &mask16_t<convolution_below_16_t_c<16>>;
-Processor16 *mapped_all_16_c = &mask16_t<convolution_all_16_t_c<16>>;
+Processor16 *mapped_below_10_c = &mask16_t<convolution_below_16_t_c, 10>;
+Processor16 *mapped_all_10_c = &mask16_t<convolution_all_16_t_c, 10>;
+Processor16 *mapped_below_12_c = &mask16_t<convolution_below_16_t_c, 12>;
+Processor16 *mapped_all_12_c = &mask16_t<convolution_all_16_t_c, 12>;
+Processor16 *mapped_below_14_c = &mask16_t<convolution_below_16_t_c, 14>;
+Processor16 *mapped_all_14_c = &mask16_t<convolution_all_16_t_c, 14>;
+Processor16 *mapped_below_16_c = &mask16_t<convolution_below_16_t_c, 16>;
+Processor16 *mapped_all_16_c = &mask16_t<convolution_all_16_t_c, 16>;
 
 } } } }

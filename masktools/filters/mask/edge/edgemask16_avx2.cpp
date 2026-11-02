@@ -22,12 +22,9 @@ static MT_FORCEINLINE __m256i simd256_abs_diff_epu32(__m256i a, __m256i b) {
     return _mm256_sub_epi32(_mm256_max_epu32(a, b), _mm256_min_epu32(a, b));
 }
 
-template<int bits_per_pixel, Border borderMode>
-static MT_FORCEINLINE void process_line_convolution_avx2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m256i &lowThresh, const __m256i &highThresh, int width) {
+template<Border borderMode>
+static MT_FORCEINLINE void process_line_convolution_avx2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m256i &lowThresh, const __m256i &highThresh, const __m256i &vMax, int width) {
     UNUSED(pSrcp);
-#pragma warning(disable: 4310)
-    auto vMax = _mm256_set1_epi16(short((1 << bits_per_pixel)- 1));
-#pragma warning(default: 4310)
     auto zero = _mm256_setzero_si256();
     auto coef0 = _mm256_set1_epi32(matrix[0]);
     auto coef1 = _mm256_set1_epi32(matrix[1]);
@@ -120,12 +117,9 @@ static MT_FORCEINLINE void process_line_convolution_avx2(uint8_t *pDst, const ui
     }
 }
 
-template<int bits_per_pixel, Border borderMode>
-static MT_FORCEINLINE void process_line_sobel_avx2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m256i &lowThresh, const __m256i &highThresh, int width) {
+template<Border borderMode>
+static MT_FORCEINLINE void process_line_sobel_avx2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m256i &lowThresh, const __m256i &highThresh, const __m256i &vMax, int width) {
     UNUSED(matrix);
-#pragma warning(disable: 4310)
-    auto vMax = _mm256_set1_epi16(short((1 << bits_per_pixel) - 1));
-#pragma warning(default: 4310)
     auto zero = _mm256_setzero_si256();
 
     for (int x = 0; x < width; x+=32) {
@@ -167,13 +161,10 @@ static MT_FORCEINLINE void process_line_sobel_avx2(uint8_t *pDst, const uint8_t 
     }
 }
 
-template<int bits_per_pixel, Border borderMode>
-static MT_FORCEINLINE void process_line_roberts_avx2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m256i &lowThresh, const __m256i &highThresh, int width) {
+template<Border borderMode>
+static MT_FORCEINLINE void process_line_roberts_avx2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m256i &lowThresh, const __m256i &highThresh, const __m256i &vMax, int width) {
     UNUSED(pSrcp);
     UNUSED(matrix);
-#pragma warning(disable: 4310)
-    auto vMax = _mm256_set1_epi16(short((1 << bits_per_pixel) - 1));
-#pragma warning(default: 4310)
     auto zero = _mm256_setzero_si256();
 
     for (int x = 0; x < width; x+=32) {
@@ -210,13 +201,10 @@ static MT_FORCEINLINE void process_line_roberts_avx2(uint8_t *pDst, const uint8_
     }
 }
 
-template<int bits_per_pixel, Border borderMode>
-static MT_FORCEINLINE void process_line_laplace_avx2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m256i &lowThresh, const __m256i &highThresh, int width) {
+template<Border borderMode>
+static MT_FORCEINLINE void process_line_laplace_avx2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m256i &lowThresh, const __m256i &highThresh, const __m256i &vMax, int width) {
     UNUSED(pSrcp);
     UNUSED(matrix);
-#pragma warning(disable: 4310)
-    auto vMax = _mm256_set1_epi16(short((1 << bits_per_pixel) - 1));
-#pragma warning(default: 4310)
     auto zero = _mm256_setzero_si256();
 
     for (int x = 0; x < width; x+=32) {
@@ -291,12 +279,9 @@ static MT_FORCEINLINE void process_line_laplace_avx2(uint8_t *pDst, const uint8_
     }
 }
 
-template<int bits_per_pixel, Border borderMode>
-static MT_FORCEINLINE void process_line_morpho_avx2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m256i &lowThresh, const __m256i &highThresh, int width) {
+template<Border borderMode>
+static MT_FORCEINLINE void process_line_morpho_avx2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m256i &lowThresh, const __m256i &highThresh, const __m256i &vMax, int width) {
     UNUSED(matrix);
-#pragma warning(disable: 4310)
-    auto vMax = _mm256_set1_epi16(short((1 << bits_per_pixel) - 1));
-#pragma warning(default: 4310)
 
     for (int x = 0; x < width; x+=32) {
         auto up_left = load16_one_to_left_si256<borderMode>(pSrcp+x);
@@ -336,12 +321,9 @@ static MT_FORCEINLINE void process_line_morpho_avx2(uint8_t *pDst, const uint8_t
     }
 }
 
-template<int bits_per_pixel, Border borderMode>
-static MT_FORCEINLINE void process_line_cartoon_avx2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m256i &lowThresh, const __m256i &highThresh, int width) {
+template<Border borderMode>
+static MT_FORCEINLINE void process_line_cartoon_avx2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m256i &lowThresh, const __m256i &highThresh, const __m256i &vMax, int width) {
     UNUSED(matrix); UNUSED(pSrcn);
-#pragma warning(disable: 4310)
-    auto vMax = _mm256_set1_epi16(short((1 << bits_per_pixel) - 1));
-#pragma warning(default: 4310)
     auto zero = _mm256_setzero_si256();
 
     for (int x = 0; x < width; x+=32) {
@@ -375,12 +357,9 @@ static MT_FORCEINLINE void process_line_cartoon_avx2(uint8_t *pDst, const uint8_
     }
 }
 
-template<int bits_per_pixel, Border borderMode>
-static MT_FORCEINLINE void process_line_prewitt_avx2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m256i &lowThresh, const __m256i &highThresh, int width) {
+template<Border borderMode>
+static MT_FORCEINLINE void process_line_prewitt_avx2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m256i &lowThresh, const __m256i &highThresh, const __m256i &vMax, int width) {
     UNUSED(matrix);
-#pragma warning(disable: 4310)
-    auto vMax = _mm256_set1_epi16(short((1 << bits_per_pixel) - 1));
-#pragma warning(default: 4310)
     auto zero = _mm256_setzero_si256();
 
     for (int x = 0; x < width; x+=32) {
@@ -471,12 +450,9 @@ static MT_FORCEINLINE void process_line_prewitt_avx2(uint8_t *pDst, const uint8_
     }
 }
 
-template<int bits_per_pixel, Border borderMode>
-static MT_FORCEINLINE void process_line_half_prewitt_avx2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m256i &lowThresh, const __m256i &highThresh, int width) {
+template<Border borderMode>
+static MT_FORCEINLINE void process_line_half_prewitt_avx2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m256i &lowThresh, const __m256i &highThresh, const __m256i &vMax, int width) {
     UNUSED(matrix);
-#pragma warning(disable: 4310)
-    auto vMax = _mm256_set1_epi16(short((1 << bits_per_pixel) - 1));
-#pragma warning(default: 4310)
     auto zero = _mm256_setzero_si256();
 
     for (int x = 0; x < width; x+=32) {
@@ -567,26 +543,11 @@ static MT_FORCEINLINE void process_line_half_prewitt_avx2(uint8_t *pDst, const u
 using namespace Filters::Mask;
 
 #define DEFINE_AVX2_VERSIONS(name) \
-Processor16 *name##_10_avx2 = &generic16_avx2<10, \
-    process_line_##name##_avx2<10, Border::Left>, \
-    process_line_##name##_avx2<10, Border::None>, \
-    process_line_##name##_avx2<10, Border::Right> \
->; \
-Processor16 *name##_12_avx2 = &generic16_avx2<12, \
-    process_line_##name##_avx2<12, Border::Left>, \
-    process_line_##name##_avx2<12, Border::None>, \
-    process_line_##name##_avx2<12, Border::Right> \
->; \
-Processor16 *name##_14_avx2 = &generic16_avx2<14, \
-    process_line_##name##_avx2<14, Border::Left>, \
-    process_line_##name##_avx2<14, Border::None>, \
-    process_line_##name##_avx2<14, Border::Right> \
->; \
-Processor16 *name##_16_avx2 = &generic16_avx2<16, \
-    process_line_##name##_avx2<16, Border::Left>, \
-    process_line_##name##_avx2<16, Border::None>, \
-    process_line_##name##_avx2<16, Border::Right> \
->; \
+Processor16 *name##_16_avx2 = &generic16_avx2< \
+    process_line_##name##_avx2<Border::Left>, \
+    process_line_##name##_avx2<Border::None>, \
+    process_line_##name##_avx2<Border::Right> \
+>;
 
 DEFINE_AVX2_VERSIONS(sobel)
 DEFINE_AVX2_VERSIONS(roberts)

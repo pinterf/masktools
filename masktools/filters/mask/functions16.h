@@ -8,10 +8,10 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Mask {
 // Anonymous namespace: this header is included from files built with different per file compiler flags.
 namespace {
 
-typedef uint16_t (Operator)(uint16_t, uint16_t, uint16_t, uint16_t, uint16_t, uint16_t, uint16_t, uint16_t, uint16_t, const int16_t matrix[10], int nLowThreshold, int nHighThreshold);
+typedef uint16_t (Operator)(uint16_t, uint16_t, uint16_t, uint16_t, uint16_t, uint16_t, uint16_t, uint16_t, uint16_t, const int16_t matrix[10], int nLowThreshold, int nHighThreshold, int pixelMax);
 
 template<Operator op, class T>
-void generic16_c(uint16_t *pDst, ptrdiff_t nDstPitch, const uint16_t *pSrc, ptrdiff_t nSrcPitch, T &thresholds, const int16_t matrix[10], int nWidth, int nHeight)
+void generic16_c(uint16_t *pDst, ptrdiff_t nDstPitch, const uint16_t *pSrc, ptrdiff_t nSrcPitch, T &thresholds, const int16_t matrix[10], int nWidth, int nHeight, int pixelMax)
 {
   nDstPitch /= sizeof(uint16_t);
   nSrcPitch /= sizeof(uint16_t);
@@ -22,18 +22,18 @@ void generic16_c(uint16_t *pDst, ptrdiff_t nDstPitch, const uint16_t *pSrc, ptrd
       const uint16_t *pSrcn = y < nHeight - 1 ? pSrc + nSrcPitch : pSrc;
 
       if ( nWidth == 1 )
-         pDst[0] = op(pSrcp[0], pSrcp[0], pSrcp[0], pSrc[0], pSrc[0], pSrc[0], pSrcn[0], pSrcn[0], pSrcn[0], matrix, thresholds.min(0), thresholds.max(0));
+         pDst[0] = op(pSrcp[0], pSrcp[0], pSrcp[0], pSrc[0], pSrc[0], pSrc[0], pSrcn[0], pSrcn[0], pSrcn[0], matrix, thresholds.min(0), thresholds.max(0), pixelMax);
       else
       {
          /* left */
-         pDst[0] = op(pSrcp[0], pSrcp[0], pSrcp[1], pSrc[0], pSrc[0], pSrc[1], pSrcn[0], pSrcn[0], pSrcn[1], matrix, thresholds.min(0), thresholds.max(0));
+         pDst[0] = op(pSrcp[0], pSrcp[0], pSrcp[1], pSrc[0], pSrc[0], pSrc[1], pSrcn[0], pSrcn[0], pSrcn[1], matrix, thresholds.min(0), thresholds.max(0), pixelMax);
 
          /* center */
          for ( int x = 1; x < nWidth - 1; x++ )
-            pDst[x] = op(pSrcp[x-1], pSrcp[x], pSrcp[x+1], pSrc[x-1], pSrc[x], pSrc[x+1], pSrcn[x-1], pSrcn[x], pSrcn[x+1], matrix, thresholds.min(x), thresholds.max(x));
+            pDst[x] = op(pSrcp[x-1], pSrcp[x], pSrcp[x+1], pSrc[x-1], pSrc[x], pSrc[x+1], pSrcn[x-1], pSrcn[x], pSrcn[x+1], matrix, thresholds.min(x), thresholds.max(x), pixelMax);
 
          /* right */
-         pDst[nWidth-1] = op(pSrcp[nWidth-2], pSrcp[nWidth-1], pSrcp[nWidth-1], pSrc[nWidth-2], pSrc[nWidth-1], pSrc[nWidth-1], pSrcn[nWidth-2], pSrcn[nWidth-1], pSrcn[nWidth-1], matrix, thresholds.min(nWidth-1), thresholds.max(nWidth-1));
+         pDst[nWidth-1] = op(pSrcp[nWidth-2], pSrcp[nWidth-1], pSrcp[nWidth-1], pSrc[nWidth-2], pSrc[nWidth-1], pSrc[nWidth-1], pSrcn[nWidth-2], pSrcn[nWidth-1], pSrcn[nWidth-1], matrix, thresholds.min(nWidth-1), thresholds.max(nWidth-1), pixelMax);
       }
 
       pDst += nDstPitch;

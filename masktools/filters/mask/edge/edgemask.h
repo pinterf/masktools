@@ -6,7 +6,7 @@
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Mask { namespace Edge {
 
 typedef void(Processor)(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, const int16_t matrix[10], int nLowThreshold, int nHighThreshold, int nWidth, int nHeight);
-typedef void(Processor16)(uint16_t *pDst, ptrdiff_t nDstPitch, const uint16_t *pSrc, ptrdiff_t nSrcPitch, const int16_t matrix[10], int nLowThreshold, int nHighThreshold, int nWidth, int nHeight);
+typedef void(Processor16)(uint16_t *pDst, ptrdiff_t nDstPitch, const uint16_t *pSrc, ptrdiff_t nSrcPitch, const int16_t matrix[10], int nLowThreshold, int nHighThreshold, int nWidth, int nHeight, int bits_per_pixel);
 typedef void(Processor32)(float *pDst, ptrdiff_t nDstPitch, const float *pSrc, ptrdiff_t nSrcPitch, const float matrix[10], float nLowThreshold, float nHighThreshold, int nWidth, int nHeight);
 
 extern Processor *convolution_c;
@@ -48,17 +48,8 @@ extern Processor *morpho_avx2;
 
 // uint16_t
 #define DEFINE_EXTERNS(name) \
-extern Processor16 *name##_10_c; \
-extern Processor16 *name##_12_c; \
-extern Processor16 *name##_14_c; \
 extern Processor16 *name##_16_c; \
-extern Processor16 *name##_10_sse2; \
-extern Processor16 *name##_12_sse2; \
-extern Processor16 *name##_14_sse2; \
 extern Processor16 *name##_16_sse2; \
-extern Processor16 *name##_10_avx2; \
-extern Processor16 *name##_12_avx2; \
-extern Processor16 *name##_14_avx2; \
 extern Processor16 *name##_16_avx2;
 
 DEFINE_EXTERNS(convolution)
@@ -109,37 +100,13 @@ extern Processor *morpho_neon;
 extern Processor *prewitt_neon;
 extern Processor *roberts_neon;
 extern Processor *sobel_neon;
-extern Processor16 *cartoon_10_neon;
-extern Processor16 *cartoon_12_neon;
-extern Processor16 *cartoon_14_neon;
 extern Processor16 *cartoon_16_neon;
-extern Processor16 *convolution_10_neon;
-extern Processor16 *convolution_12_neon;
-extern Processor16 *convolution_14_neon;
 extern Processor16 *convolution_16_neon;
-extern Processor16 *half_prewitt_10_neon;
-extern Processor16 *half_prewitt_12_neon;
-extern Processor16 *half_prewitt_14_neon;
 extern Processor16 *half_prewitt_16_neon;
-extern Processor16 *laplace_10_neon;
-extern Processor16 *laplace_12_neon;
-extern Processor16 *laplace_14_neon;
 extern Processor16 *laplace_16_neon;
-extern Processor16 *morpho_10_neon;
-extern Processor16 *morpho_12_neon;
-extern Processor16 *morpho_14_neon;
 extern Processor16 *morpho_16_neon;
-extern Processor16 *prewitt_10_neon;
-extern Processor16 *prewitt_12_neon;
-extern Processor16 *prewitt_14_neon;
 extern Processor16 *prewitt_16_neon;
-extern Processor16 *roberts_10_neon;
-extern Processor16 *roberts_12_neon;
-extern Processor16 *roberts_14_neon;
 extern Processor16 *roberts_16_neon;
-extern Processor16 *sobel_10_neon;
-extern Processor16 *sobel_12_neon;
-extern Processor16 *sobel_14_neon;
 extern Processor16 *sobel_16_neon;
 extern Processor32 *cartoon_32_neon;
 extern Processor32 *convolution_32_neon;
@@ -182,7 +149,7 @@ protected:
           const bool cOnly = bit_depths[C] == 16 && nLowThresholds[nPlane] >= 65535;
           processors16.best_processor(cOnly ? Constraint(CPU_NONE) : constraints[nPlane])((uint16_t *)dst.data(), dst.pitch(),
             (uint16_t *)frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
-            matrix, nLowThresholds[nPlane], nHighThresholds[nPlane], dst.width(), dst.height());
+            matrix, nLowThresholds[nPlane], nHighThresholds[nPlane], dst.width(), dst.height(), bit_depths[C]);
         }
         else { // float
           processors32.best_processor(constraints[nPlane])((float *)dst.data(), dst.pitch(),
@@ -280,37 +247,7 @@ public:
            processors.push_back(Filtering::Processor<Processor>(sobel_avx2, Constraint(CPU_AVX2, 33), 3));
 #endif
            break;
-         case 10: 
-           processors16.push_back(Filtering::Processor<Processor16>(sobel_10_c, Constraint(CPU_NONE), 0));
-#ifdef NEON_INTRINSICS
-           processors16.push_back(Filtering::Processor<Processor16>(sobel_10_neon, Constraint(CPU_NEON, 9), 1));
-#endif
-#ifdef INTEL_INTRINSICS
-           processors16.push_back(Filtering::Processor<Processor16>(sobel_10_sse2, Constraint(CPU_SSE2, 9), 1));
-           processors16.push_back(Filtering::Processor<Processor16>(sobel_10_avx2, Constraint(CPU_AVX2, 17), 3));
-#endif
-           break;
-         case 12:
-           processors16.push_back(Filtering::Processor<Processor16>(sobel_12_c, Constraint(CPU_NONE), 0));
-#ifdef NEON_INTRINSICS
-           processors16.push_back(Filtering::Processor<Processor16>(sobel_12_neon, Constraint(CPU_NEON, 9), 1));
-#endif
-#ifdef INTEL_INTRINSICS
-           processors16.push_back(Filtering::Processor<Processor16>(sobel_12_sse2, Constraint(CPU_SSE2, 9), 1));
-           processors16.push_back(Filtering::Processor<Processor16>(sobel_12_avx2, Constraint(CPU_AVX2, 17), 3));
-#endif
-           break;
-         case 14:
-           processors16.push_back(Filtering::Processor<Processor16>(sobel_14_c, Constraint(CPU_NONE), 0));
-#ifdef NEON_INTRINSICS
-           processors16.push_back(Filtering::Processor<Processor16>(sobel_14_neon, Constraint(CPU_NEON, 9), 1));
-#endif
-#ifdef INTEL_INTRINSICS
-           processors16.push_back(Filtering::Processor<Processor16>(sobel_14_sse2, Constraint(CPU_SSE2, 9), 1));
-           processors16.push_back(Filtering::Processor<Processor16>(sobel_14_avx2, Constraint(CPU_AVX2, 17), 3));
-#endif
-           break;
-         case 16:
+         case 10: case 12: case 14: case 16:
            processors16.push_back(Filtering::Processor<Processor16>(sobel_16_c, Constraint(CPU_NONE), 0));
 #ifdef NEON_INTRINSICS
            processors16.push_back(Filtering::Processor<Processor16>(sobel_16_neon, Constraint(CPU_NEON, 9), 1));
@@ -347,37 +284,7 @@ public:
            processors.push_back(Filtering::Processor<Processor>(roberts_avx2, Constraint(CPU_AVX2, 33), 3));
 #endif
            break;
-         case 10:
-           processors16.push_back(Filtering::Processor<Processor16>(roberts_10_c, Constraint(CPU_NONE), 0));
-#ifdef NEON_INTRINSICS
-           processors16.push_back(Filtering::Processor<Processor16>(roberts_10_neon, Constraint(CPU_NEON, 9), 1));
-#endif
-#ifdef INTEL_INTRINSICS
-           processors16.push_back(Filtering::Processor<Processor16>(roberts_10_sse2, Constraint(CPU_SSE2, 9), 1));
-           processors16.push_back(Filtering::Processor<Processor16>(roberts_10_avx2, Constraint(CPU_AVX2, 17), 3));
-#endif
-           break;
-         case 12:
-           processors16.push_back(Filtering::Processor<Processor16>(roberts_12_c, Constraint(CPU_NONE), 0));
-#ifdef NEON_INTRINSICS
-           processors16.push_back(Filtering::Processor<Processor16>(roberts_12_neon, Constraint(CPU_NEON, 9), 1));
-#endif
-#ifdef INTEL_INTRINSICS
-           processors16.push_back(Filtering::Processor<Processor16>(roberts_12_sse2, Constraint(CPU_SSE2, 9), 1));
-           processors16.push_back(Filtering::Processor<Processor16>(roberts_12_avx2, Constraint(CPU_AVX2, 17), 3));
-#endif
-           break;
-         case 14:
-           processors16.push_back(Filtering::Processor<Processor16>(roberts_14_c, Constraint(CPU_NONE), 0));
-#ifdef NEON_INTRINSICS
-           processors16.push_back(Filtering::Processor<Processor16>(roberts_14_neon, Constraint(CPU_NEON, 9), 1));
-#endif
-#ifdef INTEL_INTRINSICS
-           processors16.push_back(Filtering::Processor<Processor16>(roberts_14_sse2, Constraint(CPU_SSE2, 9), 1));
-           processors16.push_back(Filtering::Processor<Processor16>(roberts_14_avx2, Constraint(CPU_AVX2, 17), 3));
-#endif
-           break;
-         case 16:
+         case 10: case 12: case 14: case 16:
            processors16.push_back(Filtering::Processor<Processor16>(roberts_16_c, Constraint(CPU_NONE), 0));
 #ifdef NEON_INTRINSICS
            processors16.push_back(Filtering::Processor<Processor16>(roberts_16_neon, Constraint(CPU_NEON, 9), 1));
@@ -414,37 +321,7 @@ public:
           processors.push_back(Filtering::Processor<Processor>(laplace_avx2, Constraint(CPU_AVX2, 33), 3));
 #endif
           break;
-        case 10: 
-          processors16.push_back(Filtering::Processor<Processor16>(laplace_10_c, Constraint(CPU_NONE), 0));
-#ifdef NEON_INTRINSICS
-          processors16.push_back(Filtering::Processor<Processor16>(laplace_10_neon, Constraint(CPU_NEON, 9), 1));
-#endif
-#ifdef INTEL_INTRINSICS
-          processors16.push_back(Filtering::Processor<Processor16>(laplace_10_sse2, Constraint(CPU_SSE2, 9), 1));
-          processors16.push_back(Filtering::Processor<Processor16>(laplace_10_avx2, Constraint(CPU_AVX2, 17), 3));
-#endif
-          break;
-        case 12:
-          processors16.push_back(Filtering::Processor<Processor16>(laplace_12_c, Constraint(CPU_NONE), 0));
-#ifdef NEON_INTRINSICS
-          processors16.push_back(Filtering::Processor<Processor16>(laplace_12_neon, Constraint(CPU_NEON, 9), 1));
-#endif
-#ifdef INTEL_INTRINSICS
-          processors16.push_back(Filtering::Processor<Processor16>(laplace_12_sse2, Constraint(CPU_SSE2, 9), 1));
-          processors16.push_back(Filtering::Processor<Processor16>(laplace_12_avx2, Constraint(CPU_AVX2, 17), 3));
-#endif
-          break;
-        case 14:
-          processors16.push_back(Filtering::Processor<Processor16>(laplace_14_c, Constraint(CPU_NONE), 0));
-#ifdef NEON_INTRINSICS
-          processors16.push_back(Filtering::Processor<Processor16>(laplace_14_neon, Constraint(CPU_NEON, 9), 1));
-#endif
-#ifdef INTEL_INTRINSICS
-          processors16.push_back(Filtering::Processor<Processor16>(laplace_14_sse2, Constraint(CPU_SSE2, 9), 1));
-          processors16.push_back(Filtering::Processor<Processor16>(laplace_14_avx2, Constraint(CPU_AVX2, 17), 3));
-#endif
-          break;
-        case 16:
+        case 10: case 12: case 14: case 16:
           processors16.push_back(Filtering::Processor<Processor16>(laplace_16_c, Constraint(CPU_NONE), 0));
 #ifdef NEON_INTRINSICS
           processors16.push_back(Filtering::Processor<Processor16>(laplace_16_neon, Constraint(CPU_NEON, 9), 1));
@@ -480,37 +357,7 @@ public:
           processors.push_back(Filtering::Processor<Processor>(cartoon_avx2, Constraint(CPU_AVX2, 33), 3));
 #endif
           break;
-        case 10: 
-          processors16.push_back(Filtering::Processor<Processor16>(cartoon_10_c, Constraint(CPU_NONE), 0));
-#ifdef NEON_INTRINSICS
-          processors16.push_back(Filtering::Processor<Processor16>(cartoon_10_neon, Constraint(CPU_NEON, 9), 1));
-#endif
-#ifdef INTEL_INTRINSICS
-          processors16.push_back(Filtering::Processor<Processor16>(cartoon_10_sse2, Constraint(CPU_SSE2, 9), 1));
-          processors16.push_back(Filtering::Processor<Processor16>(cartoon_10_avx2, Constraint(CPU_AVX2, 17), 3));
-#endif
-          break;
-        case 12:
-          processors16.push_back(Filtering::Processor<Processor16>(cartoon_12_c, Constraint(CPU_NONE), 0));
-#ifdef NEON_INTRINSICS
-          processors16.push_back(Filtering::Processor<Processor16>(cartoon_12_neon, Constraint(CPU_NEON, 9), 1));
-#endif
-#ifdef INTEL_INTRINSICS
-          processors16.push_back(Filtering::Processor<Processor16>(cartoon_12_sse2, Constraint(CPU_SSE2, 9), 1));
-          processors16.push_back(Filtering::Processor<Processor16>(cartoon_12_avx2, Constraint(CPU_AVX2, 17), 3));
-#endif
-          break;
-        case 14:
-          processors16.push_back(Filtering::Processor<Processor16>(cartoon_14_c, Constraint(CPU_NONE), 0));
-#ifdef NEON_INTRINSICS
-          processors16.push_back(Filtering::Processor<Processor16>(cartoon_14_neon, Constraint(CPU_NEON, 9), 1));
-#endif
-#ifdef INTEL_INTRINSICS
-          processors16.push_back(Filtering::Processor<Processor16>(cartoon_14_sse2, Constraint(CPU_SSE2, 9), 1));
-          processors16.push_back(Filtering::Processor<Processor16>(cartoon_14_avx2, Constraint(CPU_AVX2, 17), 3));
-#endif
-          break;
-        case 16:
+        case 10: case 12: case 14: case 16:
           processors16.push_back(Filtering::Processor<Processor16>(cartoon_16_c, Constraint(CPU_NONE), 0));
 #ifdef NEON_INTRINSICS
           processors16.push_back(Filtering::Processor<Processor16>(cartoon_16_neon, Constraint(CPU_NEON, 9), 1));
@@ -546,37 +393,7 @@ public:
           processors.push_back(Filtering::Processor<Processor>(morpho_avx2, Constraint(CPU_AVX2, 33), 3));
 #endif
           break;
-        case 10: 
-          processors16.push_back(Filtering::Processor<Processor16>(morpho_10_c, Constraint(CPU_NONE), 0));
-#ifdef NEON_INTRINSICS
-          processors16.push_back(Filtering::Processor<Processor16>(morpho_10_neon, Constraint(CPU_NEON, 9), 1));
-#endif
-#ifdef INTEL_INTRINSICS
-          processors16.push_back(Filtering::Processor<Processor16>(morpho_10_sse2, Constraint(CPU_SSE2, 9), 1));
-          processors16.push_back(Filtering::Processor<Processor16>(morpho_10_avx2, Constraint(CPU_AVX2, 17), 3));
-#endif
-          break;
-        case 12:
-          processors16.push_back(Filtering::Processor<Processor16>(morpho_12_c, Constraint(CPU_NONE), 0));
-#ifdef NEON_INTRINSICS
-          processors16.push_back(Filtering::Processor<Processor16>(morpho_12_neon, Constraint(CPU_NEON, 9), 1));
-#endif
-#ifdef INTEL_INTRINSICS
-          processors16.push_back(Filtering::Processor<Processor16>(morpho_12_sse2, Constraint(CPU_SSE2, 9), 1));
-          processors16.push_back(Filtering::Processor<Processor16>(morpho_12_avx2, Constraint(CPU_AVX2, 17), 3));
-#endif
-          break;
-        case 14:
-          processors16.push_back(Filtering::Processor<Processor16>(morpho_14_c, Constraint(CPU_NONE), 0));
-#ifdef NEON_INTRINSICS
-          processors16.push_back(Filtering::Processor<Processor16>(morpho_14_neon, Constraint(CPU_NEON, 9), 1));
-#endif
-#ifdef INTEL_INTRINSICS
-          processors16.push_back(Filtering::Processor<Processor16>(morpho_14_sse2, Constraint(CPU_SSE2, 9), 1));
-          processors16.push_back(Filtering::Processor<Processor16>(morpho_14_avx2, Constraint(CPU_AVX2, 17), 3));
-#endif
-          break;
-        case 16:
+        case 10: case 12: case 14: case 16:
           processors16.push_back(Filtering::Processor<Processor16>(morpho_16_c, Constraint(CPU_NONE), 0));
 #ifdef NEON_INTRINSICS
           processors16.push_back(Filtering::Processor<Processor16>(morpho_16_neon, Constraint(CPU_NEON, 9), 1));
@@ -613,37 +430,7 @@ public:
           processors.push_back(Filtering::Processor<Processor>(prewitt_avx2, Constraint(CPU_AVX2, 33), 3));
 #endif
           break;
-        case 10: 
-          processors16.push_back(Filtering::Processor<Processor16>(prewitt_10_c, Constraint(CPU_NONE), 0));
-#ifdef NEON_INTRINSICS
-          processors16.push_back(Filtering::Processor<Processor16>(prewitt_10_neon, Constraint(CPU_NEON, 9), 1));
-#endif
-#ifdef INTEL_INTRINSICS
-          processors16.push_back(Filtering::Processor<Processor16>(prewitt_10_sse2, Constraint(CPU_SSE2, 9), 1));
-          processors16.push_back(Filtering::Processor<Processor16>(prewitt_10_avx2, Constraint(CPU_AVX2, 17), 3));
-#endif
-          break;
-        case 12:
-          processors16.push_back(Filtering::Processor<Processor16>(prewitt_12_c, Constraint(CPU_NONE), 0));
-#ifdef NEON_INTRINSICS
-          processors16.push_back(Filtering::Processor<Processor16>(prewitt_12_neon, Constraint(CPU_NEON, 9), 1));
-#endif
-#ifdef INTEL_INTRINSICS
-          processors16.push_back(Filtering::Processor<Processor16>(prewitt_12_sse2, Constraint(CPU_SSE2, 9), 1));
-          processors16.push_back(Filtering::Processor<Processor16>(prewitt_12_avx2, Constraint(CPU_AVX2, 17), 3));
-#endif
-          break;
-        case 14:
-          processors16.push_back(Filtering::Processor<Processor16>(prewitt_14_c, Constraint(CPU_NONE), 0));
-#ifdef NEON_INTRINSICS
-          processors16.push_back(Filtering::Processor<Processor16>(prewitt_14_neon, Constraint(CPU_NEON, 9), 1));
-#endif
-#ifdef INTEL_INTRINSICS
-          processors16.push_back(Filtering::Processor<Processor16>(prewitt_14_sse2, Constraint(CPU_SSE2, 9), 1));
-          processors16.push_back(Filtering::Processor<Processor16>(prewitt_14_avx2, Constraint(CPU_AVX2, 17), 3));
-#endif
-          break;
-        case 16:
+        case 10: case 12: case 14: case 16:
           processors16.push_back(Filtering::Processor<Processor16>(prewitt_16_c, Constraint(CPU_NONE), 0));
 #ifdef NEON_INTRINSICS
           processors16.push_back(Filtering::Processor<Processor16>(prewitt_16_neon, Constraint(CPU_NEON, 9), 1));
@@ -680,37 +467,7 @@ public:
           processors.push_back(Filtering::Processor<Processor>(half_prewitt_avx2, Constraint(CPU_AVX2, 33), 3));
 #endif
           break;
-        case 10: 
-          processors16.push_back(Filtering::Processor<Processor16>(half_prewitt_10_c, Constraint(CPU_NONE), 0));
-#ifdef NEON_INTRINSICS
-          processors16.push_back(Filtering::Processor<Processor16>(half_prewitt_10_neon, Constraint(CPU_NEON, 9), 1));
-#endif
-#ifdef INTEL_INTRINSICS
-          processors16.push_back(Filtering::Processor<Processor16>(half_prewitt_10_sse2, Constraint(CPU_SSE2, 9), 1));
-          processors16.push_back(Filtering::Processor<Processor16>(half_prewitt_10_avx2, Constraint(CPU_AVX2, 17), 3));
-#endif
-          break;
-        case 12:
-          processors16.push_back(Filtering::Processor<Processor16>(half_prewitt_12_c, Constraint(CPU_NONE), 0));
-#ifdef NEON_INTRINSICS
-          processors16.push_back(Filtering::Processor<Processor16>(half_prewitt_12_neon, Constraint(CPU_NEON, 9), 1));
-#endif
-#ifdef INTEL_INTRINSICS
-          processors16.push_back(Filtering::Processor<Processor16>(half_prewitt_12_sse2, Constraint(CPU_SSE2, 9), 1));
-          processors16.push_back(Filtering::Processor<Processor16>(half_prewitt_12_avx2, Constraint(CPU_AVX2, 17), 3));
-#endif
-          break;
-        case 14:
-          processors16.push_back(Filtering::Processor<Processor16>(half_prewitt_14_c, Constraint(CPU_NONE), 0));
-#ifdef NEON_INTRINSICS
-          processors16.push_back(Filtering::Processor<Processor16>(half_prewitt_14_neon, Constraint(CPU_NEON, 9), 1));
-#endif
-#ifdef INTEL_INTRINSICS
-          processors16.push_back(Filtering::Processor<Processor16>(half_prewitt_14_sse2, Constraint(CPU_SSE2, 9), 1));
-          processors16.push_back(Filtering::Processor<Processor16>(half_prewitt_14_avx2, Constraint(CPU_AVX2, 17), 3));
-#endif
-          break;
-        case 16:
+        case 10: case 12: case 14: case 16:
           processors16.push_back(Filtering::Processor<Processor16>(half_prewitt_16_c, Constraint(CPU_NONE), 0));
 #ifdef NEON_INTRINSICS
           processors16.push_back(Filtering::Processor<Processor16>(half_prewitt_16_neon, Constraint(CPU_NEON, 9), 1));
@@ -867,46 +624,7 @@ public:
 #endif
            }
            break;
-         case 10: 
-           processors16.push_back(Filtering::Processor<Processor16>(convolution_10_c, Constraint(CPU_NONE), 0));
-#ifdef NEON_INTRINSICS
-           processors16.push_back(Filtering::Processor<Processor16>(convolution_10_neon, Constraint(CPU_NEON, 9), 1));
-#endif
-           if (isAsmOk)
-           {
-#ifdef INTEL_INTRINSICS
-             processors16.push_back(Filtering::Processor<Processor16>(convolution_10_sse2, Constraint(CPU_SSE2, 9), 1));
-             processors16.push_back(Filtering::Processor<Processor16>(convolution_10_avx2, Constraint(CPU_AVX2, 17), 3));
-#endif
-           }
-           break;
-         case 12:
-           processors16.push_back(Filtering::Processor<Processor16>(convolution_12_c, Constraint(CPU_NONE), 0));
-#ifdef NEON_INTRINSICS
-           processors16.push_back(Filtering::Processor<Processor16>(convolution_12_neon, Constraint(CPU_NEON, 9), 1));
-#endif
-           if (isAsmOk)
-           {
-#ifdef INTEL_INTRINSICS
-             processors16.push_back(Filtering::Processor<Processor16>(convolution_12_sse2, Constraint(CPU_SSE2, 9), 1));
-             processors16.push_back(Filtering::Processor<Processor16>(convolution_12_avx2, Constraint(CPU_AVX2, 17), 3));
-#endif
-           }
-           break;
-         case 14:
-           processors16.push_back(Filtering::Processor<Processor16>(convolution_14_c, Constraint(CPU_NONE), 0));
-#ifdef NEON_INTRINSICS
-           processors16.push_back(Filtering::Processor<Processor16>(convolution_14_neon, Constraint(CPU_NEON, 9), 1));
-#endif
-           if (isAsmOk)
-           {
-#ifdef INTEL_INTRINSICS
-             processors16.push_back(Filtering::Processor<Processor16>(convolution_14_sse2, Constraint(CPU_SSE2, 9), 1));
-             processors16.push_back(Filtering::Processor<Processor16>(convolution_14_avx2, Constraint(CPU_AVX2, 17), 3));
-#endif
-           }
-           break;
-         case 16:
+         case 10: case 12: case 14: case 16:
            processors16.push_back(Filtering::Processor<Processor16>(convolution_16_c, Constraint(CPU_NONE), 0));
 #ifdef NEON_INTRINSICS
            processors16.push_back(Filtering::Processor<Processor16>(convolution_16_neon, Constraint(CPU_NEON, 9), 1));

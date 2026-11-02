@@ -228,8 +228,8 @@ void mask8_neon(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff
 }
 
 // 10-16 bit: pitches in bytes (as the C)
-template<class Op, int bits_per_pixel>
-void mask16_neon(uint16_t *pDst, ptrdiff_t nDstPitch, const uint16_t *pSrc, ptrdiff_t nSrcPitch, const int16_t matrix[10], int nLowThreshold, int nHighThreshold, int nWidth, int nHeight)
+template<class Op>
+void mask16_neon(uint16_t *pDst, ptrdiff_t nDstPitch, const uint16_t *pSrc, ptrdiff_t nSrcPitch, const int16_t matrix[10], int nLowThreshold, int nHighThreshold, int nWidth, int nHeight, int bits_per_pixel)
 {
   generic_neon<U16, Op>(pDst, nDstPitch / 2, pSrc, nSrcPitch / 2, make_params<int32x4_t>(matrix, nLowThreshold, nHighThreshold, (1 << bits_per_pixel) - 1), nWidth, nHeight);
 }
@@ -370,10 +370,7 @@ void mask32_neon(float *pDst, ptrdiff_t nDstPitch, const float *pSrc, ptrdiff_t 
 
 #define DEFINE_NEON_VERSIONS(name, Op) \
 Processor *name##_neon = &mask8_neon<Op>; \
-Processor16 *name##_10_neon = &mask16_neon<Op, 10>; \
-Processor16 *name##_12_neon = &mask16_neon<Op, 12>; \
-Processor16 *name##_14_neon = &mask16_neon<Op, 14>; \
-Processor16 *name##_16_neon = &mask16_neon<Op, 16>; \
+Processor16 *name##_16_neon = &mask16_neon<Op>; \
 Processor32 *name##_32_neon = &mask32_neon<Op##F>;
 
 DEFINE_NEON_VERSIONS(sobel, Sobel)

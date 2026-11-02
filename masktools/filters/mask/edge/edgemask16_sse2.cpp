@@ -9,25 +9,10 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Mask {
 using namespace Filters::Mask;
 
 #define DEFINE_SSE2_VERSIONS(name) \
-Processor16 *name##_10_sse2 = &generic16_sse2<10, \
-    process_line_##name##_sse2<10, Border::Left>, \
-    process_line_##name##_sse2<10, Border::None>, \
-    process_line_##name##_sse2<10, Border::Right> \
->; \
-Processor16 *name##_12_sse2 = &generic16_sse2<12, \
-    process_line_##name##_sse2<12, Border::Left>, \
-    process_line_##name##_sse2<12, Border::None>, \
-    process_line_##name##_sse2<12, Border::Right> \
->; \
-Processor16 *name##_14_sse2 = &generic16_sse2<14, \
-    process_line_##name##_sse2<14, Border::Left>, \
-    process_line_##name##_sse2<14, Border::None>, \
-    process_line_##name##_sse2<14, Border::Right> \
->; \
-Processor16 *name##_16_sse2 = &generic16_sse2<16, \
-    process_line_##name##_sse2<16, Border::Left>, \
-    process_line_##name##_sse2<16, Border::None>, \
-    process_line_##name##_sse2<16, Border::Right> \
+Processor16 *name##_16_sse2 = &generic16_sse2< \
+    process_line_##name##_sse2<Border::Left>, \
+    process_line_##name##_sse2<Border::None>, \
+    process_line_##name##_sse2<Border::Right> \
 >;
 
 DEFINE_SSE2_VERSIONS(sobel)

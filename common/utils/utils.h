@@ -315,6 +315,12 @@ template<int bits_per_pixel> static inline uint16_t threshold16(int x, int mini,
   return convert<uint16_t, int>(x <= mini ? bottom : x > maxi ? top : x);
 }
 
+// top: the max pixel value of the bit depth
+static inline uint16_t threshold16(int x, int mini, int maxi, int top)
+{
+  return convert<uint16_t, int>(x <= mini ? 0 : x > maxi ? top : x);
+}
+
 /* width & height ratios, according to the colorspace */
 static const int plane_counts[COLORSPACE_COUNT] = { 0, 
 1, 3, 3, 3, 3, 3, 3, 
