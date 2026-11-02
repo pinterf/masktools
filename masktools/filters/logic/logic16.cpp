@@ -9,34 +9,23 @@ Processor16 *or16_native_c   = &logic16_native_t<or16_c>;
 Processor16 *andn16_native_c = &logic16_native_t<andn16_c>;
 Processor16 *xor16_native_c  = &logic16_native_t<xor16_c>;
 
-#define DEFINE_SILLY_C_MODE(mode, layout) \
-    Processor16 *mode##_##layout##_c         = &logic16_##layout##_t<mode##_t<nop16_c, nop16_c>>; \
-    Processor16 *mode##sub_##layout##_c      = &logic16_##layout##_t<mode##_t<nop16_c, sub16_c>>; \
-    Processor16 *mode##add10_##layout##_c   = &logic16_##layout##_t<mode##_t<nop16_c, add16_c<10>>>; \
-    Processor16 *mode##add12_##layout##_c   = &logic16_##layout##_t<mode##_t<nop16_c, add16_c<12>>>; \
-    Processor16 *mode##add14_##layout##_c   = &logic16_##layout##_t<mode##_t<nop16_c, add16_c<14>>>; \
-    Processor16 *mode##add16_##layout##_c   = &logic16_##layout##_t<mode##_t<nop16_c, add16_c<16>>>; \
-    Processor16 *sub##mode##_##layout##_c    = &logic16_##layout##_t<mode##_t<sub16_c, nop16_c>>; \
-    Processor16 *sub##mode##sub_##layout##_c = &logic16_##layout##_t<mode##_t<sub16_c, sub16_c>>; \
-    Processor16 *sub##mode##add10_##layout##_c = &logic16_##layout##_t<mode##_t<sub16_c, add16_c<10>>>; \
-    Processor16 *sub##mode##add12_##layout##_c = &logic16_##layout##_t<mode##_t<sub16_c, add16_c<12>>>; \
-    Processor16 *sub##mode##add14_##layout##_c = &logic16_##layout##_t<mode##_t<sub16_c, add16_c<14>>>; \
-    Processor16 *sub##mode##add16_##layout##_c = &logic16_##layout##_t<mode##_t<sub16_c, add16_c<16>>>; \
-    Processor16 *add10##mode##_##layout##_c    = &logic16_##layout##_t<mode##_t<add16_c<10>, nop16_c>>; \
-    Processor16 *add12##mode##_##layout##_c    = &logic16_##layout##_t<mode##_t<add16_c<12>, nop16_c>>; \
-    Processor16 *add14##mode##_##layout##_c    = &logic16_##layout##_t<mode##_t<add16_c<14>, nop16_c>>; \
-    Processor16 *add16##mode##_##layout##_c    = &logic16_##layout##_t<mode##_t<add16_c<16>, nop16_c>>; \
-    Processor16 *add10##mode##sub_##layout##_c = &logic16_##layout##_t<mode##_t<add16_c<10>, sub16_c>>; \
-    Processor16 *add12##mode##sub_##layout##_c = &logic16_##layout##_t<mode##_t<add16_c<12>, sub16_c>>; \
-    Processor16 *add14##mode##sub_##layout##_c = &logic16_##layout##_t<mode##_t<add16_c<14>, sub16_c>>; \
-    Processor16 *add16##mode##sub_##layout##_c = &logic16_##layout##_t<mode##_t<add16_c<16>, sub16_c>>; \
-    Processor16 *add10##mode##add10_##layout##_c = &logic16_##layout##_t<mode##_t<add16_c<10>, add16_c<10>>>; \
-    Processor16 *add12##mode##add12_##layout##_c = &logic16_##layout##_t<mode##_t<add16_c<12>, add16_c<12>>>; \
-    Processor16 *add14##mode##add14_##layout##_c = &logic16_##layout##_t<mode##_t<add16_c<14>, add16_c<14>>>; \
-    Processor16 *add16##mode##add16_##layout##_c = &logic16_##layout##_t<mode##_t<add16_c<16>, add16_c<16>>>;
+#define LOGIC16_C(name, mode, A, B) \
+    Processor16 *name##_native_c = &logic16_native_t<mode##_t<A##16_c, B##16_c>>;
 
-DEFINE_SILLY_C_MODE(min, native)
-DEFINE_SILLY_C_MODE(max, native)
-#undef DEFINE_SILLY_C_MODE
+#define DEFINE_C_MODES(mode) \
+    LOGIC16_C(mode, mode, nop, nop) \
+    LOGIC16_C(mode##sub, mode, nop, sub) \
+    LOGIC16_C(mode##add, mode, nop, add) \
+    LOGIC16_C(sub##mode, mode, sub, nop) \
+    LOGIC16_C(sub##mode##sub, mode, sub, sub) \
+    LOGIC16_C(sub##mode##add, mode, sub, add) \
+    LOGIC16_C(add##mode, mode, add, nop) \
+    LOGIC16_C(add##mode##sub, mode, add, sub) \
+    LOGIC16_C(add##mode##add, mode, add, add)
+
+DEFINE_C_MODES(min)
+DEFINE_C_MODES(max)
+#undef DEFINE_C_MODES
+#undef LOGIC16_C
 
 } } } }

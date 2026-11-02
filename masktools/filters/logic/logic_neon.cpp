@@ -34,44 +34,39 @@ struct F32 {
   static MT_FORCEINLINE V dup(T v) { return vdupq_n_f32(v); }
 };
 
-/* threshold pre-ops: v(vector, threshold), s(scalar, threshold) */
+/* threshold pre-ops: v(vector, threshold, max_pixel_value), s(scalar, threshold, max_pixel_value) */
 
 struct Nop {
-  template<class V> static MT_FORCEINLINE V v(V a, V) { return a; }
-  template<class T> static MT_FORCEINLINE T s(T a, T) { return a; }
+  template<class V> static MT_FORCEINLINE V v(V a, V, V) { return a; }
+  template<class T> static MT_FORCEINLINE T s(T a, T, T) { return a; }
 };
 struct Add8 {
-  static MT_FORCEINLINE uint8x16_t v(uint8x16_t a, uint8x16_t th) { return vqaddq_u8(a, th); }
-  static MT_FORCEINLINE uint8_t s(uint8_t a, uint8_t th) { int r = a + th; return uint8_t(r > 255 ? 255 : r); }
+  static MT_FORCEINLINE uint8x16_t v(uint8x16_t a, uint8x16_t th, uint8x16_t) { return vqaddq_u8(a, th); }
+  static MT_FORCEINLINE uint8_t s(uint8_t a, uint8_t th, uint8_t) { int r = a + th; return uint8_t(r > 255 ? 255 : r); }
 };
 struct Sub8 {
-  static MT_FORCEINLINE uint8x16_t v(uint8x16_t a, uint8x16_t th) { return vqsubq_u8(a, th); }
-  static MT_FORCEINLINE uint8_t s(uint8_t a, uint8_t th) { int r = a - th; return uint8_t(r < 0 ? 0 : r); }
+  static MT_FORCEINLINE uint8x16_t v(uint8x16_t a, uint8x16_t th, uint8x16_t) { return vqsubq_u8(a, th); }
+  static MT_FORCEINLINE uint8_t s(uint8_t a, uint8_t th, uint8_t) { int r = a - th; return uint8_t(r < 0 ? 0 : r); }
 };
-template<int bits_per_pixel>
 struct Add16 {
-  static MT_FORCEINLINE uint16x8_t v(uint16x8_t a, uint16x8_t th) {
-    if constexpr (bits_per_pixel < 16)
-      return vminq_u16(vaddq_u16(a, th), vdupq_n_u16((1 << bits_per_pixel) - 1)); // the threshold is clamped to max
-    else
-      return vqaddq_u16(a, th);
-  }
-  static MT_FORCEINLINE uint16_t s(uint16_t a, uint16_t th) { int r = a + th; const int mx = (1 << bits_per_pixel) - 1; return uint16_t(r > mx ? mx : r); }
+  // the threshold is clamped to max_pixel_value; at 16 bit the min is a no-op
+  static MT_FORCEINLINE uint16x8_t v(uint16x8_t a, uint16x8_t th, uint16x8_t max_pixel_value) { return vminq_u16(vqaddq_u16(a, th), max_pixel_value); }
+  static MT_FORCEINLINE uint16_t s(uint16_t a, uint16_t th, uint16_t max_pixel_value) { int r = a + th; return uint16_t(r > max_pixel_value ? max_pixel_value : r); }
 };
 struct Sub16 {
-  static MT_FORCEINLINE uint16x8_t v(uint16x8_t a, uint16x8_t th) { return vqsubq_u16(a, th); }
-  static MT_FORCEINLINE uint16_t s(uint16_t a, uint16_t th) { int r = a - th; return uint16_t(r < 0 ? 0 : r); }
+  static MT_FORCEINLINE uint16x8_t v(uint16x8_t a, uint16x8_t th, uint16x8_t) { return vqsubq_u16(a, th); }
+  static MT_FORCEINLINE uint16_t s(uint16_t a, uint16_t th, uint16_t) { int r = a - th; return uint16_t(r < 0 ? 0 : r); }
 };
 struct AddF {
-  static MT_FORCEINLINE float32x4_t v(float32x4_t a, float32x4_t th) { return vaddq_f32(a, th); }
-  static MT_FORCEINLINE float s(float a, float th) { return a + th; }
+  static MT_FORCEINLINE float32x4_t v(float32x4_t a, float32x4_t th, float32x4_t) { return vaddq_f32(a, th); }
+  static MT_FORCEINLINE float s(float a, float th, float) { return a + th; }
 };
 struct SubF {
-  static MT_FORCEINLINE float32x4_t v(float32x4_t a, float32x4_t th) { return vsubq_f32(a, th); }
-  static MT_FORCEINLINE float s(float a, float th) { return a - th; }
+  static MT_FORCEINLINE float32x4_t v(float32x4_t a, float32x4_t th, float32x4_t) { return vsubq_f32(a, th); }
+  static MT_FORCEINLINE float s(float a, float th, float) { return a - th; }
 };
 
-/* operators: v(dst, src, th1, th2), s(...) */
+/* operators: v(dst, src, th1, th2, max_pixel_value), s(...) */
 
 MT_FORCEINLINE uint8x16_t vand(uint8x16_t a, uint8x16_t b) { return vandq_u8(a, b); }
 MT_FORCEINLINE uint16x8_t vand(uint16x8_t a, uint16x8_t b) { return vandq_u16(a, b); }
@@ -97,48 +92,48 @@ template<class T> MT_FORCEINLINE uint32_t bits(T x) { uint32_t u = 0; memcpy(&u,
 template<class T> MT_FORCEINLINE T from_bits(uint32_t u) { T x; memcpy(&x, &u, sizeof(T)); return x; }
 
 struct And {
-  template<class V> static MT_FORCEINLINE V v(V a, V b, V, V) { return vand(a, b); }
-  template<class T> static MT_FORCEINLINE T s(T a, T b, T, T) { return from_bits<T>(bits(a) & bits(b)); }
+  template<class V> static MT_FORCEINLINE V v(V a, V b, V, V, V) { return vand(a, b); }
+  template<class T> static MT_FORCEINLINE T s(T a, T b, T, T, T) { return from_bits<T>(bits(a) & bits(b)); }
 };
 struct Or {
-  template<class V> static MT_FORCEINLINE V v(V a, V b, V, V) { return vor(a, b); }
-  template<class T> static MT_FORCEINLINE T s(T a, T b, T, T) { return from_bits<T>(bits(a) | bits(b)); }
+  template<class V> static MT_FORCEINLINE V v(V a, V b, V, V, V) { return vor(a, b); }
+  template<class T> static MT_FORCEINLINE T s(T a, T b, T, T, T) { return from_bits<T>(bits(a) | bits(b)); }
 };
 struct Xor {
-  template<class V> static MT_FORCEINLINE V v(V a, V b, V, V) { return vxor(a, b); }
-  template<class T> static MT_FORCEINLINE T s(T a, T b, T, T) { return from_bits<T>(bits(a) ^ bits(b)); }
+  template<class V> static MT_FORCEINLINE V v(V a, V b, V, V, V) { return vxor(a, b); }
+  template<class T> static MT_FORCEINLINE T s(T a, T b, T, T, T) { return from_bits<T>(bits(a) ^ bits(b)); }
 };
 struct Andn {
-  template<class V> static MT_FORCEINLINE V v(V a, V b, V, V) { return vandn(a, b); }
-  template<class T> static MT_FORCEINLINE T s(T a, T b, T, T) { return from_bits<T>(~bits(a) & bits(b)); }
+  template<class V> static MT_FORCEINLINE V v(V a, V b, V, V, V) { return vandn(a, b); }
+  template<class T> static MT_FORCEINLINE T s(T a, T b, T, T, T) { return from_bits<T>(~bits(a) & bits(b)); }
 };
 template<class OpA, class OpB>
 struct Min {
-  template<class V> static MT_FORCEINLINE V v(V a, V b, V th1, V th2) { return vmin(OpA::v(a, th1), OpB::v(b, th2)); }
-  template<class T> static MT_FORCEINLINE T s(T a, T b, T th1, T th2) { T x = OpA::s(a, th1), y = OpB::s(b, th2); return x < y ? x : y; }
+  template<class V> static MT_FORCEINLINE V v(V a, V b, V th1, V th2, V mx) { return vmin(OpA::v(a, th1, mx), OpB::v(b, th2, mx)); }
+  template<class T> static MT_FORCEINLINE T s(T a, T b, T th1, T th2, T mx) { T x = OpA::s(a, th1, mx), y = OpB::s(b, th2, mx); return x < y ? x : y; }
 };
 template<class OpA, class OpB>
 struct Max {
-  template<class V> static MT_FORCEINLINE V v(V a, V b, V th1, V th2) { return vmax(OpA::v(a, th1), OpB::v(b, th2)); }
-  template<class T> static MT_FORCEINLINE T s(T a, T b, T th1, T th2) { T x = OpA::s(a, th1), y = OpB::s(b, th2); return x > y ? x : y; }
+  template<class V> static MT_FORCEINLINE V v(V a, V b, V th1, V th2, V mx) { return vmax(OpA::v(a, th1, mx), OpB::v(b, th2, mx)); }
+  template<class T> static MT_FORCEINLINE T s(T a, T b, T th1, T th2, T mx) { T x = OpA::s(a, th1, mx), y = OpB::s(b, th2, mx); return x > y ? x : y; }
 };
 
 // pitches in bytes
 template<class Lane, class Op>
 MT_FORCEINLINE void logic_neon_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight,
-                                 typename Lane::T th1, typename Lane::T th2)
+                                 typename Lane::T th1, typename Lane::T th2, typename Lane::T max_pixel_value)
 {
   using T = typename Lane::T;
   constexpr int L = Lane::L;
   const int wmod = nWidth / L * L;
-  const auto vth1 = Lane::dup(th1), vth2 = Lane::dup(th2);
+  const auto vth1 = Lane::dup(th1), vth2 = Lane::dup(th2), vmax = Lane::dup(max_pixel_value);
   for (int y = 0; y < nHeight; y++) {
     T *d = reinterpret_cast<T *>(pDst);
     const T *s = reinterpret_cast<const T *>(pSrc);
     for (int x = 0; x < wmod; x += L)
-      Lane::st(d + x, Op::v(Lane::ld(d + x), Lane::ld(s + x), vth1, vth2));
+      Lane::st(d + x, Op::v(Lane::ld(d + x), Lane::ld(s + x), vth1, vth2, vmax));
     for (int x = wmod; x < nWidth; x++)
-      d[x] = Op::s(d[x], s[x], th1, th2);
+      d[x] = Op::s(d[x], s[x], th1, th2, max_pixel_value);
     pDst += nDstPitch;
     pSrc += nSrcPitch;
   }
@@ -147,20 +142,19 @@ MT_FORCEINLINE void logic_neon_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8
 template<class Op>
 void logic8_neon(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight, uint8_t th1, uint8_t th2)
 {
-  logic_neon_t<U8, Op>(pDst, nDstPitch, pSrc, nSrcPitch, nWidth, nHeight, th1, th2);
+  logic_neon_t<U8, Op>(pDst, nDstPitch, pSrc, nSrcPitch, nWidth, nHeight, th1, th2, uint8_t(255));
 }
 
 template<class Op>
-void logic16_neon(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight, int nOrigHeight, uint16_t th1, uint16_t th2)
+void logic16_neon(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight, int bits_per_pixel, uint16_t th1, uint16_t th2)
 {
-  UNUSED(nOrigHeight);
-  logic_neon_t<U16, Op>(pDst, nDstPitch, pSrc, nSrcPitch, nWidth, nHeight, th1, th2);
+  logic_neon_t<U16, Op>(pDst, nDstPitch, pSrc, nSrcPitch, nWidth, nHeight, th1, th2, uint16_t((1 << bits_per_pixel) - 1));
 }
 
 template<class Op>
 void logic32_neon(float *pDst, ptrdiff_t nDstPitch, const float *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight, float th1, float th2)
 {
-  logic_neon_t<F32, Op>(reinterpret_cast<uint8_t *>(pDst), nDstPitch, reinterpret_cast<const uint8_t *>(pSrc), nSrcPitch, nWidth, nHeight, th1, th2);
+  logic_neon_t<F32, Op>(reinterpret_cast<uint8_t *>(pDst), nDstPitch, reinterpret_cast<const uint8_t *>(pSrc), nSrcPitch, nWidth, nHeight, th1, th2, 1.0f);
 }
 
 } // namespace
@@ -194,27 +188,20 @@ Processor16 *or16_native_neon   = &logic16_neon<Or>;
 Processor16 *andn16_native_neon = &logic16_neon<Andn>;
 Processor16 *xor16_native_neon  = &logic16_neon<Xor>;
 
-#define DEFINE_NEON_VERSIONS_BPP(mode, Mode, bpp) \
-    Processor16 *mode##add##bpp##_native_neon = &logic16_neon<Mode<Nop, Add16<bpp>>>; \
-    Processor16 *sub##mode##add##bpp##_native_neon = &logic16_neon<Mode<Sub16, Add16<bpp>>>; \
-    Processor16 *add##bpp##mode##_native_neon = &logic16_neon<Mode<Add16<bpp>, Nop>>; \
-    Processor16 *add##bpp##mode##sub_native_neon = &logic16_neon<Mode<Add16<bpp>, Sub16>>; \
-    Processor16 *add##bpp##mode##add##bpp##_native_neon = &logic16_neon<Mode<Add16<bpp>, Add16<bpp>>>;
-
 #define DEFINE_NEON_VERSIONS(mode, Mode) \
-    Processor16 *mode##_native_neon = &logic16_neon<Mode<Nop, Nop>>; \
-    Processor16 *mode##sub_native_neon = &logic16_neon<Mode<Nop, Sub16>>; \
-    Processor16 *sub##mode##_native_neon = &logic16_neon<Mode<Sub16, Nop>>; \
+    Processor16 *mode##_native_neon         = &logic16_neon<Mode<Nop, Nop>>; \
+    Processor16 *mode##sub_native_neon      = &logic16_neon<Mode<Nop, Sub16>>; \
+    Processor16 *mode##add_native_neon      = &logic16_neon<Mode<Nop, Add16>>; \
+    Processor16 *sub##mode##_native_neon    = &logic16_neon<Mode<Sub16, Nop>>; \
     Processor16 *sub##mode##sub_native_neon = &logic16_neon<Mode<Sub16, Sub16>>; \
-    DEFINE_NEON_VERSIONS_BPP(mode, Mode, 10) \
-    DEFINE_NEON_VERSIONS_BPP(mode, Mode, 12) \
-    DEFINE_NEON_VERSIONS_BPP(mode, Mode, 14) \
-    DEFINE_NEON_VERSIONS_BPP(mode, Mode, 16)
+    Processor16 *sub##mode##add_native_neon = &logic16_neon<Mode<Sub16, Add16>>; \
+    Processor16 *add##mode##_native_neon    = &logic16_neon<Mode<Add16, Nop>>; \
+    Processor16 *add##mode##sub_native_neon = &logic16_neon<Mode<Add16, Sub16>>; \
+    Processor16 *add##mode##add_native_neon = &logic16_neon<Mode<Add16, Add16>>;
 
 DEFINE_NEON_VERSIONS(min, Min)
 DEFINE_NEON_VERSIONS(max, Max)
 #undef DEFINE_NEON_VERSIONS
-#undef DEFINE_NEON_VERSIONS_BPP
 
 /* float */
 
