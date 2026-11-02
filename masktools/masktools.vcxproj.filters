@@ -189,10 +189,16 @@
     <ClCompile Include="filters\binarize\binarize16.cpp">
       <Filter>filters\binarize</Filter>
     </ClCompile>
+    <ClCompile Include="filters\binarize\binarize16_avx2.cpp">
+      <Filter>filters\binarize</Filter>
+    </ClCompile>
     <ClCompile Include="filters\binarize\binarize16_sse2.cpp">
       <Filter>filters\binarize</Filter>
     </ClCompile>
     <ClCompile Include="filters\binarize\binarize32.cpp">
+      <Filter>filters\binarize</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\binarize\binarize32_avx2.cpp">
       <Filter>filters\binarize</Filter>
     </ClCompile>
     <ClCompile Include="filters\binarize\binarize32_sse2.cpp">

@@ -35,6 +35,7 @@ DEFINE_PROCESSOR(255_t);
 #define DEFINE_PROCESSOR(name) \
 extern Processor16 *binarize_##name##_native_c; \
 extern Processor16 *binarize_##name##_native_sse2; \
+extern Processor16 *binarize_##name##_native_avx2; \
 extern Processor16 *binarize_##name##_native_neon;
 
 DEFINE_PROCESSOR(upper);
@@ -56,6 +57,7 @@ DEFINE_PROCESSOR(255_t);
 #define DEFINE_PROCESSOR(name) \
    extern Processor32 *binarize32_##name##_c; \
    extern Processor32 *binarize32_##name##_sse2; \
+   extern Processor32 *binarize32_##name##_avx2; \
    extern Processor32 *binarize32_##name##_neon
 
 DEFINE_PROCESSOR(upper);
@@ -138,9 +140,8 @@ public:
 #define SET_MODE(mode) \
       processors.push_back(Filtering::Processor<Processor>(binarize_##mode##_c, Constraint(CPU_NONE), 0)); \
       MT_X86(processors.push_back(Filtering::Processor<Processor>(binarize_##mode##_sse2, Constraint(CPU_SSE2), 1))); \
-      MT_NEON(processors.push_back(Filtering::Processor<Processor>(binarize_##mode##_neon, Constraint(CPU_NEON), 1))); \
-      /*processors.push_back(Filtering::Processor<Processor>(binarize_##mode##_avx2, Constraint(CPU_AVX2), 3));*/
-      // avx2: not any faster than 128bit sse2, don't go live
+      MT_X86(processors.push_back(Filtering::Processor<Processor>(binarize_##mode##_avx2, Constraint(CPU_AVX2), 3))); \
+      MT_NEON(processors.push_back(Filtering::Processor<Processor>(binarize_##mode##_neon, Constraint(CPU_NEON), 1)));
 
        if (isMode("0 x")) { SET_MODE(0_x); }
        else if (isMode("t x")) { SET_MODE(t_x); }
@@ -166,6 +167,7 @@ public:
 #define SET_MODE(mode) \
     processors16.push_back(Filtering::Processor<Processor16>(binarize_##mode##_native_c, Constraint(CPU_NONE), 0)); \
     MT_X86(processors16.push_back(Filtering::Processor<Processor16>(binarize_##mode##_native_sse2, Constraint(CPU_SSE2), 1))); \
+    MT_X86(processors16.push_back(Filtering::Processor<Processor16>(binarize_##mode##_native_avx2, Constraint(CPU_AVX2), 3))); \
     MT_NEON(processors16.push_back(Filtering::Processor<Processor16>(binarize_##mode##_native_neon, Constraint(CPU_NEON), 1)));
        if (isMode("0 x")) { SET_MODE(0_x); }
        else if (isMode("t x")) { SET_MODE(t_x); }
@@ -190,6 +192,7 @@ public:
 #define SET_MODE(mode) \
       processors32.push_back(Filtering::Processor<Processor32>(binarize32_##mode##_c, Constraint(CPU_NONE), 0)); \
       MT_X86(processors32.push_back(Filtering::Processor<Processor32>(binarize32_##mode##_sse2, Constraint(CPU_SSE2), 1))); \
+      MT_X86(processors32.push_back(Filtering::Processor<Processor32>(binarize32_##mode##_avx2, Constraint(CPU_AVX2), 3))); \
       MT_NEON(processors32.push_back(Filtering::Processor<Processor32>(binarize32_##mode##_neon, Constraint(CPU_NEON), 1)));
 
        if (isMode("0 x")) { SET_MODE(0_x); }

@@ -137,8 +137,14 @@
     <ClCompile Include="common\clip\inputconfig.cpp" />
     <ClCompile Include="filters\binarize\binarize.cpp" />
     <ClCompile Include="filters\binarize\binarize16.cpp" />
+    <ClCompile Include="filters\binarize\binarize16_avx2.cpp">
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+    </ClCompile>
     <ClCompile Include="filters\binarize\binarize16_sse2.cpp" />
     <ClCompile Include="filters\binarize\binarize32.cpp" />
+    <ClCompile Include="filters\binarize\binarize32_avx2.cpp">
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+    </ClCompile>
     <ClCompile Include="filters\binarize\binarize32_sse2.cpp" />
     <ClCompile Include="filters\binarize\binarize_avx2.cpp">
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
