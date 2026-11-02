@@ -303,9 +303,6 @@
     <ClCompile Include="filters\mask\edge\edgemask16_sse2.cpp">
       <Filter>filters\mask\edge</Filter>
     </ClCompile>
-    <ClCompile Include="filters\mask\edge\edgemask16_sse41.cpp">
-      <Filter>filters\mask\edge</Filter>
-    </ClCompile>
     <ClCompile Include="filters\mask\edge\edgemask32.cpp">
       <Filter>filters\mask\edge</Filter>
     </ClCompile>

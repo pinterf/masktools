@@ -56,10 +56,6 @@ extern Processor16 *name##_10_sse2; \
 extern Processor16 *name##_12_sse2; \
 extern Processor16 *name##_14_sse2; \
 extern Processor16 *name##_16_sse2; \
-extern Processor16 *name##_10_sse4; \
-extern Processor16 *name##_12_sse4; \
-extern Processor16 *name##_14_sse4; \
-extern Processor16 *name##_16_sse4; \
 extern Processor16 *name##_10_avx2; \
 extern Processor16 *name##_12_avx2; \
 extern Processor16 *name##_14_avx2; \
@@ -291,7 +287,6 @@ public:
 #endif
 #ifdef INTEL_INTRINSICS
            processors16.push_back(Filtering::Processor<Processor16>(sobel_10_sse2, Constraint(CPU_SSE2, 9), 1));
-           processors16.push_back(Filtering::Processor<Processor16>(sobel_10_sse4, Constraint(CPU_SSE4_1, 9), 2));
            processors16.push_back(Filtering::Processor<Processor16>(sobel_10_avx2, Constraint(CPU_AVX2, 17), 3));
 #endif
            break;
@@ -302,7 +297,6 @@ public:
 #endif
 #ifdef INTEL_INTRINSICS
            processors16.push_back(Filtering::Processor<Processor16>(sobel_12_sse2, Constraint(CPU_SSE2, 9), 1));
-           processors16.push_back(Filtering::Processor<Processor16>(sobel_12_sse4, Constraint(CPU_SSE4_1, 9), 2));
            processors16.push_back(Filtering::Processor<Processor16>(sobel_12_avx2, Constraint(CPU_AVX2, 17), 3));
 #endif
            break;
@@ -313,7 +307,6 @@ public:
 #endif
 #ifdef INTEL_INTRINSICS
            processors16.push_back(Filtering::Processor<Processor16>(sobel_14_sse2, Constraint(CPU_SSE2, 9), 1));
-           processors16.push_back(Filtering::Processor<Processor16>(sobel_14_sse4, Constraint(CPU_SSE4_1, 9), 2));
            processors16.push_back(Filtering::Processor<Processor16>(sobel_14_avx2, Constraint(CPU_AVX2, 17), 3));
 #endif
            break;
@@ -324,7 +317,6 @@ public:
 #endif
 #ifdef INTEL_INTRINSICS
            processors16.push_back(Filtering::Processor<Processor16>(sobel_16_sse2, Constraint(CPU_SSE2, 9), 1));
-           processors16.push_back(Filtering::Processor<Processor16>(sobel_16_sse4, Constraint(CPU_SSE4_1, 9), 2));
            processors16.push_back(Filtering::Processor<Processor16>(sobel_16_avx2, Constraint(CPU_AVX2, 17), 3));
 #endif
            break;
@@ -362,7 +354,6 @@ public:
 #endif
 #ifdef INTEL_INTRINSICS
            processors16.push_back(Filtering::Processor<Processor16>(roberts_10_sse2, Constraint(CPU_SSE2, 9), 1));
-           processors16.push_back(Filtering::Processor<Processor16>(roberts_10_sse4, Constraint(CPU_SSE4_1, 9), 2));
            processors16.push_back(Filtering::Processor<Processor16>(roberts_10_avx2, Constraint(CPU_AVX2, 17), 3));
 #endif
            break;
@@ -373,7 +364,6 @@ public:
 #endif
 #ifdef INTEL_INTRINSICS
            processors16.push_back(Filtering::Processor<Processor16>(roberts_12_sse2, Constraint(CPU_SSE2, 9), 1));
-           processors16.push_back(Filtering::Processor<Processor16>(roberts_12_sse4, Constraint(CPU_SSE4_1, 9), 2));
            processors16.push_back(Filtering::Processor<Processor16>(roberts_12_avx2, Constraint(CPU_AVX2, 17), 3));
 #endif
            break;
@@ -384,7 +374,6 @@ public:
 #endif
 #ifdef INTEL_INTRINSICS
            processors16.push_back(Filtering::Processor<Processor16>(roberts_14_sse2, Constraint(CPU_SSE2, 9), 1));
-           processors16.push_back(Filtering::Processor<Processor16>(roberts_14_sse4, Constraint(CPU_SSE4_1, 9), 2));
            processors16.push_back(Filtering::Processor<Processor16>(roberts_14_avx2, Constraint(CPU_AVX2, 17), 3));
 #endif
            break;
@@ -395,7 +384,6 @@ public:
 #endif
 #ifdef INTEL_INTRINSICS
            processors16.push_back(Filtering::Processor<Processor16>(roberts_16_sse2, Constraint(CPU_SSE2, 9), 1));
-           processors16.push_back(Filtering::Processor<Processor16>(roberts_16_sse4, Constraint(CPU_SSE4_1, 9), 2));
            processors16.push_back(Filtering::Processor<Processor16>(roberts_16_avx2, Constraint(CPU_AVX2, 17), 3));
 #endif
            break;
@@ -433,7 +421,6 @@ public:
 #endif
 #ifdef INTEL_INTRINSICS
           processors16.push_back(Filtering::Processor<Processor16>(laplace_10_sse2, Constraint(CPU_SSE2, 9), 1));
-          processors16.push_back(Filtering::Processor<Processor16>(laplace_10_sse4, Constraint(CPU_SSE4_1, 9), 2));
           processors16.push_back(Filtering::Processor<Processor16>(laplace_10_avx2, Constraint(CPU_AVX2, 17), 3));
 #endif
           break;
@@ -444,7 +431,6 @@ public:
 #endif
 #ifdef INTEL_INTRINSICS
           processors16.push_back(Filtering::Processor<Processor16>(laplace_12_sse2, Constraint(CPU_SSE2, 9), 1));
-          processors16.push_back(Filtering::Processor<Processor16>(laplace_12_sse4, Constraint(CPU_SSE4_1, 9), 2));
           processors16.push_back(Filtering::Processor<Processor16>(laplace_12_avx2, Constraint(CPU_AVX2, 17), 3));
 #endif
           break;
@@ -455,7 +441,6 @@ public:
 #endif
 #ifdef INTEL_INTRINSICS
           processors16.push_back(Filtering::Processor<Processor16>(laplace_14_sse2, Constraint(CPU_SSE2, 9), 1));
-          processors16.push_back(Filtering::Processor<Processor16>(laplace_14_sse4, Constraint(CPU_SSE4_1, 9), 2));
           processors16.push_back(Filtering::Processor<Processor16>(laplace_14_avx2, Constraint(CPU_AVX2, 17), 3));
 #endif
           break;
@@ -466,7 +451,6 @@ public:
 #endif
 #ifdef INTEL_INTRINSICS
           processors16.push_back(Filtering::Processor<Processor16>(laplace_16_sse2, Constraint(CPU_SSE2, 9), 1));
-          processors16.push_back(Filtering::Processor<Processor16>(laplace_16_sse4, Constraint(CPU_SSE4_1, 9), 2));
           processors16.push_back(Filtering::Processor<Processor16>(laplace_16_avx2, Constraint(CPU_AVX2, 17), 3));
 #endif
           break;
@@ -503,7 +487,6 @@ public:
 #endif
 #ifdef INTEL_INTRINSICS
           processors16.push_back(Filtering::Processor<Processor16>(cartoon_10_sse2, Constraint(CPU_SSE2, 9), 1));
-          processors16.push_back(Filtering::Processor<Processor16>(cartoon_10_sse4, Constraint(CPU_SSE4_1, 9), 2));
           processors16.push_back(Filtering::Processor<Processor16>(cartoon_10_avx2, Constraint(CPU_AVX2, 17), 3));
 #endif
           break;
@@ -514,7 +497,6 @@ public:
 #endif
 #ifdef INTEL_INTRINSICS
           processors16.push_back(Filtering::Processor<Processor16>(cartoon_12_sse2, Constraint(CPU_SSE2, 9), 1));
-          processors16.push_back(Filtering::Processor<Processor16>(cartoon_12_sse4, Constraint(CPU_SSE4_1, 9), 2));
           processors16.push_back(Filtering::Processor<Processor16>(cartoon_12_avx2, Constraint(CPU_AVX2, 17), 3));
 #endif
           break;
@@ -525,7 +507,6 @@ public:
 #endif
 #ifdef INTEL_INTRINSICS
           processors16.push_back(Filtering::Processor<Processor16>(cartoon_14_sse2, Constraint(CPU_SSE2, 9), 1));
-          processors16.push_back(Filtering::Processor<Processor16>(cartoon_14_sse4, Constraint(CPU_SSE4_1, 9), 2));
           processors16.push_back(Filtering::Processor<Processor16>(cartoon_14_avx2, Constraint(CPU_AVX2, 17), 3));
 #endif
           break;
@@ -536,7 +517,6 @@ public:
 #endif
 #ifdef INTEL_INTRINSICS
           processors16.push_back(Filtering::Processor<Processor16>(cartoon_16_sse2, Constraint(CPU_SSE2, 9), 1));
-          processors16.push_back(Filtering::Processor<Processor16>(cartoon_16_sse4, Constraint(CPU_SSE4_1, 9), 2));
           processors16.push_back(Filtering::Processor<Processor16>(cartoon_16_avx2, Constraint(CPU_AVX2, 17), 3));
 #endif
           break;
@@ -573,7 +553,6 @@ public:
 #endif
 #ifdef INTEL_INTRINSICS
           processors16.push_back(Filtering::Processor<Processor16>(morpho_10_sse2, Constraint(CPU_SSE2, 9), 1));
-          processors16.push_back(Filtering::Processor<Processor16>(morpho_10_sse4, Constraint(CPU_SSE4_1, 9), 2));
           processors16.push_back(Filtering::Processor<Processor16>(morpho_10_avx2, Constraint(CPU_AVX2, 17), 3));
 #endif
           break;
@@ -584,7 +563,6 @@ public:
 #endif
 #ifdef INTEL_INTRINSICS
           processors16.push_back(Filtering::Processor<Processor16>(morpho_12_sse2, Constraint(CPU_SSE2, 9), 1));
-          processors16.push_back(Filtering::Processor<Processor16>(morpho_12_sse4, Constraint(CPU_SSE4_1, 9), 2));
           processors16.push_back(Filtering::Processor<Processor16>(morpho_12_avx2, Constraint(CPU_AVX2, 17), 3));
 #endif
           break;
@@ -595,7 +573,6 @@ public:
 #endif
 #ifdef INTEL_INTRINSICS
           processors16.push_back(Filtering::Processor<Processor16>(morpho_14_sse2, Constraint(CPU_SSE2, 9), 1));
-          processors16.push_back(Filtering::Processor<Processor16>(morpho_14_sse4, Constraint(CPU_SSE4_1, 9), 2));
           processors16.push_back(Filtering::Processor<Processor16>(morpho_14_avx2, Constraint(CPU_AVX2, 17), 3));
 #endif
           break;
@@ -606,7 +583,6 @@ public:
 #endif
 #ifdef INTEL_INTRINSICS
           processors16.push_back(Filtering::Processor<Processor16>(morpho_16_sse2, Constraint(CPU_SSE2, 9), 1));
-          processors16.push_back(Filtering::Processor<Processor16>(morpho_16_sse4, Constraint(CPU_SSE4_1, 9), 2));
           processors16.push_back(Filtering::Processor<Processor16>(morpho_16_avx2, Constraint(CPU_AVX2, 17), 3));
 #endif
           break;
@@ -644,7 +620,6 @@ public:
 #endif
 #ifdef INTEL_INTRINSICS
           processors16.push_back(Filtering::Processor<Processor16>(prewitt_10_sse2, Constraint(CPU_SSE2, 9), 1));
-          processors16.push_back(Filtering::Processor<Processor16>(prewitt_10_sse4, Constraint(CPU_SSE4_1, 9), 2));
           processors16.push_back(Filtering::Processor<Processor16>(prewitt_10_avx2, Constraint(CPU_AVX2, 17), 3));
 #endif
           break;
@@ -655,7 +630,6 @@ public:
 #endif
 #ifdef INTEL_INTRINSICS
           processors16.push_back(Filtering::Processor<Processor16>(prewitt_12_sse2, Constraint(CPU_SSE2, 9), 1));
-          processors16.push_back(Filtering::Processor<Processor16>(prewitt_12_sse4, Constraint(CPU_SSE4_1, 9), 2));
           processors16.push_back(Filtering::Processor<Processor16>(prewitt_12_avx2, Constraint(CPU_AVX2, 17), 3));
 #endif
           break;
@@ -666,7 +640,6 @@ public:
 #endif
 #ifdef INTEL_INTRINSICS
           processors16.push_back(Filtering::Processor<Processor16>(prewitt_14_sse2, Constraint(CPU_SSE2, 9), 1));
-          processors16.push_back(Filtering::Processor<Processor16>(prewitt_14_sse4, Constraint(CPU_SSE4_1, 9), 2));
           processors16.push_back(Filtering::Processor<Processor16>(prewitt_14_avx2, Constraint(CPU_AVX2, 17), 3));
 #endif
           break;
@@ -677,7 +650,6 @@ public:
 #endif
 #ifdef INTEL_INTRINSICS
           processors16.push_back(Filtering::Processor<Processor16>(prewitt_16_sse2, Constraint(CPU_SSE2, 9), 1));
-          processors16.push_back(Filtering::Processor<Processor16>(prewitt_16_sse4, Constraint(CPU_SSE4_1, 9), 2));
           processors16.push_back(Filtering::Processor<Processor16>(prewitt_16_avx2, Constraint(CPU_AVX2, 17), 3));
 #endif
           break;
@@ -715,7 +687,6 @@ public:
 #endif
 #ifdef INTEL_INTRINSICS
           processors16.push_back(Filtering::Processor<Processor16>(half_prewitt_10_sse2, Constraint(CPU_SSE2, 9), 1));
-          processors16.push_back(Filtering::Processor<Processor16>(half_prewitt_10_sse4, Constraint(CPU_SSE4_1, 9), 2));
           processors16.push_back(Filtering::Processor<Processor16>(half_prewitt_10_avx2, Constraint(CPU_AVX2, 17), 3));
 #endif
           break;
@@ -726,7 +697,6 @@ public:
 #endif
 #ifdef INTEL_INTRINSICS
           processors16.push_back(Filtering::Processor<Processor16>(half_prewitt_12_sse2, Constraint(CPU_SSE2, 9), 1));
-          processors16.push_back(Filtering::Processor<Processor16>(half_prewitt_12_sse4, Constraint(CPU_SSE4_1, 9), 2));
           processors16.push_back(Filtering::Processor<Processor16>(half_prewitt_12_avx2, Constraint(CPU_AVX2, 17), 3));
 #endif
           break;
@@ -737,7 +707,6 @@ public:
 #endif
 #ifdef INTEL_INTRINSICS
           processors16.push_back(Filtering::Processor<Processor16>(half_prewitt_14_sse2, Constraint(CPU_SSE2, 9), 1));
-          processors16.push_back(Filtering::Processor<Processor16>(half_prewitt_14_sse4, Constraint(CPU_SSE4_1, 9), 2));
           processors16.push_back(Filtering::Processor<Processor16>(half_prewitt_14_avx2, Constraint(CPU_AVX2, 17), 3));
 #endif
           break;
@@ -748,7 +717,6 @@ public:
 #endif
 #ifdef INTEL_INTRINSICS
           processors16.push_back(Filtering::Processor<Processor16>(half_prewitt_16_sse2, Constraint(CPU_SSE2, 9), 1));
-          processors16.push_back(Filtering::Processor<Processor16>(half_prewitt_16_sse4, Constraint(CPU_SSE4_1, 9), 2));
           processors16.push_back(Filtering::Processor<Processor16>(half_prewitt_16_avx2, Constraint(CPU_AVX2, 17), 3));
 #endif
           break;
@@ -908,7 +876,6 @@ public:
            {
 #ifdef INTEL_INTRINSICS
              processors16.push_back(Filtering::Processor<Processor16>(convolution_10_sse2, Constraint(CPU_SSE2, 9), 1));
-             processors16.push_back(Filtering::Processor<Processor16>(convolution_10_sse4, Constraint(CPU_SSE4_1, 9), 2));
              processors16.push_back(Filtering::Processor<Processor16>(convolution_10_avx2, Constraint(CPU_AVX2, 17), 3));
 #endif
            }
@@ -922,7 +889,6 @@ public:
            {
 #ifdef INTEL_INTRINSICS
              processors16.push_back(Filtering::Processor<Processor16>(convolution_12_sse2, Constraint(CPU_SSE2, 9), 1));
-             processors16.push_back(Filtering::Processor<Processor16>(convolution_12_sse4, Constraint(CPU_SSE4_1, 9), 2));
              processors16.push_back(Filtering::Processor<Processor16>(convolution_12_avx2, Constraint(CPU_AVX2, 17), 3));
 #endif
            }
@@ -936,7 +902,6 @@ public:
            {
 #ifdef INTEL_INTRINSICS
              processors16.push_back(Filtering::Processor<Processor16>(convolution_14_sse2, Constraint(CPU_SSE2, 9), 1));
-             processors16.push_back(Filtering::Processor<Processor16>(convolution_14_sse4, Constraint(CPU_SSE4_1, 9), 2));
              processors16.push_back(Filtering::Processor<Processor16>(convolution_14_avx2, Constraint(CPU_AVX2, 17), 3));
 #endif
            }
@@ -950,7 +915,6 @@ public:
            {
 #ifdef INTEL_INTRINSICS
              processors16.push_back(Filtering::Processor<Processor16>(convolution_16_sse2, Constraint(CPU_SSE2, 9), 1));
-             processors16.push_back(Filtering::Processor<Processor16>(convolution_16_sse4, Constraint(CPU_SSE4_1, 9), 2));
              processors16.push_back(Filtering::Processor<Processor16>(convolution_16_avx2, Constraint(CPU_AVX2, 17), 3));
 #endif
            }
