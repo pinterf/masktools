@@ -11,15 +11,18 @@ typedef void(Processor32)(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pUp
 
 Processor clamp_c;
 extern Processor *clamp_sse2;
+extern Processor *clamp_avx2;
 
 /* 16 bit */
 
 Processor16 clamp16_native_c;
 extern Processor16 *clamp16_native_sse2;
+extern Processor16 *clamp16_native_avx2;
 
 /* 32 bit */
 Processor32 clamp32_c;
 extern Processor32 *clamp32_sse2;
+extern Processor32 *clamp32_avx2;
 
 
 #ifdef NEON_INTRINSICS
@@ -107,6 +110,7 @@ public:
 #endif
 #ifdef INTEL_INTRINSICS
           processors.push_back(Filtering::Processor<Processor>(clamp_sse2, Constraint(CPU_SSE2), 1));
+          processors.push_back(Filtering::Processor<Processor>(clamp_avx2, Constraint(CPU_AVX2), 3));
 #endif
           break;
         case 10: case 12: case 14: case 16:
@@ -116,6 +120,7 @@ public:
 #endif
 #ifdef INTEL_INTRINSICS
           processors16.push_back(Filtering::Processor<Processor16>(clamp16_native_sse2, Constraint(CPU_SSE2), 1));
+          processors16.push_back(Filtering::Processor<Processor16>(clamp16_native_avx2, Constraint(CPU_AVX2), 3));
 #endif
           break;
         case 32:
@@ -125,6 +130,7 @@ public:
 #endif
 #ifdef INTEL_INTRINSICS
           processors32.push_back(Filtering::Processor<Processor32>(clamp32_sse2, Constraint(CPU_SSE2), 1));
+          processors32.push_back(Filtering::Processor<Processor32>(clamp32_avx2, Constraint(CPU_AVX2), 3));
 #endif
           break;
         }

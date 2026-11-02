@@ -290,8 +290,14 @@
     <ClCompile Include="filters\support\average\average_neon.cpp" />
     <ClCompile Include="filters\support\average\average_sse2.cpp" />
     <ClCompile Include="filters\support\clamp16\clamp16.cpp" />
+    <ClCompile Include="filters\support\clamp16\clamp16_avx2.cpp">
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+    </ClCompile>
     <ClCompile Include="filters\support\clamp16\clamp16_sse2.cpp" />
     <ClCompile Include="filters\support\clamp\clamp.cpp" />
+    <ClCompile Include="filters\support\clamp\clamp_avx2.cpp">
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+    </ClCompile>
     <ClCompile Include="filters\support\clamp\clamp_neon.cpp" />
     <ClCompile Include="filters\support\clamp\clamp_sse2.cpp" />
     <ClCompile Include="filters\support\makediff16\makediff16.cpp" />

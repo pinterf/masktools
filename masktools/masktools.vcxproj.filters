@@ -504,10 +504,16 @@
     <ClCompile Include="filters\support\clamp16\clamp16.cpp">
       <Filter>filters\support\clamp16</Filter>
     </ClCompile>
+    <ClCompile Include="filters\support\clamp16\clamp16_avx2.cpp">
+      <Filter>filters\support\clamp16</Filter>
+    </ClCompile>
     <ClCompile Include="filters\support\clamp16\clamp16_sse2.cpp">
       <Filter>filters\support\clamp16</Filter>
     </ClCompile>
     <ClCompile Include="filters\support\clamp\clamp.cpp">
+      <Filter>filters\support\clamp</Filter>
+    </ClCompile>
+    <ClCompile Include="filters\support\clamp\clamp_avx2.cpp">
       <Filter>filters\support\clamp</Filter>
     </ClCompile>
     <ClCompile Include="filters\support\clamp\clamp_neon.cpp">
