@@ -6,17 +6,11 @@
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Blur { 
 
 typedef void(Processor)(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, const uint8_t *pMask, ptrdiff_t nMaskPitch, const int16_t *matrix, int nWidth, int nHeight);
-typedef void(Processor16)(uint16_t *pDst, ptrdiff_t nDstPitch, const uint16_t *pSrc, ptrdiff_t nSrcPitch, const uint16_t *pMask, ptrdiff_t nMaskPitch, const int16_t *matrix, int nWidth, int nHeight);
+typedef void(Processor16)(uint16_t *pDst, ptrdiff_t nDstPitch, const uint16_t *pSrc, ptrdiff_t nSrcPitch, const uint16_t *pMask, ptrdiff_t nMaskPitch, const int16_t *matrix, int nWidth, int nHeight, int bits_per_pixel);
 typedef void(Processor32)(float *pDst, ptrdiff_t nDstPitch, const float *pSrc, ptrdiff_t nSrcPitch, const float *pMask, ptrdiff_t nMaskPitch, const float *matrix, int nWidth, int nHeight);
 
 extern Processor *mapped_below_c;
 extern Processor *mapped_all_c;
-extern Processor16 *mapped_below_10_c;
-extern Processor16 *mapped_all_10_c;
-extern Processor16 *mapped_below_12_c;
-extern Processor16 *mapped_all_12_c;
-extern Processor16 *mapped_below_14_c;
-extern Processor16 *mapped_all_14_c;
 extern Processor16 *mapped_below_16_c;
 extern Processor16 *mapped_all_16_c;
 extern Processor32 *mapped_below_32_c;
@@ -47,7 +41,7 @@ protected:
       processors16.best_processor(constraints[nPlane])((uint16_t *)dst.data(), dst.pitch(),
         (uint16_t *)frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
         (uint16_t *)frames[1].plane(nPlane).data(), frames[1].plane(nPlane).pitch(),
-        matrix, dst.width(), dst.height());
+        matrix, dst.width(), dst.height(), bits_per_pixel);
     }
     else {
       processors32.best_processor(constraints[nPlane])((float *)dst.data(), dst.pitch(),
@@ -111,16 +105,7 @@ public:
         case 8:
           processors.push_back(Filtering::Processor<Processor>(mapped_all_c, Constraint(CPU_NONE), 0));
           break;
-        case 10:
-          processors16.push_back(Filtering::Processor<Processor16>(mapped_all_10_c, Constraint(CPU_NONE), 0));
-          break;
-        case 12:
-          processors16.push_back(Filtering::Processor<Processor16>(mapped_all_12_c, Constraint(CPU_NONE), 0));
-          break;
-        case 14:
-          processors16.push_back(Filtering::Processor<Processor16>(mapped_all_14_c, Constraint(CPU_NONE), 0));
-          break;
-        case 16:
+        case 10: case 12: case 14: case 16:
           processors16.push_back(Filtering::Processor<Processor16>(mapped_all_16_c, Constraint(CPU_NONE), 0));
           break;
         case 32:
@@ -133,16 +118,7 @@ public:
         case 8:
           processors.push_back(Filtering::Processor<Processor>(mapped_below_c, Constraint(CPU_NONE), 0));
           break;
-        case 10:
-          processors16.push_back(Filtering::Processor<Processor16>(mapped_below_10_c, Constraint(CPU_NONE), 0));
-          break;
-        case 12:
-          processors16.push_back(Filtering::Processor<Processor16>(mapped_below_12_c, Constraint(CPU_NONE), 0));
-          break;
-        case 14:
-          processors16.push_back(Filtering::Processor<Processor16>(mapped_below_14_c, Constraint(CPU_NONE), 0));
-          break;
-        case 16:
+        case 10: case 12: case 14: case 16:
           processors16.push_back(Filtering::Processor<Processor16>(mapped_below_16_c, Constraint(CPU_NONE), 0));
           break;
         case 32:

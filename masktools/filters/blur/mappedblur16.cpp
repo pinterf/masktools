@@ -62,20 +62,14 @@ public:
 };
 } // namespace
 
-template<Filters::Mask::Operator op, int bits_per_pixel>
-void mask16_t(uint16_t *pDst, ptrdiff_t nDstPitch, const uint16_t *pSrc, ptrdiff_t nSrcPitch, const uint16_t *pMask, ptrdiff_t nMaskPitch, const int16_t matrix[10], int nWidth, int nHeight)
+template<Filters::Mask::Operator op>
+void mask16_t(uint16_t *pDst, ptrdiff_t nDstPitch, const uint16_t *pSrc, ptrdiff_t nSrcPitch, const uint16_t *pMask, ptrdiff_t nMaskPitch, const int16_t matrix[10], int nWidth, int nHeight, int bits_per_pixel)
 {
    Thresholds thresholds(pMask, nMaskPitch);
    Filters::Mask::generic16_c<op, Thresholds>(pDst, nDstPitch, pSrc, nSrcPitch, thresholds, matrix, nWidth, nHeight, (1 << bits_per_pixel) - 1);
 }
 
-Processor16 *mapped_below_10_c = &mask16_t<convolution_below_16_t_c, 10>;
-Processor16 *mapped_all_10_c = &mask16_t<convolution_all_16_t_c, 10>;
-Processor16 *mapped_below_12_c = &mask16_t<convolution_below_16_t_c, 12>;
-Processor16 *mapped_all_12_c = &mask16_t<convolution_all_16_t_c, 12>;
-Processor16 *mapped_below_14_c = &mask16_t<convolution_below_16_t_c, 14>;
-Processor16 *mapped_all_14_c = &mask16_t<convolution_all_16_t_c, 14>;
-Processor16 *mapped_below_16_c = &mask16_t<convolution_below_16_t_c, 16>;
-Processor16 *mapped_all_16_c = &mask16_t<convolution_all_16_t_c, 16>;
+Processor16 *mapped_below_16_c = &mask16_t<convolution_below_16_t_c>;
+Processor16 *mapped_all_16_c = &mask16_t<convolution_all_16_t_c>;
 
 } } } }
