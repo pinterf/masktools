@@ -76,7 +76,6 @@ void binarize_sse2_t(uint8_t *dstp, ptrdiff_t dst_pitch, uint8_t threshold, int 
 
     for ( int j = 0; j < height; ++j ) {
         for ( int i = 0; i < mod32_width; i+=32 ) {
-            _mm_prefetch(reinterpret_cast<const char*>(dstp)+i+320, _MM_HINT_T0);
             auto src = _mm_loadu_si128(reinterpret_cast<const __m128i*>(dstp+i));
             auto src2 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(dstp+i+16));
             auto result = op(src, t, t128);

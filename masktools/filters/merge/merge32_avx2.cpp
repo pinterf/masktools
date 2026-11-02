@@ -297,7 +297,6 @@ namespace {
      auto vHalf = _mm256_set1_ps(0.5f);
      for (int j = 0; j < nHeight; ++j) {
        for (int i = 0; i < wMod32; i += 32) {
-         _mm_prefetch(reinterpret_cast<const char*>(pMask) + i * 2 + 64, _MM_HINT_T0);
          // preparing mask
          auto mask_row_t1 = _mm256_loadu_ps(reinterpret_cast<const float*>(pMask + i * 2));
          auto mask_row_t2 = _mm256_loadu_ps(reinterpret_cast<const float*>(pMask + i * 2 + 32));

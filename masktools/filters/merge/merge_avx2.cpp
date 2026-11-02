@@ -179,8 +179,6 @@ namespace {
      auto zero = _mm256_setzero_si256();
      for (int j = 0; j < nHeight; ++j) {
        for (int i = 0; i < wMod32; i += 32) {
-         _mm_prefetch(reinterpret_cast<const char*>(pMask) + i * 2 + 2*64, _MM_HINT_T0);
-         _mm_prefetch(reinterpret_cast<const char*>(pMask) + nSrc2Pitch + i * 2 + 2*64, _MM_HINT_T0);
          // preparing mask
          auto src2_row1_t1 = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(pMask + i * 2));
          auto src2_row1_t2 = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(pMask + i * 2 + 32));
@@ -226,7 +224,6 @@ namespace {
 #pragma warning(default: 4309)
      for (int j = 0; j < nHeight; ++j) {
        for (int i = 0; i < wMod32; i += 32) {
-         _mm_prefetch(reinterpret_cast<const char*>(pMask) + i * 2 + 2*64, _MM_HINT_T0);
          // preparing mask
          auto src2_row1_t1 = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(pMask + i * 2));
          auto src2_row1_t2 = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(pMask + i * 2 + 32));
@@ -288,7 +285,6 @@ namespace {
 #pragma warning(default: 4309)
      for (int j = 0; j < nHeight; ++j) {
        for (int i = 0; i < wMod32; i += 32) {
-         _mm_prefetch(reinterpret_cast<const char*>(pMask) + i * 4 + 2*64, _MM_HINT_T0);
          // preparing mask: two halves of 16 pixels
          __m128i lo0, hi0, lo1, hi1;
          mask_411_sse2(pMask + i * 4, lo0, hi0);

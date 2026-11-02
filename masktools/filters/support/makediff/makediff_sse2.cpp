@@ -17,9 +17,6 @@ static void makediff_sse2_t(uint8_t *pDst, ptrdiff_t dst_pitch, const uint8_t *p
 
     for ( int j = 0; j < height; ++j ) {
         for ( int i = 0; i < mod32_width; i+=32 ) {
-            _mm_prefetch(reinterpret_cast<const char*>(pDst)+i+128, _MM_HINT_T0);
-            _mm_prefetch(reinterpret_cast<const char*>(pSrc)+i+128, _MM_HINT_T0);
-
             auto dst = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pDst+i));
             auto dst2 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pDst+i+16));
             auto src = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pSrc+i));
@@ -64,9 +61,6 @@ static void makediff32_sse2_t(uint8_t *pDst, ptrdiff_t dst_pitch, const uint8_t 
 
   for (int j = 0; j < height; ++j) {
     for (int i = 0; i < mod16_width; i += 16) {
-      _mm_prefetch(reinterpret_cast<const char*>(pDst) + i + 128, _MM_HINT_T0);
-      _mm_prefetch(reinterpret_cast<const char*>(pSrc) + i + 128, _MM_HINT_T0);
-
       auto dst = _mm_loadu_ps(reinterpret_cast<const float*>(pDst + i));
       auto src = _mm_loadu_ps(reinterpret_cast<const float*>(pSrc + i));
 

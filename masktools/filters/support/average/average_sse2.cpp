@@ -16,9 +16,6 @@ static void average_sse2_t(uint8_t *pDst, ptrdiff_t dst_pitch, const uint8_t *pS
 
     for ( int j = 0; j < height; ++j ) {
         for ( int i = 0; i < mod16_width; i+=16 ) {
-            _mm_prefetch(reinterpret_cast<const char*>(pDst)+i+256, _MM_HINT_T0);
-            _mm_prefetch(reinterpret_cast<const char*>(pSrc)+i+256, _MM_HINT_T0);
-
             auto dst = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pDst+i));
             auto src = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pSrc+i));
 
@@ -46,9 +43,6 @@ static void average32_sse2_t(uint8_t *pDst, ptrdiff_t dst_pitch, const uint8_t *
 
   for (int j = 0; j < height; ++j) {
     for (int i = 0; i < mod16_width; i += 16) {
-      _mm_prefetch(reinterpret_cast<const char*>(pDst) + i + 256, _MM_HINT_T0);
-      _mm_prefetch(reinterpret_cast<const char*>(pSrc) + i + 256, _MM_HINT_T0);
-
       auto dst = _mm_loadu_ps(reinterpret_cast<const float*>(pDst + i));
       auto src = _mm_loadu_ps(reinterpret_cast<const float*>(pSrc + i));
 

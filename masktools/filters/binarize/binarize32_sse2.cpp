@@ -125,7 +125,6 @@ void binarize32_sse2_t(uint8_t *dstp, ptrdiff_t dst_pitch, float threshold, int 
 
     for ( int j = 0; j < height; ++j ) {
         for ( int i = 0; i < mod32_width; i+=32 ) {
-            _mm_prefetch(reinterpret_cast<const char*>(dstp)+i+320, _MM_HINT_T0);
             auto src = _mm_loadu_ps(reinterpret_cast<const float*>(dstp+i));
             auto src2 = _mm_loadu_ps(reinterpret_cast<const float*>(dstp+i+16));
             auto result = op(src, t, tOne);

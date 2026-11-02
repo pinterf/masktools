@@ -113,8 +113,6 @@ namespace {
 #pragma warning(default: 4309)
      for (int j = 0; j < nHeight; ++j) {
        for (int i = 0; i < wMod16; i += 16) {
-         _mm_prefetch(reinterpret_cast<const char*>(pMask) + i * 2 + 64, _MM_HINT_T0);
-         _mm_prefetch(reinterpret_cast<const char*>(pMask) + nSrc2Pitch + i * 2 + 64, _MM_HINT_T0);
          // preparing mask
          auto src2_row1_t1 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pMask + i * 2));
          auto src2_row1_t2 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pMask + i * 2 + 16));
@@ -313,7 +311,6 @@ namespace {
      auto zero = _mm_setzero_si128();
      for (int j = 0; j < nHeight; ++j) {
        for (int i = 0; i < wMod16; i += 16) {
-         _mm_prefetch(reinterpret_cast<const char*>(pMask) + i * 2 + 64, _MM_HINT_T0);
          // preparing mask
          auto src2_row1_t1 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pMask + i * 2));
          auto src2_row1_t2 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pMask + i * 2 + 16));
@@ -359,7 +356,6 @@ namespace {
 #pragma warning(default: 4309)
        right_hi = _mm_slli_si128(_mm_and_si128(row1, evenmask), 14);
        for (int i = 0; i < wMod16; i += 16) {
-         _mm_prefetch(reinterpret_cast<const char*>(pMask) + i * 2 + 64, _MM_HINT_T0);
          // preparing mask
          auto row1_lo = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pMask + i * 2));
          auto row1_hi = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pMask + i * 2 + 16));
@@ -432,7 +428,6 @@ namespace {
      auto zero = _mm_setzero_si128();
      for (int j = 0; j < nHeight; ++j) {
        for (int i = 0; i < wMod16; i += 16) {
-         _mm_prefetch(reinterpret_cast<const char*>(pMask) + i * 4 + 64, _MM_HINT_T0);
          // preparing mask
          __m128i mask_t1, mask_t2;
          mask_411_sse2(pMask + i * 4, mask_t1, mask_t2);

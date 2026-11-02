@@ -62,8 +62,6 @@ namespace {
      auto vOneFourth = _mm_set1_ps(0.25f);
      for (int j = 0; j < nHeight; ++j) {
        for (int i = 0; i < wMod16; i += 16) {
-         _mm_prefetch(reinterpret_cast<const char*>(pMask) + i * 2 + 64, _MM_HINT_T0);
-         _mm_prefetch(reinterpret_cast<const char*>(pMask) + nSrc2Pitch + i * 2 + 64, _MM_HINT_T0);
          // preparing mask
          auto src2_row1_t1 = _mm_loadu_ps(reinterpret_cast<const float*>(pMask + i * 2));
          auto src2_row1_t2 = _mm_loadu_ps(reinterpret_cast<const float*>(pMask + i * 2 + 16));
@@ -157,7 +155,6 @@ namespace {
      auto vHalf = _mm_set1_ps(0.5f);
      for (int j = 0; j < nHeight; ++j) {
        for (int i = 0; i < wMod16; i += 16) {
-         _mm_prefetch(reinterpret_cast<const char*>(pMask) + i * 2 + 64, _MM_HINT_T0);
          // preparing mask
          auto mask_row_t1 = _mm_loadu_ps(reinterpret_cast<const float*>(pMask + i * 2));
          auto mask_row_t2 = _mm_loadu_ps(reinterpret_cast<const float*>(pMask + i * 2 + 16));
