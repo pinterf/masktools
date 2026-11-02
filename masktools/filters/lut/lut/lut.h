@@ -16,22 +16,16 @@
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Lut { namespace Single {
 
 typedef void(Processor)(uint8_t *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight, const uint8_t *lut);
-typedef void(Processor16)(uint8_t *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight, const uint16_t *lut, int nOrigHeightForStacked);
+typedef void(Processor16)(uint8_t *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight, const uint16_t *lut, int bits_per_pixel);
 typedef void(ProcessorCtx)(uint8_t *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight, Parser::Context &ctx);
+typedef void(ProcessorCtx16)(uint8_t *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight, Parser::Context &ctx, int bits_per_pixel);
 typedef void(ProcessorCtx32)(uint8_t *pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight, bool chroma, Parser::Context &ctx);
 
 Processor lut_c;
-
-extern Processor16* lut10_c;
-extern Processor16* lut12_c;
-extern Processor16* lut14_c;
-extern Processor16* lut16_c;
+Processor16 lut16_c;
 
 ProcessorCtx realtime8_c;
-extern ProcessorCtx *realtime10_c;
-extern ProcessorCtx *realtime12_c;
-extern ProcessorCtx *realtime14_c;
-extern ProcessorCtx *realtime16_c;
+ProcessorCtx16 realtime16_c;
 ProcessorCtx32 realtime32_c;
 
 class Lutx : public MaskTools::Filter
@@ -50,27 +44,13 @@ class Lutx : public MaskTools::Filter
     size_t buffer_size = ((size_t)1 << bits_per_pixel) * pixelsize;
     uint8_t* lut = (uint8_t *)_aligned_malloc(buffer_size, 128);
 
-    switch (bits_per_pixel) {
-    case 8:
+    if (bits_per_pixel == 8) {
       for (int x = 0; x < 256; x++)
         lut[x] = ctx.compute_byte_x(x);
-      break;
-    case 10:
-      for (int x = 0; x < 1024; x++)
-        reinterpret_cast<uint16_t*>(lut)[x] = ctx.compute_word_x<10>(x);
-      break;
-    case 12:
-      for (int x = 0; x < 4096; x++)
-        reinterpret_cast<uint16_t*>(lut)[x] = ctx.compute_word_x<12>(x);
-      break;
-    case 14:
-      for (int x = 0; x < 16384; x++)
-        reinterpret_cast<uint16_t*>(lut)[x] = ctx.compute_word_x<14>(x);
-      break;
-    case 16:
-      for (int x = 0; x < 65536; x++)
-        reinterpret_cast<uint16_t*>(lut)[x] = ctx.compute_word_x<16>(x);
-      break;
+    }
+    else {
+      for (int x = 0; x < (1 << bits_per_pixel); x++)
+        reinterpret_cast<uint16_t*>(lut)[x] = ctx.compute_word_x(x, bits_per_pixel);
     }
 
     // problem if compute_error != Parser::Context::compute_error_t::CE_NONE
@@ -84,8 +64,8 @@ class Lutx : public MaskTools::Filter
 
    Processor *processor;
    Processor16 *processor16;
-   ProcessorCtx *processorCtx; /// for 8-16 bits
-   //ProcessorCtx *processorCtx16;
+   ProcessorCtx *processorCtx; // 8 bits
+   ProcessorCtx16 *processorCtx16; // 10-16 bits
    ProcessorCtx32 *processorCtx32;
    int bits_per_pixel;
    bool isStacked;
@@ -103,8 +83,10 @@ protected:
         if (realtime) {
           // thread safety
           Parser::Context ctx(*parsed_expressions[nPlane], scale_inputs, clamp_float_i);
-          if(bits_per_pixel <= 16)
+          if (bits_per_pixel == 8)
             processorCtx(dst.data(), dst.pitch(), dst.width(), dst.height(), ctx);
+          else if (bits_per_pixel <= 16)
+            processorCtx16(dst.data(), dst.pitch(), dst.width(), dst.height(), ctx, bits_per_pixel);
           else {
             const bool chroma = ((nPlane == 1 || nPlane == 2) && !planes_isRGB[C]);
             processorCtx32(dst.data(), dst.pitch(), dst.width(), dst.height(), chroma, ctx); // extra parameter
@@ -113,7 +95,7 @@ protected:
         else if (bits_per_pixel == 8)
           processor(dst.data(), dst.pitch(), dst.width(), dst.height(), luts[nPlane].ptr);
         else if (bits_per_pixel <= 16)
-          processor16(dst.data(), dst.pitch(), dst.width(), dst.height(), (uint16_t*)luts[nPlane].ptr, dst.origheight());
+          processor16(dst.data(), dst.pitch(), dst.width(), dst.height(), (uint16_t*)luts[nPlane].ptr, bits_per_pixel);
     }
 
 public:
@@ -261,14 +243,9 @@ public:
           if (realtime) {
             parsed_expressions[i] = new std::deque<Parser::Symbol>(parser.getExpression());
 
-            switch (bits_per_pixel) {
-            case 8: processorCtx = realtime8_c; break;
-            case 10: processorCtx = realtime10_c; break;
-            case 12: processorCtx = realtime12_c; break;
-            case 14: processorCtx = realtime14_c; break;
-            case 16: processorCtx = realtime16_c; break;
-            case 32: processorCtx32 = realtime32_c; break;
-            }
+            if (bits_per_pixel == 8) processorCtx = realtime8_c;
+            else if (bits_per_pixel <= 16) processorCtx16 = realtime16_c;
+            else processorCtx32 = realtime32_c;
             continue;
           }
 
@@ -294,23 +271,10 @@ public:
             return;
           }
 
-          switch (bits_per_pixel) {
-          case 8:
+          if (bits_per_pixel == 8)
             processor = lut_c;
-            break;
-          case 10:
-            processor16 = lut10_c;
-            break;
-          case 12:
-            processor16 = lut12_c;
-            break;
-          case 14:
-            processor16 = lut14_c;
-            break;
-          case 16:
+          else
             processor16 = lut16_c; // stacked too: processed as native 16 bit
-            break;
-          }
         }
       }
    }

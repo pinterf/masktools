@@ -83,7 +83,7 @@ static void frame16_c(uint16_t *dstp, ptrdiff_t dst_pitch, const uint16_t *srcp,
     uint16_t miniLut[65536]; // full 16, anti overflow
     const int real_buf_size = (1 << bits_per_pixel);
     for (int i = 0; i < real_buf_size; i++)
-      miniLut[i] = ctx->compute_word_xy<bits_per_pixel>(X, i);
+      miniLut[i] = ctx->compute_word_xy(X, i, bits_per_pixel);
     for (int i = real_buf_size; i < 65536; i++)
       miniLut[i] = max_pixel_value;
 

@@ -94,23 +94,23 @@ class Luts : public MaskTools::Filter
      case 10:
        for (int x = 0; x < size; x++)
          for (int y = 0; y < size; y++)
-           reinterpret_cast<uint16_t *>(lut)[(x << 10) + y] = ctx.compute_word_xy<10>(x, y);
+           reinterpret_cast<uint16_t *>(lut)[(x << 10) + y] = ctx.compute_word_xy(x, y, 10);
        break;
      case 12:
        for (int x = 0; x < size; x++)
          for (int y = 0; y < size; y++)
-           reinterpret_cast<uint16_t *>(lut)[(x << 12) + y] = ctx.compute_word_xy<12>(x, y);
+           reinterpret_cast<uint16_t *>(lut)[(x << 12) + y] = ctx.compute_word_xy(x, y, 12);
        break;
      case 14:
        for (int x = 0; x < size; x++)
          for (int y = 0; y < size; y++)
-           reinterpret_cast<uint16_t *>(lut)[(x << 14) + y] = ctx.compute_word_xy<14>(x, y);
+           reinterpret_cast<uint16_t *>(lut)[(x << 14) + y] = ctx.compute_word_xy(x, y, 14);
        break;
      case 16:
        // 64bit only
        for (int x = 0; x < 65536; x++)
          for (int y = 0; y < 65536; y++)
-           reinterpret_cast<uint16_t *>(lut)[((size_t)x << 16) + y] = ctx.compute_word_xy<16>(x, y);
+           reinterpret_cast<uint16_t *>(lut)[((size_t)x << 16) + y] = ctx.compute_word_xy(x, y, 16);
        break;
      }
      return lut;
@@ -129,7 +129,7 @@ class Luts : public MaskTools::Filter
 
      for (int x = 0; x < size; x++)
        for (int y = 0; y < size; y++)
-         lut[(x << bits_per_pixel) + y] = ctx.compute_float_xy_intinput<bits_per_pixel>(x, y);
+         lut[(x << bits_per_pixel) + y] = ctx.compute_float_xy_intinput(x, y, bits_per_pixel);
      return lut;
    }
 

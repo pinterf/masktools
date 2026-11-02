@@ -8,15 +8,13 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Lut { 
 
 typedef void(Processor)(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch, const uint8_t *pSrc2, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight, const uint8_t *lut);
 typedef void(ProcessorCtx)(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, const uint8_t *pSrc2, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight, Parser::Context &ctx);
+typedef void(ProcessorCtx16)(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, const uint8_t *pSrc2, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight, Parser::Context &ctx, int bits_per_pixel);
 typedef void(ProcessorCtx32)(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, const uint8_t *pSrc2, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight, bool chroma, Parser::Context &ctx);
 
 Processor lut_c;
 
 ProcessorCtx realtime8_c;
-extern ProcessorCtx *realtime10_c;
-extern ProcessorCtx *realtime12_c;
-extern ProcessorCtx *realtime14_c;
-extern ProcessorCtx *realtime16_c;
+ProcessorCtx16 realtime16_c;
 ProcessorCtx32 realtime32_c;
 
 class Lutxyz : public MaskTools::Filter
@@ -49,7 +47,8 @@ class Lutxyz : public MaskTools::Filter
    // for realtime
    std::deque<Filtering::Parser::Symbol> *parsed_expressions[4];
 
-   ProcessorCtx *processorCtx; // for all 8-16
+   ProcessorCtx *processorCtx; // 8 bits
+   ProcessorCtx16 *processorCtx16; // 10-16 bits
    ProcessorCtx32 *processorCtx32;
    int bits_per_pixel;
    bool realtime;
@@ -66,11 +65,16 @@ protected:
           // thread safety
           Parser::Context ctx(*parsed_expressions[nPlane], scale_inputs, clamp_float_i);
 
-          if (bits_per_pixel <= 16)
+          if (bits_per_pixel == 8)
             processorCtx(dst.data(), dst.pitch(),
               frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
               frames[1].plane(nPlane).data(), frames[1].plane(nPlane).pitch(),
               dst.width(), dst.height(), ctx);
+          else if (bits_per_pixel <= 16)
+            processorCtx16(dst.data(), dst.pitch(),
+              frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
+              frames[1].plane(nPlane).data(), frames[1].plane(nPlane).pitch(),
+              dst.width(), dst.height(), ctx, bits_per_pixel);
           else {
             const bool chroma = ((nPlane == 1 || nPlane == 2) && !planes_isRGB[C]);
             processorCtx32(dst.data(), dst.pitch(),
@@ -221,14 +225,9 @@ public:
           if (realtime) {
             parsed_expressions[i] = new std::deque<Parser::Symbol>(parser.getExpression());
 
-            switch (bits_per_pixel) {
-            case 8: processorCtx = realtime8_c; break;
-            case 10: processorCtx = realtime10_c; break;
-            case 12: processorCtx = realtime12_c; break;
-            case 14: processorCtx = realtime14_c; break;
-            case 16: processorCtx = realtime16_c; break;
-            case 32: processorCtx32 = realtime32_c; break;
-            }
+            if (bits_per_pixel == 8) processorCtx = realtime8_c;
+            else if (bits_per_pixel <= 16) processorCtx16 = realtime16_c;
+            else processorCtx32 = realtime32_c;
             continue;
           }
 

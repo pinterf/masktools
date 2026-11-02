@@ -33,24 +33,19 @@ void Filtering::MaskTools::Filters::Lut::Quad::realtime8_c(uint8_t *dstp, ptrdif
   }
 }
 
-template<int bits_per_pixel>
-static void realtime16_t_c(uint8_t *dstp, ptrdiff_t dst_pitch, const uint8_t *srcp, ptrdiff_t nSrcPitch, 
-  const uint8_t *srcp2, ptrdiff_t nSrc2Pitch, const uint8_t *srcp3, ptrdiff_t nSrc3Pitch, int width, int height, Parser::Context &ctx)
+void Filtering::MaskTools::Filters::Lut::Quad::realtime16_c(uint8_t *dstp, ptrdiff_t dst_pitch, const uint8_t *srcp, ptrdiff_t nSrcPitch, 
+  const uint8_t *srcp2, ptrdiff_t nSrc2Pitch, const uint8_t *srcp3, ptrdiff_t nSrc3Pitch, int width, int height, Parser::Context &ctx, int bits_per_pixel)
 {
-  const uint16_t max_pixel_value = (1 << bits_per_pixel) - 1;
+  const int max_pixel_value = (1 << bits_per_pixel) - 1;
   for (int y = 0; y < height; y++)
   {
     for (int x = 0; x < width; x++) {
-      uint16_t pixelX = reinterpret_cast<uint16_t *>(dstp)[x];
-      if (bits_per_pixel != 16) pixelX = min(pixelX, max_pixel_value); // clamp input below 16 bit
-      uint16_t pixelY = reinterpret_cast<const uint16_t *>(srcp)[x];
-      if (bits_per_pixel != 16) pixelY = min(pixelY, max_pixel_value); // clamp input below 16 bit
-      uint16_t pixelZ = reinterpret_cast<const uint16_t *>(srcp2)[x];
-      if (bits_per_pixel != 16) pixelZ = min(pixelZ, max_pixel_value); // clamp input below 16 bit
-      uint16_t pixelA = reinterpret_cast<const uint16_t *>(srcp3)[x];
-      if (bits_per_pixel != 16) pixelA = min(pixelA, max_pixel_value); // clamp input below 16 bit
+      const int pixelX = min((int)reinterpret_cast<uint16_t *>(dstp)[x], max_pixel_value); // clamp input below 16 bit
+      const int pixelY = min((int)reinterpret_cast<const uint16_t *>(srcp)[x], max_pixel_value); // clamp input below 16 bit
+      const int pixelZ = min((int)reinterpret_cast<const uint16_t *>(srcp2)[x], max_pixel_value); // clamp input below 16 bit
+      const int pixelA = min((int)reinterpret_cast<const uint16_t *>(srcp3)[x], max_pixel_value); // clamp input below 16 bit
 
-      uint16_t result = ctx.compute_word_xyza<bits_per_pixel>(pixelX, pixelY, pixelZ, pixelA);
+      uint16_t result = ctx.compute_word_xyza(pixelX, pixelY, pixelZ, pixelA, bits_per_pixel);
 
       reinterpret_cast<uint16_t *>(dstp)[x] = result;
     }
@@ -79,25 +74,3 @@ void Filtering::MaskTools::Filters::Lut::Quad::realtime32_c(uint8_t *dstp, ptrdi
     srcp3 += nSrc3Pitch;
   }
 }
-
-template void realtime16_t_c<10>(uint8_t *dstp, ptrdiff_t dst_pitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, const uint8_t *srcp2, ptrdiff_t nSrc2Pitch, const uint8_t *srcp3, ptrdiff_t nSrc3Pitch, int width, int height, Parser::Context &ctx);
-template void realtime16_t_c<12>(uint8_t *dstp, ptrdiff_t dst_pitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, const uint8_t *srcp2, ptrdiff_t nSrc2Pitch, const uint8_t *srcp3, ptrdiff_t nSrc3Pitch, int width, int height, Parser::Context &ctx);
-template void realtime16_t_c<14>(uint8_t *dstp, ptrdiff_t dst_pitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, const uint8_t *srcp2, ptrdiff_t nSrc2Pitch, const uint8_t *srcp3, ptrdiff_t nSrc3Pitch, int width, int height, Parser::Context &ctx);
-template void realtime16_t_c<16>(uint8_t *dstp, ptrdiff_t dst_pitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, const uint8_t *srcp2, ptrdiff_t nSrc2Pitch, const uint8_t *srcp3, ptrdiff_t nSrc3Pitch, int width, int height, Parser::Context &ctx);
-
-namespace Filtering {
-  namespace MaskTools {
-    namespace Filters {
-      namespace Lut {
-        namespace Quad {
-          ProcessorCtx *realtime10_c = &realtime16_t_c<10>;
-          ProcessorCtx *realtime12_c = &realtime16_t_c<12>;
-          ProcessorCtx *realtime14_c = &realtime16_t_c<14>;
-          ProcessorCtx *realtime16_c = &realtime16_t_c<16>;
-        }
-      }
-    }
-  }
-}
-
-

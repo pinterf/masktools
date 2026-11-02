@@ -68,7 +68,7 @@ static void custom_weight_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *p
         // different from non-weight version
         float weight;
         if (realtime) {
-          weight = ctx_w->compute_float_xy_intinput<8>(PixelX, PixelY); // yes, weights are float, keep precision and not convert back to int
+          weight = ctx_w->compute_float_xy_intinput(PixelX, PixelY, 8); // yes, weights are float, keep precision and not convert back to int
           new_value.add_w(ctx->compute_byte_xy(PixelX, PixelY), weight);
         }
         else {
@@ -121,7 +121,7 @@ static void custom16_c(uint8_t *pDst8, ptrdiff_t nDstPitch, const uint8_t *pSrc8
         }
 
         if (realtime) {
-          new_value.add(ctx->compute_word_xy<bits_per_pixel>(PixelX, PixelY));
+          new_value.add(ctx->compute_word_xy(PixelX, PixelY, bits_per_pixel));
         }
         else {
           new_value.add(reinterpret_cast<const uint16_t *>(pLut)[(PixelX << bits_per_pixel) + PixelY]);
@@ -172,14 +172,14 @@ static void custom16_weight_c(uint8_t *pDst8, ptrdiff_t nDstPitch, const uint8_t
         // different from non-weight version
         float weight;
         if (realtime) {
-          weight = ctx_w->compute_float_xy_intinput<bits_per_pixel>(PixelX, PixelY); // keep precision and not convert back to int
+          weight = ctx_w->compute_float_xy_intinput(PixelX, PixelY, bits_per_pixel); // keep precision and not convert back to int
         }
         else {
           weight = pLut_w[(PixelX << bits_per_pixel) + PixelY]; // byte xy but float content!
         }
 
         if (realtime) {
-          new_value.add_w(ctx->compute_word_xy<bits_per_pixel>(PixelX, PixelY), weight);
+          new_value.add_w(ctx->compute_word_xy(PixelX, PixelY, bits_per_pixel), weight);
         }
         else {
           new_value.add_w(reinterpret_cast<const uint16_t *>(pLut)[(PixelX << bits_per_pixel) + PixelY], weight);

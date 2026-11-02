@@ -3,89 +3,36 @@
 using namespace Filtering;
 
 
-template<int bits_per_pixel>
-static void lut16_t_c(uint8_t * pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight, const uint16_t *lut, int)
+void Filtering::MaskTools::Filters::Lut::Single::lut16_c(uint8_t * pDst, ptrdiff_t nDstPitch, int nWidth, int nHeight, const uint16_t *lut, int bits_per_pixel)
 {
-    constexpr int max_pixel_value = (1 << bits_per_pixel) - 1;
+    // 16 bit: min is a no-op, the lut covers every input
+    const int max_pixel_value = (1 << bits_per_pixel) - 1;
     for ( int y = 0; y < nHeight; y++ )
     {
         auto pDst16 = reinterpret_cast<uint16_t*>(pDst);
         int x;
         const int wmod2 = nWidth / 2 * 2;
-        for (x = 0; x < wmod2; x+=2 ) {
-            int pixelX = pDst16[x];
-            if constexpr (bits_per_pixel != 16)
-              pixelX = min(pixelX, max_pixel_value);
-
-            pDst16[x] = lut[pixelX];
-
-            pixelX = pDst16[x + 1];
-            if constexpr (bits_per_pixel != 16)
-              pixelX = min(pixelX, max_pixel_value);
-
-            pDst16[x + 1] = lut[pixelX];
-
+        for (x = 0; x < wmod2; x += 2) {
+            const int pixel0 = min((int)pDst16[x], max_pixel_value);
+            const int pixel1 = min((int)pDst16[x + 1], max_pixel_value);
+            pDst16[x] = lut[pixel0];
+            pDst16[x + 1] = lut[pixel1];
         }
-        if (wmod2 != nWidth) {
-          int pixelX = pDst16[x];
-          if constexpr (bits_per_pixel != 16)
-            pixelX = min(pixelX, max_pixel_value);
-
-          pDst16[x] = lut[pixelX];
-        }
-
+        if (wmod2 != nWidth)
+            pDst16[x] = lut[min((int)pDst16[x], max_pixel_value)];
         pDst += nDstPitch;
     }
 }
 
-template<int bits_per_pixel>
-static void realtime16_t_c(uint8_t* dstp, ptrdiff_t dst_pitch, int width, int height, Parser::Context& ctx)
+void Filtering::MaskTools::Filters::Lut::Single::realtime16_c(uint8_t* dstp, ptrdiff_t dst_pitch, int width, int height, Parser::Context& ctx, int bits_per_pixel)
 {
-  constexpr int max_pixel_value = (1 << bits_per_pixel) - 1;
+  const int max_pixel_value = (1 << bits_per_pixel) - 1;
   for (int y = 0; y < height; y++)
   {
     for (int x = 0; x < width; x++) {
-      int pixel = reinterpret_cast<uint16_t*>(dstp)[x];
-      if constexpr(bits_per_pixel != 16) 
-        pixel = min(pixel, max_pixel_value);
-
-      const auto result = ctx.compute_word_x<bits_per_pixel>(pixel);
-
-      reinterpret_cast<uint16_t*>(dstp)[x] = result;
+      const int pixel = min((int)reinterpret_cast<uint16_t*>(dstp)[x], max_pixel_value);
+      reinterpret_cast<uint16_t*>(dstp)[x] = ctx.compute_word_x(pixel, bits_per_pixel);
     }
     dstp += dst_pitch;
   }
 }
-
-
-template void realtime16_t_c<10>(uint8_t* dstp, ptrdiff_t dst_pitch, int width, int height, Parser::Context& ctx);
-template void realtime16_t_c<12>(uint8_t* dstp, ptrdiff_t dst_pitch, int width, int height, Parser::Context& ctx);
-template void realtime16_t_c<14>(uint8_t* dstp, ptrdiff_t dst_pitch, int width, int height, Parser::Context& ctx);
-template void realtime16_t_c<16>(uint8_t* dstp, ptrdiff_t dst_pitch, int width, int height, Parser::Context& ctx);
-
-template void lut16_t_c<10>(uint8_t* dstp, ptrdiff_t dst_pitch, int width, int height, const uint16_t* lut, int);
-template void lut16_t_c<12>(uint8_t* dstp, ptrdiff_t dst_pitch, int width, int height, const uint16_t* lut, int);
-template void lut16_t_c<14>(uint8_t* dstp, ptrdiff_t dst_pitch, int width, int height, const uint16_t* lut, int);
-template void lut16_t_c<16>(uint8_t* dstp, ptrdiff_t dst_pitch, int width, int height, const uint16_t* lut, int);
-
-namespace Filtering {
-  namespace MaskTools {
-    namespace Filters {
-      namespace Lut {
-        namespace Single {
-          Processor16* lut10_c = &lut16_t_c<10>;
-          Processor16* lut12_c = &lut16_t_c<12>;
-          Processor16* lut14_c = &lut16_t_c<14>;
-          Processor16* lut16_c = &lut16_t_c<16>;
-
-
-          ProcessorCtx* realtime10_c = &realtime16_t_c<10>;
-          ProcessorCtx* realtime12_c = &realtime16_t_c<12>;
-          ProcessorCtx* realtime14_c = &realtime16_t_c<14>;
-          ProcessorCtx* realtime16_c = &realtime16_t_c<16>;
-        }
-      }
-    }
-  }
-}
-
