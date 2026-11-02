@@ -474,9 +474,6 @@
     <ClCompile Include="filters\support\adddiff16\adddiff16_sse2.cpp">
       <Filter>filters\support\adddiff16</Filter>
     </ClCompile>
-    <ClCompile Include="filters\support\adddiff16\adddiff16_sse41.cpp">
-      <Filter>filters\support\adddiff16</Filter>
-    </ClCompile>
     <ClCompile Include="filters\support\adddiff\adddiff.cpp">
       <Filter>filters\support\adddiff</Filter>
     </ClCompile>
@@ -526,9 +523,6 @@
       <Filter>filters\support\makediff16</Filter>
     </ClCompile>
     <ClCompile Include="filters\support\makediff16\makediff16_sse2.cpp">
-      <Filter>filters\support\makediff16</Filter>
-    </ClCompile>
-    <ClCompile Include="filters\support\makediff16\makediff16_sse41.cpp">
       <Filter>filters\support\makediff16</Filter>
     </ClCompile>
     <ClCompile Include="filters\support\makediff\makediff.cpp">
@@ -782,9 +776,6 @@
     <ClInclude Include="filters\morphologic\morphologic.h">
       <Filter>filters\morphologic</Filter>
     </ClInclude>
-    <ClInclude Include="filters\support\adddiff16\adddiff16_sse.h">
-      <Filter>filters\support\adddiff16</Filter>
-    </ClInclude>
     <ClInclude Include="filters\support\adddiff\adddiff.h">
       <Filter>filters\support\adddiff</Filter>
     </ClInclude>
@@ -793,9 +784,6 @@
     </ClInclude>
     <ClInclude Include="filters\support\clamp\clamp.h">
       <Filter>filters\support\clamp</Filter>
-    </ClInclude>
-    <ClInclude Include="filters\support\makediff16\makediff16_sse.h">
-      <Filter>filters\support\makediff16</Filter>
     </ClInclude>
     <ClInclude Include="filters\support\makediff\makediff.h">
       <Filter>filters\support\makediff</Filter>
