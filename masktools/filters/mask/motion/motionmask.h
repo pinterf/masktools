@@ -6,19 +6,13 @@
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Mask { namespace Motion {
 
 typedef bool (Processor)(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nLowThreshold, int nHighThreshold, int nMotionThreshold, int nSceneChange, int nSceneChangeValue, int nWidth, int nHeight);
-typedef bool (Processor16)(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nLowThreshold, int nHighThreshold, int nMotionThreshold, int nSceneChange, int nSceneChangeValue, int nWidth, int nHeight);
+typedef bool (Processor16)(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nLowThreshold, int nHighThreshold, int nMotionThreshold, int nSceneChange, int nSceneChangeValue, int nWidth, int nHeight, int bits_per_pixel);
 typedef bool (Processor32)(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, float nLowThreshold, float nHighThreshold, float nMotionThreshold, int nSceneChange, float nSceneChangeValue_f, int nWidth, int nHeight);
 
 extern Processor *mask_c;
 extern Processor *mask_sse2;
 
-extern Processor16* mask10_c;
-extern Processor16* mask12_c;
-extern Processor16* mask14_c;
 extern Processor16* mask16_c;
-extern Processor16* mask10_sse2;
-extern Processor16* mask12_sse2;
-extern Processor16* mask14_sse2;
 extern Processor16* mask16_sse2;
 
 extern Processor32 *mask32_c;
@@ -26,9 +20,6 @@ extern Processor32 *mask32_sse2;
 
 #ifdef NEON_INTRINSICS
 extern Processor *mask_neon;
-extern Processor16 *mask10_neon;
-extern Processor16 *mask12_neon;
-extern Processor16 *mask14_neon;
 extern Processor16 *mask16_neon;
 extern Processor32 *mask32_neon;
 #endif
@@ -73,11 +64,11 @@ protected:
           if (nPlane == 0)
             nSceneChange = processors16.best_processor(constraints[nPlane])(dst.data(), dst.pitch(),
               frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
-              nLowThresholds[nPlane], nHighThresholds[nPlane], nMotionThreshold, 0, nSceneChangeValue, dst.width(), dst.height()) ? 3 : 2;
+              nLowThresholds[nPlane], nHighThresholds[nPlane], nMotionThreshold, 0, nSceneChangeValue, dst.width(), dst.height(), bits_per_pixel) ? 3 : 2;
           else
             processors16.best_processor(constraints[nPlane])(dst.data(), dst.pitch(),
               frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
-              nLowThresholds[nPlane], nHighThresholds[nPlane], nMotionThreshold, nSceneChange, nSceneChangeValue, dst.width(), dst.height());
+              nLowThresholds[nPlane], nHighThresholds[nPlane], nMotionThreshold, nSceneChange, nSceneChangeValue, dst.width(), dst.height(), bits_per_pixel);
         }
         else {
           if (nPlane == 0)
@@ -202,31 +193,7 @@ public:
       processors.push_back(Filtering::Processor<Processor>(mask_sse2, Constraint(CPU_SSE2), 1));
 #endif
       break;
-    case 10:
-      processors16.push_back(Filtering::Processor<Processor16>(mask10_c, Constraint(CPU_NONE), 0));
-#ifdef NEON_INTRINSICS
-      processors16.push_back(Filtering::Processor<Processor16>(mask10_neon, Constraint(CPU_NEON), 1));
-#endif
-#ifdef INTEL_INTRINSICS
-      processors16.push_back(Filtering::Processor<Processor16>(mask10_sse2, Constraint(CPU_SSE2), 1));
-#endif
-    case 12:
-      processors16.push_back(Filtering::Processor<Processor16>(mask12_c, Constraint(CPU_NONE), 0));
-#ifdef NEON_INTRINSICS
-      processors16.push_back(Filtering::Processor<Processor16>(mask12_neon, Constraint(CPU_NEON), 1));
-#endif
-#ifdef INTEL_INTRINSICS
-      processors16.push_back(Filtering::Processor<Processor16>(mask12_sse2, Constraint(CPU_SSE2), 1));
-#endif
-    case 14:
-      processors16.push_back(Filtering::Processor<Processor16>(mask14_c, Constraint(CPU_NONE), 0));
-#ifdef NEON_INTRINSICS
-      processors16.push_back(Filtering::Processor<Processor16>(mask14_neon, Constraint(CPU_NEON), 1));
-#endif
-#ifdef INTEL_INTRINSICS
-      processors16.push_back(Filtering::Processor<Processor16>(mask14_sse2, Constraint(CPU_SSE2), 1));
-#endif
-    case 16:
+    case 10: case 12: case 14: case 16:
       processors16.push_back(Filtering::Processor<Processor16>(mask16_c, Constraint(CPU_NONE), 0));
 #ifdef NEON_INTRINSICS
       processors16.push_back(Filtering::Processor<Processor16>(mask16_neon, Constraint(CPU_NEON), 1));

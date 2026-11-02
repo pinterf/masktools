@@ -98,10 +98,7 @@ namespace {
 
 } // namespace
 
-Processor16* mask10_sse2 = &mask16_t<sad16_sse2_op, mask16_c_op<10> /* mask16_sse2_op*/>;
-Processor16* mask12_sse2 = &mask16_t<sad16_sse2_op, mask16_c_op<12> /* mask16_sse2_op*/>;
-Processor16* mask14_sse2 = &mask16_t<sad16_sse2_op, mask16_c_op<14> /* mask16_sse2_op*/>;
-Processor16* mask16_sse2 = &mask16_t<sad16_sse2_op, mask16_c_op<16> /* mask16_sse2_op*/>;
+Processor16* mask16_sse2 = &mask16_t<sad16_sse2_op, mask16_c_op /* mask16_sse2_op*/>;
 
 } } } } }
 

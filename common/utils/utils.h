@@ -308,13 +308,6 @@ template<> inline float threshold<float, float>(float x, float mini, float maxi,
   return convert<float, float>(x <= mini ? bottom : x > maxi ? top : x);
 }
 
-template<int bits_per_pixel> static inline uint16_t threshold16(int x, int mini, int maxi)
-{ 
-  int bottom = 0;
-  int top = (1 << bits_per_pixel) - 1;
-  return convert<uint16_t, int>(x <= mini ? bottom : x > maxi ? top : x);
-}
-
 // top: the max pixel value of the bit depth
 static inline uint16_t threshold16(int x, int mini, int maxi, int top)
 {

@@ -25,28 +25,28 @@ namespace {
     return nSad;
   }
 
-  template<int bits_per_pixel>
-  static void mask16_c_op(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nLowThreshold, int nHighThreshold, int nWidth, int nHeight)
+  static void mask16_c_op(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nLowThreshold, int nHighThreshold, int nWidth, int nHeight, int bits_per_pixel)
   {
+    const int pixelMax = (1 << bits_per_pixel) - 1;
     for (int y = 0; y < nHeight; y++)
     {
       for (int x = 0; x < nWidth; x++) {
-        reinterpret_cast<uint16_t *>(pDst)[x] = threshold16<bits_per_pixel>(abs<int>(reinterpret_cast<uint16_t *>(pDst)[x] - reinterpret_cast<const uint16_t *>(pSrc)[x]), nLowThreshold, nHighThreshold);
+        reinterpret_cast<uint16_t *>(pDst)[x] = threshold16(abs<int>(reinterpret_cast<uint16_t *>(pDst)[x] - reinterpret_cast<const uint16_t *>(pSrc)[x]), nLowThreshold, nHighThreshold, pixelMax);
       }
       pDst += nDstPitch;
       pSrc += nSrcPitch;
     }
   }
 
-template <decltype(sad16_c_op) sad, decltype(mask16_c_op<10>) mask>
-bool mask16_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nLowThreshold, int nHighThreshold, int nMotionThreshold, int nSceneChange, int nSceneChangeValue, int nWidth, int nHeight)
+template <decltype(sad16_c_op) sad, decltype(mask16_c_op) mask>
+bool mask16_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nLowThreshold, int nHighThreshold, int nMotionThreshold, int nSceneChange, int nSceneChangeValue, int nWidth, int nHeight, int bits_per_pixel)
 {
     bool scenechange = nSceneChange >= 2 ? nSceneChange == 3 : sad(pDst, nDstPitch, pSrc, nSrcPitch, nWidth, nHeight) > (uint64_t)nMotionThreshold * nWidth * nHeight;
 
     if (scenechange) {
         Functions::memset_plane_16((uint8_t *)pDst, nDstPitch, nWidth, nHeight, static_cast<uint16_t>(nSceneChangeValue));
     } else {
-        mask(pDst, nDstPitch, pSrc, nSrcPitch, nLowThreshold, nHighThreshold, nWidth, nHeight);
+        mask(pDst, nDstPitch, pSrc, nSrcPitch, nLowThreshold, nHighThreshold, nWidth, nHeight, bits_per_pixel);
     }
     return scenechange;
 }

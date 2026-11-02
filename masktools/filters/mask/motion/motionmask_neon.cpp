@@ -71,11 +71,11 @@ uint64_t sad16_neon_op(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, 
   return nSad;
 }
 
-template<int bits_per_pixel>
-void mask16_neon_op(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nLowThreshold, int nHighThreshold, int nWidth, int nHeight)
+void mask16_neon_op(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nLowThreshold, int nHighThreshold, int nWidth, int nHeight, int bits_per_pixel)
 {
+  const int pixelMax = (1 << bits_per_pixel) - 1;
   const uint16x8_t lo = vdupq_n_u16(uint16_t(nLowThreshold)), hi = vdupq_n_u16(uint16_t(nHighThreshold));
-  const uint16x8_t mx = vdupq_n_u16(uint16_t((1 << bits_per_pixel) - 1));
+  const uint16x8_t mx = vdupq_n_u16(uint16_t(pixelMax));
   const int wmod = nWidth / 8 * 8;
   for (int y = 0; y < nHeight; y++) {
     uint16_t *d = reinterpret_cast<uint16_t *>(pDst);
@@ -86,7 +86,7 @@ void mask16_neon_op(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptr
       vst1q_u16(d + x, vbicq_u16(r, vcleq_u16(a, lo)));
     }
     for (int x = wmod; x < nWidth; x++)
-      d[x] = threshold16<bits_per_pixel>(abs<int>(d[x] - s[x]), nLowThreshold, nHighThreshold);
+      d[x] = threshold16(abs<int>(d[x] - s[x]), nLowThreshold, nHighThreshold, pixelMax);
     pDst += nDstPitch;
     pSrc += nSrcPitch;
   }
@@ -117,10 +117,7 @@ void mask32_neon_op(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptr
 } // namespace
 
 Processor *mask_neon = &mask_t<sad8_neon_op, mask8_neon_op>;
-Processor16 *mask10_neon = &mask16_t<sad16_neon_op, mask16_neon_op<10>>;
-Processor16 *mask12_neon = &mask16_t<sad16_neon_op, mask16_neon_op<12>>;
-Processor16 *mask14_neon = &mask16_t<sad16_neon_op, mask16_neon_op<14>>;
-Processor16 *mask16_neon = &mask16_t<sad16_neon_op, mask16_neon_op<16>>;
+Processor16 *mask16_neon = &mask16_t<sad16_neon_op, mask16_neon_op>;
 Processor32 *mask32_neon = &mask32_t<sad32_c_op, mask32_neon_op>;
 
 } } } } }
