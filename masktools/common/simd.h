@@ -169,10 +169,10 @@ namespace {
   }
 
 
-  //  thresholds are decreased by half range in order to do signed comparison
-  template<int bits_per_pixel>
-  static MT_FORCEINLINE __m128i threshold16_sse2(const __m128i& value, const __m128i& lowThresh, const __m128i& highThresh, const __m128i& vHalf, const __m128i& maxMask) {
-    auto sat = _mm_sub_epi16(value, vHalf);
+  // thresholds are xor'ed with 0x8000 for the signed comparison, at any bit depth: values up to 65535 (saturated
+  // convolution, prewitt) and thresholds 0..max (ScaleParam) compare as unsigned
+  static MT_FORCEINLINE __m128i threshold16_sse2(const __m128i& value, const __m128i& lowThresh, const __m128i& highThresh, const __m128i& maxMask) {
+    auto sat = _mm_xor_si128(value, _mm_set1_epi16(-32768));
     auto low = _mm_cmpgt_epi16(sat, lowThresh);
     auto high = _mm_cmpgt_epi16(sat, highThresh);
     // as the C threshold: value <= low ? 0 : value > high ? max : value; value can be above max (prewitt, cartoon).

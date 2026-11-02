@@ -71,7 +71,6 @@ template<CpuFlags flags, int bits_per_pixel, Border borderMode>
 static MT_FORCEINLINE void process_line_convolution_sse2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m128i &lowThresh, const __m128i &highThresh, int width) {
     UNUSED(pSrcp);
 #pragma warning(disable: 4310)
-    auto vHalf = _mm_set1_epi16(short(1 << (bits_per_pixel -1 )));
     auto vMax = _mm_set1_epi16(short((1 << bits_per_pixel)- 1));
 #pragma warning(default: 4310)
     auto zero = _mm_setzero_si128();
@@ -160,7 +159,7 @@ static MT_FORCEINLINE void process_line_convolution_sse2(uint8_t *pDst, const ui
         acc_hi = _mm_srl_epi32(acc_hi, divisor);
 
         auto acc = simd_packus_epi32<flags>(acc_lo, acc_hi);
-        auto result = threshold16_sse2<bits_per_pixel>(acc, lowThresh, highThresh, vHalf, vMax);
+        auto result = threshold16_sse2(acc, lowThresh, highThresh, vMax);
 
         _mm_storeu_si128(reinterpret_cast<__m128i*>(pDst+x), result);
     }
@@ -170,7 +169,6 @@ template<CpuFlags flags, int bits_per_pixel, Border borderMode>
 static MT_FORCEINLINE void process_line_sobel_sse2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m128i &lowThresh, const __m128i &highThresh, int width) {
     UNUSED(matrix);
 #pragma warning(disable: 4310)
-    auto vHalf = _mm_set1_epi16(short(1 << (bits_per_pixel - 1)));
     auto vMax = _mm_set1_epi16(short((1 << bits_per_pixel) - 1));
 #pragma warning(default: 4310)
     auto zero = _mm_setzero_si128();
@@ -208,7 +206,7 @@ static MT_FORCEINLINE void process_line_sobel_sse2(uint8_t *pDst, const uint8_t 
         diff_hi = _mm_srai_epi32(diff_hi, 1);
         
         auto diff = simd_packus_epi32<flags>(diff_lo, diff_hi);
-        auto result = threshold16_sse2<bits_per_pixel>(diff, lowThresh, highThresh, vHalf, vMax);
+        auto result = threshold16_sse2(diff, lowThresh, highThresh, vMax);
 
         _mm_storeu_si128(reinterpret_cast<__m128i*>(pDst+x), result);
     }
@@ -219,7 +217,6 @@ static MT_FORCEINLINE void process_line_roberts_sse2(uint8_t *pDst, const uint8_
     UNUSED(pSrcp);
     UNUSED(matrix);
 #pragma warning(disable: 4310)
-    auto vHalf = _mm_set1_epi16(short(1 << (bits_per_pixel -1 )));
     auto vMax = _mm_set1_epi16(short((1 << bits_per_pixel) - 1));
 #pragma warning(default: 4310)
     auto zero = _mm_setzero_si128();
@@ -252,7 +249,7 @@ static MT_FORCEINLINE void process_line_roberts_sse2(uint8_t *pDst, const uint8_
         diff_hi = _mm_srai_epi32(diff_hi, 1);
 
         auto diff = simd_packus_epi32<flags>(diff_lo, diff_hi);
-        auto result = threshold16_sse2<bits_per_pixel>(diff, lowThresh, highThresh, vHalf, vMax);
+        auto result = threshold16_sse2(diff, lowThresh, highThresh, vMax);
 
         _mm_storeu_si128(reinterpret_cast<__m128i*>(pDst+x), result);
     }
@@ -263,7 +260,6 @@ static MT_FORCEINLINE void process_line_laplace_sse2(uint8_t *pDst, const uint8_
     UNUSED(pSrcp);
     UNUSED(matrix);
 #pragma warning(disable: 4310)
-    auto vHalf = _mm_set1_epi16(short(1 << (bits_per_pixel -1 )));
     auto vMax = _mm_set1_epi16(short((1 << bits_per_pixel) - 1));
 #pragma warning(default: 4310)
     auto zero = _mm_setzero_si128();
@@ -334,7 +330,7 @@ static MT_FORCEINLINE void process_line_laplace_sse2(uint8_t *pDst, const uint8_
         diff_hi = _mm_srai_epi32(diff_hi, 3);
 
         auto diff = simd_packus_epi32<flags>(diff_lo, diff_hi);
-        auto result = threshold16_sse2<bits_per_pixel>(diff, lowThresh, highThresh, vHalf, vMax);
+        auto result = threshold16_sse2(diff, lowThresh, highThresh, vMax);
 
         _mm_storeu_si128(reinterpret_cast<__m128i*>(pDst+x), result);
     }
@@ -344,7 +340,6 @@ template<CpuFlags flags, int bits_per_pixel, Border borderMode>
 static MT_FORCEINLINE void process_line_morpho_sse2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m128i &lowThresh, const __m128i &highThresh, int width) {
     UNUSED(matrix);
 #pragma warning(disable: 4310)
-    auto vHalf = _mm_set1_epi16(short(1 << (bits_per_pixel -1 )));
     auto vMax = _mm_set1_epi16(short((1 << bits_per_pixel) - 1));
 #pragma warning(default: 4310)
 
@@ -380,7 +375,7 @@ static MT_FORCEINLINE void process_line_morpho_sse2(uint8_t *pDst, const uint8_t
         minv = simd_min_epu16<flags>(minv, middle_left);
         
         auto diff = _mm_sub_epi16(maxv, minv);
-        auto result = threshold16_sse2<bits_per_pixel>(diff, lowThresh, highThresh, vHalf, vMax);
+        auto result = threshold16_sse2(diff, lowThresh, highThresh, vMax);
 
         _mm_storeu_si128(reinterpret_cast<__m128i*>(pDst+x), result);
     }
@@ -390,7 +385,6 @@ template<CpuFlags flags, int bits_per_pixel, Border borderMode>
 static MT_FORCEINLINE void process_line_cartoon_sse2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m128i &lowThresh, const __m128i &highThresh, int width) {
     UNUSED(matrix); UNUSED(pSrcn);
 #pragma warning(disable: 4310)
-    auto vHalf = _mm_set1_epi16(short(1 << (bits_per_pixel -1 )));
     auto vMax = _mm_set1_epi16(short((1 << bits_per_pixel) - 1));
 #pragma warning(default: 4310)
     auto zero = _mm_setzero_si128();
@@ -420,7 +414,7 @@ static MT_FORCEINLINE void process_line_cartoon_sse2(uint8_t *pDst, const uint8_
         acc_hi = _mm_sub_epi32(acc_hi, up_center_hi);
 
         auto acc = simd_packus_epi32<flags>(acc_lo, acc_hi);
-        auto result = threshold16_sse2<bits_per_pixel>(acc, lowThresh, highThresh, vHalf, vMax);
+        auto result = threshold16_sse2(acc, lowThresh, highThresh, vMax);
 
         _mm_storeu_si128(reinterpret_cast<__m128i*>(pDst+x), result);
     }
@@ -430,7 +424,6 @@ template<CpuFlags flags, int bits_per_pixel, Border borderMode>
 static MT_FORCEINLINE void process_line_prewitt_sse2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m128i &lowThresh, const __m128i &highThresh, int width) {
     UNUSED(matrix);
 #pragma warning(disable: 4310)
-    auto vHalf = _mm_set1_epi16(short(1 << (bits_per_pixel -1 )));
     auto vMax = _mm_set1_epi16(short((1 << bits_per_pixel) - 1));
 #pragma warning(default: 4310)
     auto zero = _mm_setzero_si128();
@@ -517,7 +510,7 @@ static MT_FORCEINLINE void process_line_prewitt_sse2(uint8_t *pDst, const uint8_
 
         auto result = simd_max_epu16<flags>(max1, max2);
 
-        result = threshold16_sse2<bits_per_pixel>(result, lowThresh, highThresh, vHalf, vMax);
+        result = threshold16_sse2(result, lowThresh, highThresh, vMax);
 
         _mm_storeu_si128(reinterpret_cast<__m128i*>(pDst+x), result);
     }
@@ -527,7 +520,6 @@ template<CpuFlags flags, int bits_per_pixel, Border borderMode>
 static MT_FORCEINLINE void process_line_half_prewitt_sse2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m128i &lowThresh, const __m128i &highThresh, int width) {
     UNUSED(matrix);
 #pragma warning(disable: 4310)
-    auto vHalf = _mm_set1_epi16(short(1 << (bits_per_pixel -1 )));
     auto vMax = _mm_set1_epi16(short((1 << bits_per_pixel) - 1));
 #pragma warning(default: 4310)
     auto zero = _mm_setzero_si128();
@@ -609,7 +601,7 @@ static MT_FORCEINLINE void process_line_half_prewitt_sse2(uint8_t *pDst, const u
 
         auto result = simd_max_epu16<flags>(p90, p180);
 
-        result = threshold16_sse2<bits_per_pixel>(result, lowThresh, highThresh, vHalf, vMax);
+        result = threshold16_sse2(result, lowThresh, highThresh, vMax);
 
         _mm_storeu_si128(reinterpret_cast<__m128i*>(pDst+x), result);
     }

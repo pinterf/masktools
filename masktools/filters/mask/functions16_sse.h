@@ -22,11 +22,9 @@ void generic16_sse2(uint16_t *pDst0, ptrdiff_t nDstPitch, const uint16_t *pSrc0,
     const uint8_t *pSrcp = pSrc - nSrcPitch;
     const uint8_t *pSrcn = pSrc + nSrcPitch;
 
-    auto vHalf = _mm_set1_epi16(short(1 << (bits_per_pixel - 1))); // 0x8000 at 16 bit
-    auto low_thr_v = _mm_set1_epi16(uint16_t(nLowThreshold)); // for faster sse2 signed comparison
-    low_thr_v = _mm_sub_epi16(low_thr_v, vHalf);
-    auto high_thr_v = _mm_set1_epi16(uint16_t(nHighThreshold));
-    high_thr_v = _mm_sub_epi16(high_thr_v, vHalf);
+    // signed comparison in threshold16_sse2
+    auto low_thr_v = _mm_set1_epi16(int16_t(nLowThreshold ^ 0x8000));
+    auto high_thr_v = _mm_set1_epi16(int16_t(nHighThreshold ^ 0x8000));
 
     int sse2_width = (nWidth - sizeof(uint16_t) - 16) / 16 * 16 + 16;
     /* top-left */

@@ -144,13 +144,12 @@ static MT_FORCEINLINE __m256i threshold_avx2(const __m256i &value, const __m256i
   return _mm256_and_si256(_mm256_or_si256(value, high), low);
 }
 
-//  thresholds are decreased by half range in order to do signed comparison
-template<int bits_per_pixel>
+// thresholds are xor'ed with 0x8000 for the signed comparison, at any bit depth (as threshold16_sse2)
 #if defined(GCC) || defined(CLANG)
 __attribute__((__target__("avx2")))
 #endif
-static MT_FORCEINLINE __m256i threshold16_avx2(const __m256i &value, const __m256i &lowThresh, const __m256i &highThresh, const __m256i &vHalf, const __m256i &maxMask) {
-  auto sat = _mm256_sub_epi16(value, vHalf);
+static MT_FORCEINLINE __m256i threshold16_avx2(const __m256i &value, const __m256i &lowThresh, const __m256i &highThresh, const __m256i &maxMask) {
+  auto sat = _mm256_xor_si256(value, _mm256_set1_epi16(-32768));
   auto low = _mm256_cmpgt_epi16(sat, lowThresh);
   auto high = _mm256_cmpgt_epi16(sat, highThresh);
   // as the C threshold: value <= low ? 0 : value > high ? max : value; value can be above max (prewitt, cartoon).

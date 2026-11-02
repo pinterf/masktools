@@ -181,7 +181,10 @@ protected:
             matrix, nLowThresholds[nPlane], nHighThresholds[nPlane], dst.width(), dst.height());
         }
         else if(bit_depths[C] <= 16) {
-          processors16.best_processor(constraints[nPlane])((uint16_t *)dst.data(), dst.pitch(),
+          // 16 bit, low threshold 65535: only values above 65535 (prewitt, hprewitt, cartoon, custom matrix) give
+          // max, the SIMD versions saturate them to 65535 before the threshold -> C (no 32 bit compare in SIMD)
+          const bool cOnly = bit_depths[C] == 16 && nLowThresholds[nPlane] >= 65535;
+          processors16.best_processor(cOnly ? Constraint(CPU_NONE) : constraints[nPlane])((uint16_t *)dst.data(), dst.pitch(),
             (uint16_t *)frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
             matrix, nLowThresholds[nPlane], nHighThresholds[nPlane], dst.width(), dst.height());
         }
