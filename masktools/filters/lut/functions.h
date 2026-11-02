@@ -44,25 +44,26 @@ typedef enum {
 // for dual: parameter 'realtime' n/a
 
 /* 16 bit */
-#define EXPRESSION16_SINGLE( realtime, bits_per_pixel, base, mode1, mode2 ) &base< realtime, bits_per_pixel, mode2 >
-#define EXPRESSION16_DUAL( realtime, bits_per_pixel, base, mode1, mode2 ) &base< realtime, bits_per_pixel, mode1, mode2 >
+// 10-16 bit: the accumulators get the bit depth at run time: T(mode, bits_per_pixel)
+#define EXPRESSION16_SINGLE( realtime, base, mode1, mode2 ) &base< realtime, mode2 >
+#define EXPRESSION16_DUAL( realtime, base, mode1, mode2 ) &base< mode1, mode2 >
 
-#define MPROCESSOR16(realtime, bits_per_pixel, expr, param, mode) \
+#define MPROCESSOR16(realtime, expr, param, mode) \
 { \
-   expr( realtime, bits_per_pixel, param, mode, Nonizer16<bits_per_pixel> ), \
-   expr( realtime, bits_per_pixel, param, mode, Averager16 ), \
-   expr( realtime, bits_per_pixel, param, mode, Minimizer16<bits_per_pixel> ), \
-   expr( realtime, bits_per_pixel, param, mode, Maximizer16 ), \
-   expr( realtime, bits_per_pixel, param, mode, Deviater16 ), \
-   expr( realtime, bits_per_pixel, param, mode, Rangizer16<bits_per_pixel> ), \
-   expr( realtime, bits_per_pixel, param, mode, Medianizer16 ), \
-   expr( realtime, bits_per_pixel, param, mode, MedianizerBetter16<4> ), \
-   expr( realtime, bits_per_pixel, param, mode, MedianizerBetter16<6> ), \
-   expr( realtime, bits_per_pixel, param, mode, MedianizerBetter16<2> ), \
+   expr( realtime, param, mode, Nonizer16 ), \
+   expr( realtime, param, mode, Averager16 ), \
+   expr( realtime, param, mode, Minimizer16 ), \
+   expr( realtime, param, mode, Maximizer16 ), \
+   expr( realtime, param, mode, Deviater16 ), \
+   expr( realtime, param, mode, Rangizer16 ), \
+   expr( realtime, param, mode, Medianizer16 ), \
+   expr( realtime, param, mode, MedianizerBetter16<4> ), \
+   expr( realtime, param, mode, MedianizerBetter16<6> ), \
+   expr( realtime, param, mode, MedianizerBetter16<2> ), \
 }
 
-#define MPROCESSOR16_SINGLE( base, realtime, bits_per_pixel )     MPROCESSOR16( realtime, bits_per_pixel, EXPRESSION16_SINGLE, base, )
-#define MPROCESSOR16_DUAL( base, mode, realtime, bits_per_pixel ) MPROCESSOR16( realtime, bits_per_pixel, EXPRESSION16_DUAL, base, mode )
+#define MPROCESSOR16_SINGLE( base, realtime ) MPROCESSOR16( realtime, EXPRESSION16_SINGLE, base, )
+#define MPROCESSOR16_DUAL( base, mode )       MPROCESSOR16( false, EXPRESSION16_DUAL, base, mode )
 
 /* 32 bit float */
 #define EXPRESSION32_SINGLE( base, mode1, mode2 ) &base< mode2 >
@@ -347,7 +348,6 @@ public:
 /**********/
 /* 16 bit */
 /**********/
-template<int bits_per_pixel>
 class Nonizer16 {
 
   double *pdCoefficients;
@@ -357,8 +357,9 @@ class Nonizer16 {
   int nPosition;
 
 public:
-  Nonizer16(const String &mode)
+  Nonizer16(const String &mode, int bits_per_pixel)
   {
+    UNUSED(bits_per_pixel);
     auto coefficients = Parser::getDefaultParser().parse(mode, Parser::SYMBOL_SEPARATORS_COORD).getExpression();
     nCoefficients = coefficients.size();
     pdCoefficients = new double[nCoefficients];
@@ -376,9 +377,8 @@ public:
   {
     delete[] pdCoefficients;
   }
-  void reset(int nValue = (1 << bits_per_pixel) - 1)
+  void reset()
   {
-    UNUSED(nValue);
     dSum = 0;
     nPosition = 0;
   }
@@ -398,15 +398,15 @@ public:
 
 };
 
-template<int bits_per_pixel>
 class Minimizer16 {
 
   int nMin;
+  const int nMaxPixel;
 
 public:
 
-  Minimizer16(const String &mode) { UNUSED(mode); }
-  void reset() { nMin = (1 << bits_per_pixel) - 1; }
+  Minimizer16(const String &mode, int bits_per_pixel) : nMaxPixel((1 << bits_per_pixel) - 1) { UNUSED(mode); }
+  void reset() { nMin = nMaxPixel; }
   void add(int nValue) { nMin = min<int>(nMin, nValue); }
   uint16_t finalize() const { return static_cast<uint16_t>(nMin); }
 
@@ -416,7 +416,6 @@ public:
 
 };
 
-// no bits_per_pixel template
 class Medianizer16 {
 
   int nSize;
@@ -424,7 +423,7 @@ class Medianizer16 {
 
 public:
 
-  Medianizer16(const String &mode) { UNUSED(mode); }
+  Medianizer16(const String &mode, int bits_per_pixel) { UNUSED(mode); UNUSED(bits_per_pixel); }
   void reset() { memset(elements, 0, sizeof(elements)); nSize = 0; }
   void reset(int nValue) { reset(); add(nValue); }
   void add(int nValue) { elements[nValue]++; nSize++; }
@@ -457,7 +456,6 @@ public:
 
 };
 
-// no bits_per_pixel template
 template<int n>
 class MedianizerBetter16
 {
@@ -466,7 +464,7 @@ class MedianizerBetter16
   int elements2[65536 >> n];
 
 public:
-  MedianizerBetter16(const String &mode) { UNUSED(mode); }
+  MedianizerBetter16(const String &mode, int bits_per_pixel) { UNUSED(mode); UNUSED(bits_per_pixel); }
   void reset() { nSize = 0; memset(elements, 0, sizeof(elements)); memset(elements2, 0, sizeof(elements2)); }
   void add(int nValue) { elements[nValue]++; elements2[nValue >> n]++; nSize++; }
 
@@ -507,14 +505,13 @@ public:
 
 };
 
-// no bits_per_pixel template
 class Maximizer16 {
 
   int nMax;
 
 public:
 
-  Maximizer16(const String &mode) { UNUSED(mode); }
+  Maximizer16(const String &mode, int bits_per_pixel) { UNUSED(mode); UNUSED(bits_per_pixel); }
   void reset() { nMax = 0; }
   void add(int nValue) { nMax = max<int>(nMax, nValue); }
   uint16_t finalize() const { return static_cast<uint16_t>(nMax); }
@@ -525,15 +522,15 @@ public:
 
 };
 
-template<int bits_per_pixel>
 class Rangizer16 {
 
   int nMin, nMax;
+  const int nMaxPixel;
 
 public:
 
-  Rangizer16(const String &mode) { UNUSED(mode); }
-  void reset() { nMin = (1 << bits_per_pixel) - 1; nMax = 0; }
+  Rangizer16(const String &mode, int bits_per_pixel) : nMaxPixel((1 << bits_per_pixel) - 1) { UNUSED(mode); }
+  void reset() { nMin = nMaxPixel; nMax = 0; }
   void add(int nValue) { nMin = min<int>(nMin, nValue); nMax = max<int>(nMax, nValue); }
   uint16_t finalize() const { return static_cast<uint16_t>(nMax - nMin); }
 
@@ -544,7 +541,6 @@ public:
 };
 
 // for 4K+ videos or high bit depth <int64_t> needed
-// no bits_per_pixel template
 class Averager16
 {
 
@@ -556,7 +552,7 @@ class Averager16
 
 public:
 
-  Averager16(const String &mode) { UNUSED(mode); }
+  Averager16(const String &mode, int bits_per_pixel) { UNUSED(mode); UNUSED(bits_per_pixel); }
   void reset() { nSum = 0; nCount = 0; }
   void add(int nValue) { nSum += nValue; nCount++; }
   uint16_t finalize() const { return static_cast<uint16_t>(rounded_division<int64_t>(nSum, nCount)); }
@@ -578,7 +574,7 @@ class Deviater16
 
 public:
 
-  Deviater16(const String &mode) { UNUSED(mode); }
+  Deviater16(const String &mode, int bits_per_pixel) { UNUSED(mode); UNUSED(bits_per_pixel); }
   void reset() { nSum = 0; nSum2 = 0; nCount = 0; }
   void reset(int nValue) { nSum = nValue; nSum2 = nValue * nValue; nCount = 1; }
   void add(int nValue) { nSum += nValue; nSum2 += nValue * nValue; nCount++; }
@@ -786,7 +782,6 @@ public:
 };
 
 // for 4K+ videos or high bit depth <int64_t> needed
-// no bits_per_pixel template
 class Averager32
 {
 

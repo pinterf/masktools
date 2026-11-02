@@ -68,11 +68,11 @@ static void custom_realtime_8_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_
 }
 
 
-template<bool realtime, int bits_per_pixel, class T, class U>
-static void custom_realtime_uint16_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch, const uint8_t *pSrc2, ptrdiff_t nSrc2Pitch, Parser::Context *ctx, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, const String &mode1, const String &mode2)
+template<class T, class U>
+static void custom_realtime_uint16_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch, const uint8_t *pSrc2, ptrdiff_t nSrc2Pitch, Parser::Context *ctx, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, const String &mode1, const String &mode2, int bits_per_pixel)
 {
-  T new_value1(mode1);
-  U new_value2(mode2);
+  T new_value1(mode1, bits_per_pixel);
+  U new_value2(mode2, bits_per_pixel);
   const uint16_t *pSrc1_16 = reinterpret_cast<const uint16_t *>(pSrc1);
   const uint16_t *pSrc2_16 = reinterpret_cast<const uint16_t *>(pSrc2);
   uint16_t *pDst_16 = reinterpret_cast<uint16_t *>(pDst);
@@ -176,60 +176,18 @@ ProcessorCtx *processors_realtime_8_array[NUM_MODES][NUM_MODES] =
   MPROCESSOR_DUAL(custom_realtime_8_c, MedianizerBetter<2>),
 };
 
-ProcessorCtx *processors_realtime_10_array[NUM_MODES][NUM_MODES] =
+ProcessorCtx16 *processors_realtime_16_array[NUM_MODES][NUM_MODES] =
 {
-  MPROCESSOR16_DUAL(custom_realtime_uint16_c, Nonizer16<10>, true, 10),
-  MPROCESSOR16_DUAL(custom_realtime_uint16_c, Averager16, true, 10),
-  MPROCESSOR16_DUAL(custom_realtime_uint16_c, Minimizer16<10>, true, 10),
-  MPROCESSOR16_DUAL(custom_realtime_uint16_c, Maximizer16, true, 10),
-  MPROCESSOR16_DUAL(custom_realtime_uint16_c, Deviater16, true, 10),
-  MPROCESSOR16_DUAL(custom_realtime_uint16_c, Rangizer16<10>, true, 10),
-  MPROCESSOR16_DUAL(custom_realtime_uint16_c, Medianizer16, true, 10),
-  MPROCESSOR16_DUAL(custom_realtime_uint16_c, MedianizerBetter16<4>, true, 10),
-  MPROCESSOR16_DUAL(custom_realtime_uint16_c, MedianizerBetter16<6>, true, 10),
-  MPROCESSOR16_DUAL(custom_realtime_uint16_c, MedianizerBetter16<2>, true, 10),
-};
-
-ProcessorCtx *processors_realtime_12_array[NUM_MODES][NUM_MODES] =
-{
-  MPROCESSOR16_DUAL(custom_realtime_uint16_c, Nonizer16<12>, true, 12),
-  MPROCESSOR16_DUAL(custom_realtime_uint16_c, Averager16, true, 12),
-  MPROCESSOR16_DUAL(custom_realtime_uint16_c, Minimizer16<12>, true, 12),
-  MPROCESSOR16_DUAL(custom_realtime_uint16_c, Maximizer16, true, 12),
-  MPROCESSOR16_DUAL(custom_realtime_uint16_c, Deviater16, true, 12),
-  MPROCESSOR16_DUAL(custom_realtime_uint16_c, Rangizer16<12>, true, 12),
-  MPROCESSOR16_DUAL(custom_realtime_uint16_c, Medianizer16, true, 12),
-  MPROCESSOR16_DUAL(custom_realtime_uint16_c, MedianizerBetter16<4>, true, 12),
-  MPROCESSOR16_DUAL(custom_realtime_uint16_c, MedianizerBetter16<6>, true, 12),
-  MPROCESSOR16_DUAL(custom_realtime_uint16_c, MedianizerBetter16<2>, true, 12),
-};
-
-ProcessorCtx *processors_realtime_14_array[NUM_MODES][NUM_MODES] =
-{
-  MPROCESSOR16_DUAL(custom_realtime_uint16_c, Nonizer16<14>, true, 14),
-  MPROCESSOR16_DUAL(custom_realtime_uint16_c, Averager16, true, 14),
-  MPROCESSOR16_DUAL(custom_realtime_uint16_c, Minimizer16<14>, true, 14),
-  MPROCESSOR16_DUAL(custom_realtime_uint16_c, Maximizer16, true, 14),
-  MPROCESSOR16_DUAL(custom_realtime_uint16_c, Deviater16, true, 14),
-  MPROCESSOR16_DUAL(custom_realtime_uint16_c, Rangizer16<14>, true, 14),
-  MPROCESSOR16_DUAL(custom_realtime_uint16_c, Medianizer16, true, 14),
-  MPROCESSOR16_DUAL(custom_realtime_uint16_c, MedianizerBetter16<4>, true, 14),
-  MPROCESSOR16_DUAL(custom_realtime_uint16_c, MedianizerBetter16<6>, true, 14),
-  MPROCESSOR16_DUAL(custom_realtime_uint16_c, MedianizerBetter16<2>, true, 14),
-};
-
-ProcessorCtx *processors_realtime_16_array[NUM_MODES][NUM_MODES] =
-{
-  MPROCESSOR16_DUAL(custom_realtime_uint16_c, Nonizer16<16>, true, 16),
-  MPROCESSOR16_DUAL(custom_realtime_uint16_c, Averager16, true, 16),
-  MPROCESSOR16_DUAL(custom_realtime_uint16_c, Minimizer16<16>, true, 16),
-  MPROCESSOR16_DUAL(custom_realtime_uint16_c, Maximizer16, true, 16),
-  MPROCESSOR16_DUAL(custom_realtime_uint16_c, Deviater16, true, 16),
-  MPROCESSOR16_DUAL(custom_realtime_uint16_c, Rangizer16<16>, true, 16),
-  MPROCESSOR16_DUAL(custom_realtime_uint16_c, Medianizer16, true, 16),
-  MPROCESSOR16_DUAL(custom_realtime_uint16_c, MedianizerBetter16<4>, true, 16),
-  MPROCESSOR16_DUAL(custom_realtime_uint16_c, MedianizerBetter16<6>, true, 16),
-  MPROCESSOR16_DUAL(custom_realtime_uint16_c, MedianizerBetter16<2>, true, 16),
+  MPROCESSOR16_DUAL(custom_realtime_uint16_c, Nonizer16),
+  MPROCESSOR16_DUAL(custom_realtime_uint16_c, Averager16),
+  MPROCESSOR16_DUAL(custom_realtime_uint16_c, Minimizer16),
+  MPROCESSOR16_DUAL(custom_realtime_uint16_c, Maximizer16),
+  MPROCESSOR16_DUAL(custom_realtime_uint16_c, Deviater16),
+  MPROCESSOR16_DUAL(custom_realtime_uint16_c, Rangizer16),
+  MPROCESSOR16_DUAL(custom_realtime_uint16_c, Medianizer16),
+  MPROCESSOR16_DUAL(custom_realtime_uint16_c, MedianizerBetter16<4>),
+  MPROCESSOR16_DUAL(custom_realtime_uint16_c, MedianizerBetter16<6>),
+  MPROCESSOR16_DUAL(custom_realtime_uint16_c, MedianizerBetter16<2>),
 };
 
 ProcessorCtx32 *processors_realtime_32_array[NUM_MODES][NUM_MODES] =

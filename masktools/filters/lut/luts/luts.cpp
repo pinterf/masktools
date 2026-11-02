@@ -5,10 +5,11 @@ using namespace Filtering;
 
 //similar template to lutf
 template<bool realtime, class T>
-static void custom_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, const uint8_t *pLut, const float *pLut_w, Parser::Context *ctx, Parser::Context *ctx_w, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, const String &mode)
+static void custom_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, const uint8_t *pLut, const float *pLut_w, Parser::Context *ctx, Parser::Context *ctx_w, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, const String &mode, int bits_per_pixel)
 {
    UNUSED(pLut_w);
    UNUSED(ctx_w);
+   UNUSED(bits_per_pixel);
 
    T new_value( mode );
    for ( int j = 0; j < nHeight; j++ )
@@ -44,8 +45,9 @@ static void custom_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, pt
 }
 
 template<bool realtime, class T>
-static void custom_weight_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, const uint8_t *pLut, const float *pLut_w, Parser::Context *ctx, Parser::Context *ctx_w, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, const String &mode)
+static void custom_weight_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, const uint8_t *pLut, const float *pLut_w, Parser::Context *ctx, Parser::Context *ctx_w, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, const String &mode, int bits_per_pixel)
 {
+  UNUSED(bits_per_pixel);
   T new_value(mode);
   for (int j = 0; j < nHeight; j++)
   {
@@ -83,13 +85,13 @@ static void custom_weight_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *p
   }
 }
 
-template<bool realtime, int bits_per_pixel, class T>
-static void custom16_c(uint8_t *pDst8, ptrdiff_t nDstPitch, const uint8_t *pSrc8, ptrdiff_t nSrcPitch, const uint8_t *pLut, const float *pLut_w, Parser::Context *ctx, Parser::Context *ctx_w, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, const String &mode)
+template<bool realtime, class T>
+static void custom16_c(uint8_t *pDst8, ptrdiff_t nDstPitch, const uint8_t *pSrc8, ptrdiff_t nSrcPitch, const uint8_t *pLut, const float *pLut_w, Parser::Context *ctx, Parser::Context *ctx_w, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, const String &mode, int bits_per_pixel)
 {
   UNUSED(pLut_w);
   UNUSED(ctx_w);
 
-  T new_value(mode);
+  T new_value(mode, bits_per_pixel);
 
   const uint16_t *pSrc = reinterpret_cast<const uint16_t *>(pSrc8);
   uint16_t *pDst = reinterpret_cast<uint16_t *>(pDst8);
@@ -102,6 +104,7 @@ static void custom16_c(uint8_t *pDst8, ptrdiff_t nDstPitch, const uint8_t *pSrc8
     for (int i = 0; i < nWidth; i++)
     {
       new_value.reset();
+      const int PixelX = min((int)pDst[i], max_pixel_value);
       for (int k = 0; k < nCoordinates; k += 2)
       {
         int x = pCoordinates[k] + i;
@@ -112,19 +115,13 @@ static void custom16_c(uint8_t *pDst8, ptrdiff_t nDstPitch, const uint8_t *pSrc8
         if (y < 0) y = 0;
         if (y >= nHeight) y = nHeight - 1;
 
-        int PixelX = pDst[i];
-        int PixelY = pSrc[x + (y - j) * nSrcPitch];
-
-        if (bits_per_pixel < 16) {
-          PixelX = min(PixelX, max_pixel_value);
-          PixelY = min(PixelY, max_pixel_value);
-        }
+        const int PixelY = min((int)pSrc[x + (y - j) * nSrcPitch], max_pixel_value);
 
         if (realtime) {
           new_value.add(ctx->compute_word_xy(PixelX, PixelY, bits_per_pixel));
         }
         else {
-          new_value.add(reinterpret_cast<const uint16_t *>(pLut)[(PixelX << bits_per_pixel) + PixelY]);
+          new_value.add(reinterpret_cast<const uint16_t *>(pLut)[((size_t)PixelX << bits_per_pixel) + PixelY]);
         }
       }
       pDst[i] = new_value.finalize(); // cannot overflow
@@ -135,10 +132,10 @@ static void custom16_c(uint8_t *pDst8, ptrdiff_t nDstPitch, const uint8_t *pSrc8
 }
 
 //similar template to lutf
-template<bool realtime, int bits_per_pixel, class T>
-static void custom16_weight_c(uint8_t *pDst8, ptrdiff_t nDstPitch, const uint8_t *pSrc8, ptrdiff_t nSrcPitch, const uint8_t *pLut, const float *pLut_w, Parser::Context *ctx, Parser::Context *ctx_w, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, const String &mode)
+template<bool realtime, class T>
+static void custom16_weight_c(uint8_t *pDst8, ptrdiff_t nDstPitch, const uint8_t *pSrc8, ptrdiff_t nSrcPitch, const uint8_t *pLut, const float *pLut_w, Parser::Context *ctx, Parser::Context *ctx_w, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, const String &mode, int bits_per_pixel)
 {
-  T new_value(mode);
+  T new_value(mode, bits_per_pixel);
 
   const uint16_t *pSrc = reinterpret_cast<const uint16_t *>(pSrc8);
   uint16_t *pDst = reinterpret_cast<uint16_t *>(pDst8);
@@ -151,6 +148,7 @@ static void custom16_weight_c(uint8_t *pDst8, ptrdiff_t nDstPitch, const uint8_t
     for (int i = 0; i < nWidth; i++)
     {
       new_value.reset_w(); // different from non-weight version
+      const int PixelX = min((int)pDst[i], max_pixel_value);
       for (int k = 0; k < nCoordinates; k += 2)
       {
         int x = pCoordinates[k] + i;
@@ -161,13 +159,7 @@ static void custom16_weight_c(uint8_t *pDst8, ptrdiff_t nDstPitch, const uint8_t
         if (y < 0) y = 0;
         if (y >= nHeight) y = nHeight - 1;
 
-        int PixelX = pDst[i];
-        int PixelY = pSrc[x + (y - j) * nSrcPitch];
-
-        if (bits_per_pixel < 16) {
-          PixelX = min(PixelX, max_pixel_value);
-          PixelY = min(PixelY, max_pixel_value);
-        }
+        const int PixelY = min((int)pSrc[x + (y - j) * nSrcPitch], max_pixel_value);
 
         // different from non-weight version
         float weight;
@@ -175,20 +167,17 @@ static void custom16_weight_c(uint8_t *pDst8, ptrdiff_t nDstPitch, const uint8_t
           weight = ctx_w->compute_float_xy_intinput(PixelX, PixelY, bits_per_pixel); // keep precision and not convert back to int
         }
         else {
-          weight = pLut_w[(PixelX << bits_per_pixel) + PixelY]; // byte xy but float content!
+          weight = pLut_w[((size_t)PixelX << bits_per_pixel) + PixelY]; // byte xy but float content!
         }
 
         if (realtime) {
           new_value.add_w(ctx->compute_word_xy(PixelX, PixelY, bits_per_pixel), weight);
         }
         else {
-          new_value.add_w(reinterpret_cast<const uint16_t *>(pLut)[(PixelX << bits_per_pixel) + PixelY], weight);
+          new_value.add_w(reinterpret_cast<const uint16_t *>(pLut)[((size_t)PixelX << bits_per_pixel) + PixelY], weight);
         }
       }
-      if(bits_per_pixel == 16)
-        pDst[i] = new_value.finalize_w();  // different from non-weight version
-      else
-        pDst[i] = min(new_value.finalize_w(), (uint16_t)max_pixel_value);
+      pDst[i] = min<int>(new_value.finalize_w(), max_pixel_value); // different from non-weight version
     }
     pSrc += nSrcPitch;
     pDst += nDstPitch;
@@ -288,30 +277,17 @@ static void custom32_weight_c(uint8_t *pDst8, ptrdiff_t nDstPitch, const uint8_t
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Lut { namespace Spatial {
 
 Processor *processors_array[NUM_MODES] = MPROCESSOR_SINGLE( custom_c, false );
-Processor *processors_10_array[NUM_MODES] = MPROCESSOR16_SINGLE(custom16_c, false, 10);
-Processor *processors_12_array[NUM_MODES] = MPROCESSOR16_SINGLE(custom16_c, false, 12);
-Processor *processors_14_array[NUM_MODES] = MPROCESSOR16_SINGLE(custom16_c, false, 14);
-Processor *processors_16_array[NUM_MODES] = MPROCESSOR16_SINGLE(custom16_c, false, 16);
+Processor *processors_16_array[NUM_MODES] = MPROCESSOR16_SINGLE(custom16_c, false);
 
 Processor *processors_weight_array[NUM_MODES] = MPROCESSOR_SINGLE(custom_weight_c, false);
-Processor *processors_weight_10_array[NUM_MODES] = MPROCESSOR16_SINGLE(custom16_weight_c, false, 10);
-Processor *processors_weight_12_array[NUM_MODES] = MPROCESSOR16_SINGLE(custom16_weight_c, false, 12);
-Processor *processors_weight_14_array[NUM_MODES] = MPROCESSOR16_SINGLE(custom16_weight_c, false, 14);
-Processor *processors_weight_16_array[NUM_MODES] = MPROCESSOR16_SINGLE(custom16_weight_c, false, 16);
-
+Processor *processors_weight_16_array[NUM_MODES] = MPROCESSOR16_SINGLE(custom16_weight_c, false);
 
 Processor *processors_realtime_8_array[NUM_MODES] = MPROCESSOR_SINGLE(custom_c, true);
-Processor *processors_realtime_10_array[NUM_MODES] = MPROCESSOR16_SINGLE(custom16_c, true, 10);
-Processor *processors_realtime_12_array[NUM_MODES] = MPROCESSOR16_SINGLE(custom16_c, true, 12);
-Processor *processors_realtime_14_array[NUM_MODES] = MPROCESSOR16_SINGLE(custom16_c, true, 14);
-Processor *processors_realtime_16_array[NUM_MODES] = MPROCESSOR16_SINGLE(custom16_c, true, 16);
+Processor *processors_realtime_16_array[NUM_MODES] = MPROCESSOR16_SINGLE(custom16_c, true);
 Processor32 *processors_realtime_32_array[NUM_MODES] = MPROCESSOR32_SINGLE(custom32_c);
 
 Processor *processors_weight_realtime_8_array[NUM_MODES] = MPROCESSOR_SINGLE(custom_weight_c, true);
-Processor *processors_weight_realtime_10_array[NUM_MODES] = MPROCESSOR16_SINGLE(custom16_weight_c, true, 10);
-Processor *processors_weight_realtime_12_array[NUM_MODES] = MPROCESSOR16_SINGLE(custom16_weight_c, true, 12);
-Processor *processors_weight_realtime_14_array[NUM_MODES] = MPROCESSOR16_SINGLE(custom16_weight_c, true, 14);
-Processor *processors_weight_realtime_16_array[NUM_MODES] = MPROCESSOR16_SINGLE(custom16_weight_c, true, 16);
+Processor *processors_weight_realtime_16_array[NUM_MODES] = MPROCESSOR16_SINGLE(custom16_weight_c, true);
 Processor32 *processors_weight_realtime_32_array[NUM_MODES] = MPROCESSOR32_SINGLE(custom32_weight_c);
 
 } } } } }

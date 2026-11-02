@@ -51,13 +51,13 @@ static void frame_c(uint8_t *dstp, ptrdiff_t dst_pitch, const uint8_t *srcp, ptr
     }
 }
 
-template<bool realtime, int bits_per_pixel, class T>
-static void frame16_c(uint16_t *dstp, ptrdiff_t dst_pitch, const uint16_t *srcp, ptrdiff_t src_pitch, const uint16_t *lutp, Parser::Context *ctx, int width, int height)
+template<bool realtime, class T>
+static void frame16_c(uint16_t *dstp, ptrdiff_t dst_pitch, const uint16_t *srcp, ptrdiff_t src_pitch, const uint16_t *lutp, Parser::Context *ctx, int width, int height, int bits_per_pixel)
 {
   dst_pitch /= sizeof(uint16_t);
   src_pitch /= sizeof(uint16_t);
 
-  T processor("");
+  T processor("", bits_per_pixel);
 
   processor.reset();
 
@@ -96,11 +96,11 @@ static void frame16_c(uint16_t *dstp, ptrdiff_t dst_pitch, const uint16_t *srcp,
     }
   }
   else {
-    const uint16_t *lut = lutp + (min(processor.finalize(),max_pixel_value) << bits_per_pixel);
+    const uint16_t *lut = lutp + ((size_t)min(processor.finalize(), max_pixel_value) << bits_per_pixel);
 
     for (int j = 0; j < height; j++) {
       for (int i = 0; i < width; i++) {
-        dstp[i] = bits_per_pixel == 16 ? lut[srcp[i]] : lut[srcp[i] > max_pixel_value ? max_pixel_value : srcp[i]];
+        dstp[i] = lut[min(srcp[i], max_pixel_value)];
       }
       srcp += src_pitch;
       dstp += dst_pitch;
@@ -147,14 +147,8 @@ Processor *processors_array[NUM_MODES] = MPROCESSOR_SINGLE(frame_c, false);
 //Processor *processors_array[NUM_MODES] = { &frame_c< false, Nonizer >, &frame_c< false, Averager<int> >, &frame_c< false, Minimizer >, &frame_c< false, Maximizer >, &frame_c< false, Deviater<int> >, &frame_c< false, Rangizer >, &frame_c< false, Medianizer >, &frame_c< false, MedianizerBetter<4> >, &frame_c< false, MedianizerBetter<6> >, &frame_c< false, MedianizerBetter<2> >, };
 Processor *processorsCtx_array[NUM_MODES] = MPROCESSOR_SINGLE(frame_c, true);
 
-Processor16 *processors10_array[NUM_MODES] = MPROCESSOR16_SINGLE(frame16_c, false, 10);
-Processor16 *processors10Ctx_array[NUM_MODES] = MPROCESSOR16_SINGLE(frame16_c, true, 10);
-Processor16 *processors12_array[NUM_MODES] = MPROCESSOR16_SINGLE(frame16_c, false, 12);
-Processor16 *processors12Ctx_array[NUM_MODES] = MPROCESSOR16_SINGLE(frame16_c, true, 12);
-Processor16 *processors14_array[NUM_MODES] = MPROCESSOR16_SINGLE(frame16_c, false, 14);
-Processor16 *processors14Ctx_array[NUM_MODES] = MPROCESSOR16_SINGLE(frame16_c, true, 14);
-Processor16 *processors16_array[NUM_MODES] = MPROCESSOR16_SINGLE(frame16_c, false, 16);
-Processor16 *processors16Ctx_array[NUM_MODES] = MPROCESSOR16_SINGLE(frame16_c, true, 16);
+Processor16 *processors16_array[NUM_MODES] = MPROCESSOR16_SINGLE(frame16_c, false);
+Processor16 *processors16Ctx_array[NUM_MODES] = MPROCESSOR16_SINGLE(frame16_c, true);
 
 Processor32 *processors32Ctx_array[NUM_MODES] = MPROCESSOR32_SINGLE(frame32_c);
 

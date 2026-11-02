@@ -9,33 +9,21 @@
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Lut { namespace Spatial {
 
-typedef void(Processor)(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, const uint8_t lut[65536], const float lut_w[65536], Parser::Context *ctx, Parser::Context *ctx_w, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, const String &mode);
+typedef void(Processor)(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, const uint8_t lut[65536], const float lut_w[65536], Parser::Context *ctx, Parser::Context *ctx_w, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, const String &mode, int bits_per_pixel);
 typedef void(Processor32)(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, const uint8_t lut[65536], const float lut_w[65536], Parser::Context *ctx, Parser::Context *ctx_w, const int *pCoordinates, int nCoordinates, int nWidth, int nHeight, const String &mode, bool chroma);
 
 // lut 8-16
 extern Processor *processors_array[NUM_MODES];
-extern Processor *processors_10_array[NUM_MODES];
-extern Processor *processors_12_array[NUM_MODES];
-extern Processor *processors_14_array[NUM_MODES];
 extern Processor *processors_16_array[NUM_MODES];
 
 extern Processor *processors_weight_array[NUM_MODES];
-extern Processor *processors_weight_10_array[NUM_MODES];
-extern Processor *processors_weight_12_array[NUM_MODES];
-extern Processor *processors_weight_14_array[NUM_MODES];
 extern Processor *processors_weight_16_array[NUM_MODES];
 // realtime 8-32
 extern Processor *processors_realtime_8_array[NUM_MODES];
-extern Processor *processors_realtime_10_array[NUM_MODES];
-extern Processor *processors_realtime_12_array[NUM_MODES];
-extern Processor *processors_realtime_14_array[NUM_MODES];
 extern Processor *processors_realtime_16_array[NUM_MODES];
 extern Processor32 *processors_realtime_32_array[NUM_MODES];
 
 extern Processor *processors_weight_realtime_8_array[NUM_MODES];
-extern Processor *processors_weight_realtime_10_array[NUM_MODES];
-extern Processor *processors_weight_realtime_12_array[NUM_MODES];
-extern Processor *processors_weight_realtime_14_array[NUM_MODES];
 extern Processor *processors_weight_realtime_16_array[NUM_MODES];
 extern Processor32 *processors_weight_realtime_32_array[NUM_MODES];
 
@@ -85,40 +73,22 @@ class Luts : public MaskTools::Filter
 
      const int size = 1 << bits_per_pixel;
 
-     switch (bits_per_pixel) {
-     case 8:
+     if (bits_per_pixel == 8) {
        for (int x = 0; x < 256; x++)
          for (int y = 0; y < 256; y++)
            lut[(x << 8) + y] = ctx.compute_byte_xy(x, y);
-       break;
-     case 10:
+     }
+     else {
+       // 16 bit: 64 bit only
        for (int x = 0; x < size; x++)
          for (int y = 0; y < size; y++)
-           reinterpret_cast<uint16_t *>(lut)[(x << 10) + y] = ctx.compute_word_xy(x, y, 10);
-       break;
-     case 12:
-       for (int x = 0; x < size; x++)
-         for (int y = 0; y < size; y++)
-           reinterpret_cast<uint16_t *>(lut)[(x << 12) + y] = ctx.compute_word_xy(x, y, 12);
-       break;
-     case 14:
-       for (int x = 0; x < size; x++)
-         for (int y = 0; y < size; y++)
-           reinterpret_cast<uint16_t *>(lut)[(x << 14) + y] = ctx.compute_word_xy(x, y, 14);
-       break;
-     case 16:
-       // 64bit only
-       for (int x = 0; x < 65536; x++)
-         for (int y = 0; y < 65536; y++)
-           reinterpret_cast<uint16_t *>(lut)[((size_t)x << 16) + y] = ctx.compute_word_xy(x, y, 16);
-       break;
+           reinterpret_cast<uint16_t *>(lut)[((size_t)x << bits_per_pixel) + y] = ctx.compute_word_xy(x, y, bits_per_pixel);
      }
      return lut;
    }
 
    // weight luts: float content
-   template<int bits_per_pixel>
-   static float *calculateLut_w(const std::deque<Filtering::Parser::Symbol> &expr, String scale_inputs, int clamp_float) {
+   static float *calculateLut_w(const std::deque<Filtering::Parser::Symbol> &expr, int bits_per_pixel, String scale_inputs, int clamp_float) {
      Parser::Context ctx(expr, scale_inputs, clamp_float);
      const int size = 1 << bits_per_pixel;
 
@@ -129,7 +99,7 @@ class Luts : public MaskTools::Filter
 
      for (int x = 0; x < size; x++)
        for (int y = 0; y < size; y++)
-         lut[(x << bits_per_pixel) + y] = ctx.compute_float_xy_intinput(x, y, bits_per_pixel);
+         lut[((size_t)x << bits_per_pixel) + y] = ctx.compute_float_xy_intinput(x, y, bits_per_pixel);
      return lut;
    }
 
@@ -160,7 +130,7 @@ protected:
             if (bits_per_pixel <= 16) {
               processors.best_processor(constraints[nPlane])(dst.data(), dst.pitch(),
                 frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
-                nullptr, nullptr, &ctx, nullptr, pCoordinates, nCoordinates, dst.width(), dst.height(), mode);
+                nullptr, nullptr, &ctx, nullptr, pCoordinates, nCoordinates, dst.width(), dst.height(), mode, bits_per_pixel);
             }
             else {
               const bool chroma = ((nPlane == 1 || nPlane == 2) && !planes_isRGB[C]);
@@ -174,7 +144,7 @@ protected:
             if (bits_per_pixel <= 16) {
               processors_weight.best_processor(constraints[nPlane])(dst.data(), dst.pitch(),
                 frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
-                nullptr, nullptr, &ctx, &ctx_w, pCoordinates, nCoordinates, dst.width(), dst.height(), mode);
+                nullptr, nullptr, &ctx, &ctx_w, pCoordinates, nCoordinates, dst.width(), dst.height(), mode, bits_per_pixel);
             }
             else {
               const bool chroma = ((nPlane == 1 || nPlane == 2) && !planes_isRGB[C]);
@@ -189,12 +159,12 @@ protected:
             // no weights
             processors.best_processor(constraints[nPlane])(dst.data(), dst.pitch(),
               frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
-              luts[nPlane].ptr, nullptr, nullptr, nullptr, pCoordinates, nCoordinates, dst.width(), dst.height(), mode);
+              luts[nPlane].ptr, nullptr, nullptr, nullptr, pCoordinates, nCoordinates, dst.width(), dst.height(), mode, bits_per_pixel);
           }
           else {
             processors_weight.best_processor(constraints[nPlane])(dst.data(), dst.pitch(),
               frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
-              luts[nPlane].ptr, luts_weight[nPlane].ptr, nullptr, nullptr, pCoordinates, nCoordinates, dst.width(), dst.height(), mode);
+              luts[nPlane].ptr, luts_weight[nPlane].ptr, nullptr, nullptr, pCoordinates, nCoordinates, dst.width(), dst.height(), mode, bits_per_pixel);
           }
         }
     }
@@ -352,28 +322,12 @@ public:
          // save memory, reuse luts, like in xyz
          if (customExpressionDefined_w) {
            luts_weight[i].used = true;
-           switch (bits_per_pixel) {
-           case 8: luts_weight[i].ptr = calculateLut_w<8>(parser.getExpression(), scale_inputs, clamp_float); break;
-           case 10: luts_weight[i].ptr = calculateLut_w<10>(parser.getExpression(), scale_inputs, clamp_float); break;
-           case 12: luts_weight[i].ptr = calculateLut_w<12>(parser.getExpression(), scale_inputs, clamp_float); break;
-           case 14: luts_weight[i].ptr = calculateLut_w<14>(parser.getExpression(), scale_inputs, clamp_float); break;
-#if SIZE_MAX > 0xFFFFFFFFu // 64 bit (32 bit: 16 bit is realtime)
-           case 16: luts_weight[i].ptr = calculateLut_w<16>(parser.getExpression(), scale_inputs, clamp_float); break;
-#endif
-           }
+           luts_weight[i].ptr = calculateLut_w(parser.getExpression(), bits_per_pixel, scale_inputs, clamp_float);
          }
          else {
            if (luts_weight[4].ptr == nullptr) {
              luts_weight[4].used = true;
-             switch (bits_per_pixel) {
-             case 8: luts_weight[4].ptr = calculateLut_w<8>(parser.getExpression(), scale_inputs, clamp_float); break;
-             case 10: luts_weight[4].ptr = calculateLut_w<10>(parser.getExpression(), scale_inputs, clamp_float); break;
-             case 12: luts_weight[4].ptr = calculateLut_w<12>(parser.getExpression(), scale_inputs, clamp_float); break;
-             case 14: luts_weight[4].ptr = calculateLut_w<14>(parser.getExpression(), scale_inputs, clamp_float); break;
-#if SIZE_MAX > 0xFFFFFFFFu // 64 bit (32 bit: 16 bit is realtime)
-             case 16: luts_weight[4].ptr = calculateLut_w<16>(parser.getExpression(), scale_inputs, clamp_float); break;
-#endif
-             }
+             luts_weight[4].ptr = calculateLut_w(parser.getExpression(), bits_per_pixel, scale_inputs, clamp_float);
            }
            luts_weight[i].ptr = luts_weight[4].ptr;
          }
@@ -389,45 +343,26 @@ public:
 
      /* choose the mode */
      mode = parameters["mode"].toString();
+     const int m = ModeToInt(mode);
      if (realtime) {
-       switch (bits_per_pixel) {
-       case 8:  processors.push_back(processors_realtime_8_array[ModeToInt(mode)]); break;
-       case 10:  processors.push_back(processors_realtime_10_array[ModeToInt(mode)]); break;
-       case 12:  processors.push_back(processors_realtime_12_array[ModeToInt(mode)]); break;
-       case 14:  processors.push_back(processors_realtime_14_array[ModeToInt(mode)]); break;
-       case 16:  processors.push_back(processors_realtime_16_array[ModeToInt(mode)]); break;
-       case 32:  processors32.push_back(processors_realtime_32_array[ModeToInt(mode)]); break;
-       }
+       if (bits_per_pixel == 8) processors.push_back(processors_realtime_8_array[m]);
+       else if (bits_per_pixel <= 16) processors.push_back(processors_realtime_16_array[m]);
+       else processors32.push_back(processors_realtime_32_array[m]);
      }
      else {
-       switch (bits_per_pixel) {
-       case 8:  processors.push_back(processors_array[ModeToInt(mode)]); break;
-       case 10:  processors.push_back(processors_10_array[ModeToInt(mode)]); break;
-       case 12:  processors.push_back(processors_12_array[ModeToInt(mode)]); break;
-       case 14:  processors.push_back(processors_14_array[ModeToInt(mode)]); break;
-       case 16:  processors.push_back(processors_16_array[ModeToInt(mode)]); break;
-       }
-     };
+       if (bits_per_pixel == 8) processors.push_back(processors_array[m]);
+       else processors.push_back(processors_16_array[m]);
+     }
      if (hasWeights) {
        if (realtime) {
-         switch (bits_per_pixel) {
-         case 8:  processors_weight.push_back(processors_weight_realtime_8_array[ModeToInt(mode)]); break;
-         case 10:  processors_weight.push_back(processors_weight_realtime_10_array[ModeToInt(mode)]); break;
-         case 12:  processors_weight.push_back(processors_weight_realtime_12_array[ModeToInt(mode)]); break;
-         case 14:  processors_weight.push_back(processors_weight_realtime_14_array[ModeToInt(mode)]); break;
-         case 16:  processors_weight.push_back(processors_weight_realtime_16_array[ModeToInt(mode)]); break;
-         case 32:  processors32_weight.push_back(processors_weight_realtime_32_array[ModeToInt(mode)]); break;
-         }
+         if (bits_per_pixel == 8) processors_weight.push_back(processors_weight_realtime_8_array[m]);
+         else if (bits_per_pixel <= 16) processors_weight.push_back(processors_weight_realtime_16_array[m]);
+         else processors32_weight.push_back(processors_weight_realtime_32_array[m]);
        }
        else {
-         switch (bits_per_pixel) {
-         case 8:  processors_weight.push_back(processors_weight_array[ModeToInt(mode)]); break;
-         case 10:  processors_weight.push_back(processors_weight_10_array[ModeToInt(mode)]); break;
-         case 12:  processors_weight.push_back(processors_weight_12_array[ModeToInt(mode)]); break;
-         case 14:  processors_weight.push_back(processors_weight_14_array[ModeToInt(mode)]); break;
-         case 16:  processors_weight.push_back(processors_weight_16_array[ModeToInt(mode)]); break;
-         }
-       };
+         if (bits_per_pixel == 8) processors_weight.push_back(processors_weight_array[m]);
+         else processors_weight.push_back(processors_weight_16_array[m]);
+       }
      }
    }
 

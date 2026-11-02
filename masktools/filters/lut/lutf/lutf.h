@@ -9,18 +9,12 @@
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Lut { namespace Frame {
 
 typedef void(Processor)(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, const uint8_t lut[65536], Parser::Context *ctx, int nWidth, int nHeight); // common lut/realtime, templatized
-typedef void(Processor16)(uint16_t *pDst, ptrdiff_t nDstPitch, const uint16_t *pSrc, ptrdiff_t nSrcPitch, const uint16_t *lut, Parser::Context *ctx, int nWidth, int nHeight); // common lut/realtime, templatized
+typedef void(Processor16)(uint16_t *pDst, ptrdiff_t nDstPitch, const uint16_t *pSrc, ptrdiff_t nSrcPitch, const uint16_t *lut, Parser::Context *ctx, int nWidth, int nHeight, int bits_per_pixel); // common lut/realtime, templatized
 typedef void(Processor32)(float *pDst, ptrdiff_t nDstPitch, const float *pSrc, ptrdiff_t nSrcPitch, Parser::Context *ctx, int nWidth, int nHeight, bool chroma); // realtime only
 
 extern Processor *processors_array[NUM_MODES];
 extern Processor *processorsCtx_array[NUM_MODES];
 
-extern Processor16 *processors10_array[NUM_MODES];
-extern Processor16 *processors10Ctx_array[NUM_MODES];
-extern Processor16 *processors12_array[NUM_MODES];
-extern Processor16 *processors12Ctx_array[NUM_MODES];
-extern Processor16 *processors14_array[NUM_MODES];
-extern Processor16 *processors14Ctx_array[NUM_MODES];
 extern Processor16 *processors16_array[NUM_MODES];
 extern Processor16 *processors16Ctx_array[NUM_MODES];
 extern Processor32 *processors32Ctx_array[NUM_MODES];
@@ -43,33 +37,17 @@ class Lutf : public MaskTools::Filter
     if (!lut)
       return nullptr;
 
-    switch (bits_per_pixel) {
-    case 8:
+    if (bits_per_pixel == 8) {
       for (int x = 0; x < 256; x++)
         for (int y = 0; y < 256; y++)
           lut[(x << 8) + y] = ctx.compute_byte_xy(x, y);
-      break;
-    case 10:
-      for (int x = 0; x < 1024; x++)
-        for (int y = 0; y < 1024; y++)
-          reinterpret_cast<uint16_t *>(lut)[(x << 10) + y] = ctx.compute_word_xy(x, y, 10);
-      break;
-    case 12:
-      for (int x = 0; x < 4096; x++)
-        for (int y = 0; y < 4096; y++)
-          reinterpret_cast<uint16_t *>(lut)[(x << 12) + y] = ctx.compute_word_xy(x, y, 12);
-      break;
-    case 14:
-      for (int x = 0; x < 16384; x++)
-        for (int y = 0; y < 16384; y++)
-          reinterpret_cast<uint16_t *>(lut)[(x << 14) + y] = ctx.compute_word_xy(x, y, 14);
-      break;
-    case 16:
-      // 64bit only
-      for (int x = 0; x < 65536; x++)
-        for (int y = 0; y < 65536; y++)
-          reinterpret_cast<uint16_t *>(lut)[((size_t)x << 16) + y] = ctx.compute_word_xy(x, y, 16);
-      break;
+    }
+    else {
+      // 16 bit: 64 bit only
+      const int size = 1 << bits_per_pixel;
+      for (int x = 0; x < size; x++)
+        for (int y = 0; y < size; y++)
+          reinterpret_cast<uint16_t *>(lut)[((size_t)x << bits_per_pixel) + y] = ctx.compute_word_xy(x, y, bits_per_pixel);
     }
 
     // problem if compute_error != Parser::Context::compute_error_t::CE_NONE
@@ -105,7 +83,7 @@ protected:
           else if (bits_per_pixel <= 16)
             processors16.best_processor(constraints[nPlane])((uint16_t *)dst.data(), dst.pitch(),
               (uint16_t *)frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
-              nullptr, &ctx, dst.width(), dst.height());
+              nullptr, &ctx, dst.width(), dst.height(), bits_per_pixel);
           else {
             const bool chroma = ((nPlane == 1 || nPlane == 2) && !planes_isRGB[C]);
             processors32.best_processor(constraints[nPlane])((float *)dst.data(), dst.pitch(),
@@ -122,7 +100,7 @@ protected:
           else if (bits_per_pixel <= 16)
             processors16.best_processor(constraints[nPlane])((uint16_t *)dst.data(), dst.pitch(),
               (uint16_t *)frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
-              (uint16_t *)luts[nPlane].ptr, nullptr, dst.width(), dst.height());
+              (uint16_t *)luts[nPlane].ptr, nullptr, dst.width(), dst.height(), bits_per_pixel);
           // no 32 bit lut
         }
     }
@@ -241,41 +219,16 @@ public:
           }
 
       }
+      const int m = ModeToInt(parameters["mode"].toString());
       if (realtime) {
-        switch (bits_per_pixel) {
-        case 8: processors.push_back(processorsCtx_array[ModeToInt(parameters["mode"].toString())]); break;
-        case 10: processors16.push_back(processors10Ctx_array[ModeToInt(parameters["mode"].toString())]); break;
-        case 12: processors16.push_back(processors12Ctx_array[ModeToInt(parameters["mode"].toString())]); break;
-        case 14: processors16.push_back(processors14Ctx_array[ModeToInt(parameters["mode"].toString())]); break;
-        case 16: processors16.push_back(processors16Ctx_array[ModeToInt(parameters["mode"].toString())]); break;
-        case 32: processors32.push_back(processors32Ctx_array[ModeToInt(parameters["mode"].toString())]); break;
-        }
+        if (bits_per_pixel == 8) processors.push_back(processorsCtx_array[m]);
+        else if (bits_per_pixel <= 16) processors16.push_back(processors16Ctx_array[m]);
+        else processors32.push_back(processors32Ctx_array[m]);
       }
       else {
         // real lut
-        switch (bits_per_pixel) {
-        case 8:
-          processors.push_back(processors_array[ModeToInt(parameters["mode"].toString())]);
-          // processor = lut_c;
-          break;
-        case 10:
-          processors16.push_back(processors10_array[ModeToInt(parameters["mode"].toString())]);
-          //processor16 = lut10_c;
-          break;
-        case 12:
-          processors16.push_back(processors12_array[ModeToInt(parameters["mode"].toString())]);
-          //processor16 = lut12_c;
-          break;
-        case 14:
-          processors16.push_back(processors14_array[ModeToInt(parameters["mode"].toString())]);
-          //processor16 = lut14_c;
-          break;
-        case 16:
-          // 64bit only
-          processors16.push_back(processors16_array[ModeToInt(parameters["mode"].toString())]);
-          //processor16 = lut16_c;
-          break;
-        }
+        if (bits_per_pixel == 8) processors.push_back(processors_array[m]);
+        else processors16.push_back(processors16_array[m]);
       }
    }
 
