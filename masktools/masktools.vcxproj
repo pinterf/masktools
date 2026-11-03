@@ -199,9 +199,6 @@
     </ClCompile>
     <ClCompile Include="filters\mask\edge\edgemask_neon.cpp" />
     <ClCompile Include="filters\mask\edge\edgemask_sse2.cpp" />
-    <ClCompile Include="filters\mask\edge\edgemask_ssse3.cpp">
-      <AdditionalOptions Condition="'$(Configuration)'=='Rel_Clang'">-mssse3 %(AdditionalOptions)</AdditionalOptions>
-    </ClCompile>
     <ClCompile Include="filters\mask\hysteresis\hysteresis.cpp" />
     <ClCompile Include="filters\mask\motion\motionmask.cpp" />
     <ClCompile Include="filters\mask\motion\motionmask16.cpp" />

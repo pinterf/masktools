@@ -10,9 +10,9 @@ using namespace Filters::Mask;
 
 #define DEFINE_SSE2_VERSIONS(name) \
 Processor *name##_sse2 = &generic_sse2< \
-    process_line_##name##_sse2<CPU_SSE2, Border::Left>, \
-    process_line_##name##_sse2<CPU_SSE2, Border::None>, \
-    process_line_##name##_sse2<CPU_SSE2, Border::Right> \
+    process_line_##name##_sse2<Border::Left>, \
+    process_line_##name##_sse2<Border::None>, \
+    process_line_##name##_sse2<Border::Right> \
 >;
 
 DEFINE_SSE2_VERSIONS(sobel)

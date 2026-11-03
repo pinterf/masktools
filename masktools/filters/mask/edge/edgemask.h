@@ -15,17 +15,14 @@ extern Processor *convolution_avx2;
 
 extern Processor *sobel_c;
 extern Processor *sobel_sse2;
-extern Processor *sobel_ssse3;
 extern Processor *sobel_avx2;
 
 extern Processor *roberts_c;
 extern Processor *roberts_sse2;
-extern Processor *roberts_ssse3;
 extern Processor *roberts_avx2;
 
 extern Processor *laplace_c;
 extern Processor *laplace_sse2;
-extern Processor *laplace_ssse3;
 extern Processor *laplace_avx2;
 
 extern Processor *cartoon_c;
@@ -34,12 +31,10 @@ extern Processor *cartoon_avx2;
 
 extern Processor *half_prewitt_c;
 extern Processor *half_prewitt_sse2;
-extern Processor *half_prewitt_ssse3;
 extern Processor *half_prewitt_avx2;
 
 extern Processor *prewitt_c;
 extern Processor *prewitt_sse2;
-extern Processor *prewitt_ssse3;
 extern Processor *prewitt_avx2;
 
 extern Processor *morpho_c;
@@ -243,7 +238,6 @@ public:
 #endif
 #ifdef INTEL_INTRINSICS
            processors.push_back(Filtering::Processor<Processor>(sobel_sse2, Constraint(CPU_SSE2, 17), 1));
-           processors.push_back(Filtering::Processor<Processor>(sobel_ssse3, Constraint(CPU_SSSE3, 17), 2));
            processors.push_back(Filtering::Processor<Processor>(sobel_avx2, Constraint(CPU_AVX2, 33), 3));
 #endif
            break;
@@ -280,7 +274,6 @@ public:
 #endif
 #ifdef INTEL_INTRINSICS
            processors.push_back(Filtering::Processor<Processor>(roberts_sse2, Constraint(CPU_SSE2, 17), 1));
-           processors.push_back(Filtering::Processor<Processor>(roberts_ssse3, Constraint(CPU_SSSE3, 17), 2));
            processors.push_back(Filtering::Processor<Processor>(roberts_avx2, Constraint(CPU_AVX2, 33), 3));
 #endif
            break;
@@ -317,7 +310,6 @@ public:
 #endif
 #ifdef INTEL_INTRINSICS
           processors.push_back(Filtering::Processor<Processor>(laplace_sse2, Constraint(CPU_SSE2, 17), 1));
-          processors.push_back(Filtering::Processor<Processor>(laplace_ssse3, Constraint(CPU_SSSE3, 17), 2));
           processors.push_back(Filtering::Processor<Processor>(laplace_avx2, Constraint(CPU_AVX2, 33), 3));
 #endif
           break;
@@ -426,7 +418,6 @@ public:
 #endif
 #ifdef INTEL_INTRINSICS
           processors.push_back(Filtering::Processor<Processor>(prewitt_sse2, Constraint(CPU_SSE2, 17), 1));
-          processors.push_back(Filtering::Processor<Processor>(prewitt_ssse3, Constraint(CPU_SSSE3, 17), 2));
           processors.push_back(Filtering::Processor<Processor>(prewitt_avx2, Constraint(CPU_AVX2, 33), 3));
 #endif
           break;
@@ -463,7 +454,6 @@ public:
 #endif
 #ifdef INTEL_INTRINSICS
           processors.push_back(Filtering::Processor<Processor>(half_prewitt_sse2, Constraint(CPU_SSE2, 17), 1));
-          processors.push_back(Filtering::Processor<Processor>(half_prewitt_ssse3, Constraint(CPU_SSSE3, 17), 2));
           processors.push_back(Filtering::Processor<Processor>(half_prewitt_avx2, Constraint(CPU_AVX2, 33), 3));
 #endif
           break;

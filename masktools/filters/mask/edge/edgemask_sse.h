@@ -1,7 +1,7 @@
 #ifndef __Mt_edgemask_SSE_H__
 #define __Mt_edgemask_SSE_H__
 
-// edgemask: x86 kernels, instantiated in edgemask_sse2.cpp, edgemask_ssse3.cpp
+// edgemask: x86 SSE2 kernels
 
 #include "edgemask.h"
 #include "../functions_sse.h"
@@ -13,34 +13,21 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Mask {
 
 namespace {
 
-template <CpuFlags flags>
 static MT_FORCEINLINE __m128i simd_packed_abs_epi16(__m128i a, __m128i b) {
-    if (flags >= CPU_SSSE3) {
-        auto absa = _mm_abs_epi16(a);
-        auto absb = _mm_abs_epi16(b);
-        return _mm_packus_epi16(absa, absb);
-    } else {
-        auto suba = _mm_sub_epi16(_mm_setzero_si128(), a);
-        auto subb = _mm_sub_epi16(_mm_setzero_si128(), b);
-        auto t1 = _mm_packus_epi16(a, b);
-        auto t2 = _mm_packus_epi16(suba, subb);
-        return _mm_max_epu8(t1, t2);
-    }
+    auto suba = _mm_sub_epi16(_mm_setzero_si128(), a);
+    auto subb = _mm_sub_epi16(_mm_setzero_si128(), b);
+    auto t1 = _mm_packus_epi16(a, b);
+    auto t2 = _mm_packus_epi16(suba, subb);
+    return _mm_max_epu8(t1, t2);
 }
 
-template <CpuFlags flags>
 static MT_FORCEINLINE __m128i simd_abs_diff_epu16(__m128i a, __m128i b) {
-    if (flags >= CPU_SSSE3) {
-        auto diff = _mm_sub_epi16(a, b);
-        return _mm_abs_epi16(diff);
-    } else {
-        auto gt = _mm_subs_epu16(a, b);
-        auto lt = _mm_subs_epu16(b, a);
-        return _mm_add_epi16(gt, lt);
-    }
+    auto gt = _mm_subs_epu16(a, b);
+    auto lt = _mm_subs_epu16(b, a);
+    return _mm_add_epi16(gt, lt);
 }
 
-template<CpuFlags flags, Border borderMode>
+template<Border borderMode>
 static MT_FORCEINLINE void process_line_convolution_sse2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m128i &lowThresh, const __m128i &highThresh, int width) {
     UNUSED(pSrcp);
     auto v128 = _mm_set1_epi8(uint8_t(0x80));
@@ -136,7 +123,7 @@ static MT_FORCEINLINE void process_line_convolution_sse2(uint8_t *pDst, const ui
     }
 }
 
-template<CpuFlags flags, Border borderMode>
+template<Border borderMode>
 static MT_FORCEINLINE void process_line_sobel_sse2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m128i &lowThresh, const __m128i &highThresh, int width) {
     UNUSED(matrix);
     auto v128 = _mm_set1_epi8(uint8_t(0x80));
@@ -168,8 +155,8 @@ static MT_FORCEINLINE void process_line_sobel_sse2(uint8_t *pDst, const uint8_t 
         auto neg_lo = _mm_add_epi16(middle_left_lo, up_center_lo);
         auto neg_hi = _mm_add_epi16(middle_left_hi, up_center_hi);
 
-        auto diff_lo = simd_abs_diff_epu16<flags>(pos_lo, neg_lo);
-        auto diff_hi = simd_abs_diff_epu16<flags>(pos_hi, neg_hi);
+        auto diff_lo = simd_abs_diff_epu16(pos_lo, neg_lo);
+        auto diff_hi = simd_abs_diff_epu16(pos_hi, neg_hi);
 
         diff_lo = _mm_srai_epi16(diff_lo, 1);
         diff_hi = _mm_srai_epi16(diff_hi, 1);
@@ -181,7 +168,7 @@ static MT_FORCEINLINE void process_line_sobel_sse2(uint8_t *pDst, const uint8_t 
     }
 }
 
-template<CpuFlags flags, Border borderMode>
+template<Border borderMode>
 static MT_FORCEINLINE void process_line_roberts_sse2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m128i &lowThresh, const __m128i &highThresh, int width) {
     UNUSED(pSrcp);
     UNUSED(matrix);
@@ -209,8 +196,8 @@ static MT_FORCEINLINE void process_line_roberts_sse2(uint8_t *pDst, const uint8_
         auto neg_lo = _mm_add_epi16(middle_right_lo, down_center_lo);
         auto neg_hi = _mm_add_epi16(middle_right_hi, down_center_hi);
 
-        auto diff_lo = simd_abs_diff_epu16<flags>(pos_lo, neg_lo);
-        auto diff_hi = simd_abs_diff_epu16<flags>(pos_hi, neg_hi);
+        auto diff_lo = simd_abs_diff_epu16(pos_lo, neg_lo);
+        auto diff_hi = simd_abs_diff_epu16(pos_hi, neg_hi);
 
         diff_lo = _mm_srai_epi16(diff_lo, 1);
         diff_hi = _mm_srai_epi16(diff_hi, 1);
@@ -222,7 +209,7 @@ static MT_FORCEINLINE void process_line_roberts_sse2(uint8_t *pDst, const uint8_
     }
 }
 
-template<CpuFlags flags, Border borderMode>
+template<Border borderMode>
 static MT_FORCEINLINE void process_line_laplace_sse2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m128i &lowThresh, const __m128i &highThresh, int width) {
     UNUSED(pSrcp);
     UNUSED(matrix);
@@ -288,8 +275,8 @@ static MT_FORCEINLINE void process_line_laplace_sse2(uint8_t *pDst, const uint8_
         auto pos_lo = _mm_slli_epi16(middle_center_lo, 3);
         auto pos_hi = _mm_slli_epi16(middle_center_hi, 3);
 
-        auto diff_lo = simd_abs_diff_epu16<flags>(pos_lo, acc_lo);
-        auto diff_hi = simd_abs_diff_epu16<flags>(pos_hi, acc_hi);
+        auto diff_lo = simd_abs_diff_epu16(pos_lo, acc_lo);
+        auto diff_hi = simd_abs_diff_epu16(pos_hi, acc_hi);
         
         diff_lo = _mm_srai_epi16(diff_lo, 3);
         diff_hi = _mm_srai_epi16(diff_hi, 3);
@@ -301,7 +288,7 @@ static MT_FORCEINLINE void process_line_laplace_sse2(uint8_t *pDst, const uint8_
     }
 }
 
-template<CpuFlags flags, Border borderMode>
+template<Border borderMode>
 static MT_FORCEINLINE void process_line_morpho_sse2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m128i &lowThresh, const __m128i &highThresh, int width) {
     UNUSED(matrix);
     auto v128 = _mm_set1_epi8(uint8_t(0x80));
@@ -344,7 +331,7 @@ static MT_FORCEINLINE void process_line_morpho_sse2(uint8_t *pDst, const uint8_t
     }
 }
 
-template<CpuFlags flags, Border borderMode>
+template<Border borderMode>
 static MT_FORCEINLINE void process_line_cartoon_sse2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m128i &lowThresh, const __m128i &highThresh, int width) {
     UNUSED(matrix); UNUSED(pSrcn);
     auto v128 = _mm_set1_epi8(uint8_t(0x80));
@@ -380,7 +367,7 @@ static MT_FORCEINLINE void process_line_cartoon_sse2(uint8_t *pDst, const uint8_
     }
 }
 
-template<CpuFlags flags, Border borderMode>
+template<Border borderMode>
 static MT_FORCEINLINE void process_line_prewitt_sse2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m128i &lowThresh, const __m128i &highThresh, int width) {
     UNUSED(matrix);
     auto v128 = _mm_set1_epi8(uint8_t(0x80));
@@ -452,10 +439,10 @@ static MT_FORCEINLINE void process_line_prewitt_sse2(uint8_t *pDst, const uint8_
         auto p45_lo = _mm_add_epi16(t1_lo, a12_minus_a32_lo); // a12 + a11 + a21 - a33 - a32 - a23
         auto p45_hi = _mm_add_epi16(t1_hi, a12_minus_a32_hi);
 
-        auto p45 = simd_packed_abs_epi16<flags>(p45_lo, p45_hi);
-        auto p90 = simd_packed_abs_epi16<flags>(p90_lo, p90_hi);
-        auto p135 = simd_packed_abs_epi16<flags>(p135_lo, p135_hi);
-        auto p180 = simd_packed_abs_epi16<flags>(p180_lo, p180_hi);
+        auto p45 = simd_packed_abs_epi16(p45_lo, p45_hi);
+        auto p90 = simd_packed_abs_epi16(p90_lo, p90_hi);
+        auto p135 = simd_packed_abs_epi16(p135_lo, p135_hi);
+        auto p180 = simd_packed_abs_epi16(p180_lo, p180_hi);
 
         auto max1 = _mm_max_epu8(p45, p90);
         auto max2 = _mm_max_epu8(p135, p180);
@@ -468,7 +455,7 @@ static MT_FORCEINLINE void process_line_prewitt_sse2(uint8_t *pDst, const uint8_
     }
 }
 
-template<CpuFlags flags, Border borderMode>
+template<Border borderMode>
 static MT_FORCEINLINE void process_line_half_prewitt_sse2(uint8_t *pDst, const uint8_t *pSrcp, const uint8_t *pSrc, const uint8_t *pSrcn, const int16_t matrix[10], const __m128i &lowThresh, const __m128i &highThresh, int width) {
     UNUSED(matrix);
     auto v128 = _mm_set1_epi8(uint8_t(0x80));
@@ -546,8 +533,8 @@ static MT_FORCEINLINE void process_line_half_prewitt_sse2(uint8_t *pDst, const u
         auto p180_lo = _mm_add_epi16(t1_lo, t3_lo);
         auto p180_hi = _mm_add_epi16(t1_hi, t3_hi);
 
-        auto p90 = simd_packed_abs_epi16<flags>(p90_lo, p90_hi);
-        auto p180 = simd_packed_abs_epi16<flags>(p180_lo, p180_hi);
+        auto p90 = simd_packed_abs_epi16(p90_lo, p90_hi);
+        auto p180 = simd_packed_abs_epi16(p180_lo, p180_hi);
 
         auto result = _mm_max_epu8(p90, p180);
 
