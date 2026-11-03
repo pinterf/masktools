@@ -2,78 +2,12 @@
 
 #ifdef INTEL_INTRINSICS
 
+#include "merge_c.h"
 #include "../../common/simd_avx2.h"
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Merge {
 
 namespace {
-
-   static void merge_avx2_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
-      const uint8_t *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
-   {
-      for (int y = 0; y < nHeight; ++y)
-      {
-         for (int x = 0; x < nWidth; ++x) {
-           const int nMask = pMask[x];
-           pDst[x] = merge8_core_c(pDst[x], pSrc1[x], static_cast<uint8_t>(nMask));
-         }
-         pDst += nDstPitch;
-         pSrc1 += nSrc1Pitch;
-         pMask += nSrc2Pitch;
-      }
-   }
-
-   static void merge_luma_420_avx2_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
-      const uint8_t *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
-   {
-      for (int y = 0; y < nHeight; ++y)
-      {
-         for (int x = 0; x < nWidth; ++x)
-         {
-           // 420: both width and height is halved, averaging from 4 pixels of full size mask
-            const int nMask = (((pMask[x * 2] + pMask[x * 2 + nSrc2Pitch] + 1) >> 1) + ((pMask[x * 2 + 1] + pMask[x * 2 + nSrc2Pitch + 1] + 1) >> 1) + 1) >> 1;
-            pDst[x] = merge8_core_c(pDst[x], pSrc1[x], static_cast<uint8_t>(nMask));
-         }
-         pDst += nDstPitch;
-         pSrc1 += nSrc1Pitch;
-         pMask += nSrc2Pitch * 2;
-      }
-   }
-
-   static void merge_luma_422_avx2_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
-     const uint8_t *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
-   {
-     for (int y = 0; y < nHeight; ++y)
-     {
-       for (int x = 0; x < nWidth; ++x)
-       {
-         const int nMask = (pMask[x * 2] + pMask[x * 2 + 1] + 1) >> 1; // 422: only width is halved, averaging from two pixels of full size mask
-         pDst[x] = merge8_core_c(pDst[x], pSrc1[x], static_cast<uint8_t>(nMask));
-       }
-       pDst += nDstPitch;
-       pSrc1 += nSrc1Pitch;
-       pMask += nSrc2Pitch;
-     }
-   }
-
-   static void merge_luma_411_avx2_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
-     const uint8_t *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
-   {
-     for (int y = 0; y < nHeight; ++y)
-     {
-       for (int x = 0; x < nWidth; ++x)
-       {
-         const int nMask = (
-           ((pMask[x * 4 + 0] + pMask[x * 4 + 1] + 1) >> 1) +
-           ((pMask[x * 4 + 2] + pMask[x * 4 + 3] + 1) >> 1)
-           + 1) >> 1; // 411: averaging from four pixels of full size mask
-         pDst[x] = merge8_core_c(pDst[x], pSrc1[x], static_cast<uint8_t>(nMask));
-       }
-       pDst += nDstPitch;
-       pSrc1 += nSrc1Pitch;
-       pMask += nSrc2Pitch;
-     }
-   }
 
    MT_FORCEINLINE __m256i merge_avx2_core(uint8_t *pDst, const uint8_t *pSrc, const __m256i& mask_lo, const __m256i& mask_hi,
       const __m256i& zero) {
@@ -172,11 +106,11 @@ namespace {
      if (width > vector_width) {
        Processor *tail;
        if constexpr (mode == WeightedMask::TopLeft420)
-         tail = vector_width ? merge_luma_420_topleft_allow_leftminus1_c : merge_luma_420_topleft_c;
+         tail = vector_width ? merge_luma_420_topleft_allow_leftminus1_t_c : merge_luma_420_topleft_t_c;
        else if constexpr (mode == WeightedMask::M420)
-         tail = vector_width ? merge_luma_420_mpeg2_allow_leftminus1_c : merge_luma_420_mpeg2_c;
+         tail = vector_width ? merge_luma_420_mpeg2_allow_leftminus1_t_c : merge_luma_420_mpeg2_t_c;
        else
-         tail = vector_width ? merge_luma_422_mpeg2_allow_leftminus1_c : merge_luma_422_mpeg2_c;
+         tail = vector_width ? merge_luma_422_mpeg2_allow_leftminus1_t_c : merge_luma_422_mpeg2_t_c;
        tail(dst_start + vector_width, dst_pitch, src_start + vector_width, src_pitch,
          mask_start + vector_width * 2, mask_pitch, width - vector_width, height);
      }
@@ -205,7 +139,7 @@ namespace {
       }
 
       if (nWidth > wMod32) {
-         merge_avx2_c(pDst_s + wMod32, nDstPitch, pSrc1_s + wMod32, nSrc1Pitch, pMask_s + wMod32, nSrc2Pitch, nWidth - wMod32, nHeight);
+         merge_t_c(pDst_s + wMod32, nDstPitch, pSrc1_s + wMod32, nSrc1Pitch, pMask_s + wMod32, nSrc2Pitch, nWidth - wMod32, nHeight);
       }
    }
    
@@ -248,7 +182,7 @@ namespace {
      }
      if (nWidth > wMod32) {
        // pMask offset: mask is not subsampled -> width*2
-       merge_luma_420_avx2_c(pDst_s + wMod32, nDstPitch, pSrc1_s + wMod32, nSrc1Pitch, pMask_s + wMod32 * 2, nSrc2Pitch, nWidth - wMod32, nHeight);
+       merge_luma_420_t_c(pDst_s + wMod32, nDstPitch, pSrc1_s + wMod32, nSrc1Pitch, pMask_s + wMod32 * 2, nSrc2Pitch, nWidth - wMod32, nHeight);
      }
    }
 
@@ -288,7 +222,7 @@ namespace {
      }
      if (nWidth > wMod32) {
        // pMask offset: mask is not subsampled -> width*2
-       merge_luma_422_avx2_c(pDst_s + wMod32, nDstPitch, pSrc1_s + wMod32, nSrc1Pitch, pMask_s + wMod32 * 2, nSrc2Pitch, nWidth - wMod32, nHeight);
+       merge_luma_422_t_c(pDst_s + wMod32, nDstPitch, pSrc1_s + wMod32, nSrc1Pitch, pMask_s + wMod32 * 2, nSrc2Pitch, nWidth - wMod32, nHeight);
      }
    }
 
@@ -340,7 +274,7 @@ namespace {
        pMask += nSrc2Pitch;
      }
      if (nWidth > wMod32) {
-       merge_luma_411_avx2_c(pDst_s + wMod32, nDstPitch, pSrc1_s + wMod32, nSrc1Pitch, pMask_s + wMod32 * 4, nSrc2Pitch, nWidth - wMod32, nHeight);
+       merge_luma_411_t_c(pDst_s + wMod32, nDstPitch, pSrc1_s + wMod32, nSrc1Pitch, pMask_s + wMod32 * 4, nSrc2Pitch, nWidth - wMod32, nHeight);
      }
    }
 

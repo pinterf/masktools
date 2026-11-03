@@ -3,6 +3,7 @@
 
 #ifdef NEON_INTRINSICS
 
+#include "merge_c.h"
 #include <arm_neon.h>
 
 // mt_merge NEON: 4:4:4 (or luma=false) and the luma=true mask downsampling 4:2:0, 4:2:2, 4:1:1 (mpeg1 placement)
@@ -71,7 +72,7 @@ void merge8_neon_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptr
     pMask += mode == Mode::M420 ? nMaskPitch * 2 : nMaskPitch;
   }
   if (nWidth > wmod) {
-    Processor *c = mode == Mode::M444 ? merge_c : mode == Mode::M420 ? merge_luma_420_c : mode == Mode::M422 ? merge_luma_422_c : merge_luma_411_c;
+    Processor *c = mode == Mode::M444 ? merge_t_c : mode == Mode::M420 ? merge_luma_420_t_c : mode == Mode::M422 ? merge_luma_422_t_c : merge_luma_411_t_c;
     c(pDst0 + wmod, nDstPitch, pSrc0 + wmod, nSrc1Pitch, pMask0 + wmod * mstep, nMaskPitch, nWidth - wmod, nHeight);
   }
 }

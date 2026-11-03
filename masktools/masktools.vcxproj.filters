@@ -752,6 +752,9 @@
     <ClInclude Include="filters\merge\merge16_c.h">
       <Filter>filters\merge</Filter>
     </ClInclude>
+    <ClInclude Include="filters\merge\merge_c.h">
+      <Filter>filters\merge</Filter>
+    </ClInclude>
     <ClInclude Include="filters\merge\merge_sse.h">
       <Filter>filters\merge</Filter>
     </ClInclude>

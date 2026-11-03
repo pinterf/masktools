@@ -4,6 +4,7 @@
 // merge: SSE2 kernels, instantiated in merge_sse2.cpp
 
 #include "merge.h"
+#include "merge_c.h"
 #include "../../common/simd.h"
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Merge {
@@ -55,7 +56,7 @@ namespace {
       }
 
       if (nWidth > wMod16) {
-         merge_c(pDst_s + wMod16, nDstPitch, pSrc1_s + wMod16, nSrc1Pitch, pMask_s + wMod16, nSrc2Pitch, nWidth - wMod16, nHeight);
+         merge_t_c(pDst_s + wMod16, nDstPitch, pSrc1_s + wMod16, nSrc1Pitch, pMask_s + wMod16, nSrc2Pitch, nWidth - wMod16, nHeight);
       }
    }
 
@@ -95,7 +96,7 @@ namespace {
        pMask += nSrc2Pitch * 2;
      }
      if (nWidth > wMod16) {
-       merge_luma_420_c(pDst_s + wMod16, nDstPitch, pSrc1_s + wMod16, nSrc1Pitch, pMask_s + wMod16 * 2, nSrc2Pitch, nWidth - wMod16, nHeight);
+       merge_luma_420_t_c(pDst_s + wMod16, nDstPitch, pSrc1_s + wMod16, nSrc1Pitch, pMask_s + wMod16 * 2, nSrc2Pitch, nWidth - wMod16, nHeight);
      }
    }
 
@@ -151,9 +152,9 @@ namespace {
      }
      if (nWidth > wMod16) {
        if (wMod16 != 0) // indexing leftmost - 1 is allowed
-         merge_luma_420_mpeg2_allow_leftminus1_c(pDst_s + wMod16, nDstPitch, pSrc1_s + wMod16, nSrc1Pitch, pMask_s + wMod16 * 2, nSrc2Pitch, nWidth - wMod16, nHeight);
+         merge_luma_420_mpeg2_allow_leftminus1_t_c(pDst_s + wMod16, nDstPitch, pSrc1_s + wMod16, nSrc1Pitch, pMask_s + wMod16 * 2, nSrc2Pitch, nWidth - wMod16, nHeight);
        else
-         merge_luma_420_mpeg2_c(pDst_s + wMod16, nDstPitch, pSrc1_s + wMod16, nSrc1Pitch, pMask_s + wMod16 * 2, nSrc2Pitch, nWidth - wMod16, nHeight);
+         merge_luma_420_mpeg2_t_c(pDst_s + wMod16, nDstPitch, pSrc1_s + wMod16, nSrc1Pitch, pMask_s + wMod16 * 2, nSrc2Pitch, nWidth - wMod16, nHeight);
      }
    }
 
@@ -236,9 +237,9 @@ namespace {
      }
      if (nWidth > wMod16) {
        if (wMod16 != 0) // indexing leftmost - 1 is allowed
-         merge_luma_420_topleft_allow_leftminus1_c(pDst_s + wMod16, nDstPitch, pSrc1_s + wMod16, nSrc1Pitch, pMask_s + wMod16 * 2, nSrc2Pitch, nWidth - wMod16, nHeight);
+         merge_luma_420_topleft_allow_leftminus1_t_c(pDst_s + wMod16, nDstPitch, pSrc1_s + wMod16, nSrc1Pitch, pMask_s + wMod16 * 2, nSrc2Pitch, nWidth - wMod16, nHeight);
        else
-         merge_luma_420_topleft_c(pDst_s + wMod16, nDstPitch, pSrc1_s + wMod16, nSrc1Pitch, pMask_s + wMod16 * 2, nSrc2Pitch, nWidth - wMod16, nHeight);
+         merge_luma_420_topleft_t_c(pDst_s + wMod16, nDstPitch, pSrc1_s + wMod16, nSrc1Pitch, pMask_s + wMod16 * 2, nSrc2Pitch, nWidth - wMod16, nHeight);
      }
    }
 
@@ -274,7 +275,7 @@ namespace {
        pMask += nSrc2Pitch;
      }
      if (nWidth > wMod16) {
-       merge_luma_422_c(pDst_s + wMod16, nDstPitch, pSrc1_s + wMod16, nSrc1Pitch, pMask_s + wMod16 * 2, nSrc2Pitch, nWidth - wMod16, nHeight);
+       merge_luma_422_t_c(pDst_s + wMod16, nDstPitch, pSrc1_s + wMod16, nSrc1Pitch, pMask_s + wMod16 * 2, nSrc2Pitch, nWidth - wMod16, nHeight);
      }
    }
 
@@ -326,9 +327,9 @@ namespace {
      }
      if (nWidth > wMod16) {
        if (wMod16 != 0) // indexing leftmost - 1 is allowed
-         merge_luma_422_mpeg2_allow_leftminus1_c(pDst_s + wMod16, nDstPitch, pSrc1_s + wMod16, nSrc1Pitch, pMask_s + wMod16 * 2, nSrc2Pitch, nWidth - wMod16, nHeight);
+         merge_luma_422_mpeg2_allow_leftminus1_t_c(pDst_s + wMod16, nDstPitch, pSrc1_s + wMod16, nSrc1Pitch, pMask_s + wMod16 * 2, nSrc2Pitch, nWidth - wMod16, nHeight);
        else
-         merge_luma_422_mpeg2_c(pDst_s + wMod16, nDstPitch, pSrc1_s + wMod16, nSrc1Pitch, pMask_s + wMod16 * 2, nSrc2Pitch, nWidth - wMod16, nHeight);
+         merge_luma_422_mpeg2_t_c(pDst_s + wMod16, nDstPitch, pSrc1_s + wMod16, nSrc1Pitch, pMask_s + wMod16 * 2, nSrc2Pitch, nWidth - wMod16, nHeight);
      }
    }
 
@@ -375,7 +376,7 @@ namespace {
        pMask += nSrc2Pitch;
      }
      if (nWidth > wMod16) {
-       merge_luma_411_c(pDst_s + wMod16, nDstPitch, pSrc1_s + wMod16, nSrc1Pitch, pMask_s + wMod16 * 4, nSrc2Pitch, nWidth - wMod16, nHeight);
+       merge_luma_411_t_c(pDst_s + wMod16, nDstPitch, pSrc1_s + wMod16, nSrc1Pitch, pMask_s + wMod16 * 4, nSrc2Pitch, nWidth - wMod16, nHeight);
      }
    }
 
