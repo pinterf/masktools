@@ -4,11 +4,17 @@
 
 #include "../functions_avx2.h"
 #include "../../../common/simd_avx2.h"
+#define MT_SOBEL_AVX2
+#include "sobel_real_simd.h"
 
 using namespace Filtering;
 
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Mask { namespace Edge {
+
+Processor *sobel_real_avx2 = &sobel_real8_simd<SobelAVX>;
+Processor16 *sobel_real_16_avx2 = &sobel_real_simd<SobelAVX, uint16_t, int16_t, int>;
+Processor32 *sobel_real_32_avx2 = &sobel_real32_simd<SobelAVX>;
 
 namespace {
 

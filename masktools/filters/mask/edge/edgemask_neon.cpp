@@ -3,6 +3,7 @@
 #ifdef NEON_INTRINSICS
 
 #include <arm_neon.h>
+#include "sobel_real_simd.h"
 
 // mt_edge NEON: all modes (sobel, roberts, laplace, prewitt, half_prewitt, min/max (morpho), cartoon, custom
 // convolution), 8, 10-16 bit and float; the C border handling (missing neighbors replaced by the center row /
@@ -12,6 +13,10 @@
 // - float: the C evaluation order, unfused; abs, min, max as the C a < 0 ? -a : a, a < b ? a : b.
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Mask { namespace Edge {
+
+Processor *sobel_real_neon = &sobel_real8_simd<SobelNEON>;
+Processor16 *sobel_real_16_neon = &sobel_real_simd<SobelNEON, uint16_t, int16_t, int>;
+Processor32 *sobel_real_32_neon = &sobel_real32_simd<SobelNEON>;
 
 namespace {
 

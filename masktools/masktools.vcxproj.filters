@@ -701,6 +701,9 @@
     <ClInclude Include="filters\mask\edge\edgemask32_sse.h">
       <Filter>filters\mask\edge</Filter>
     </ClInclude>
+    <ClInclude Include="filters\mask\edge\sobel_real_simd.h">
+      <Filter>filters\mask\edge</Filter>
+    </ClInclude>
     <ClInclude Include="filters\mask\edge\edgemask_sse.h">
       <Filter>filters\mask\edge</Filter>
     </ClInclude>

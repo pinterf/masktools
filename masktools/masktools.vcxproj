@@ -366,6 +366,7 @@
     <ClInclude Include="filters\mask\edge\edgemask16_sse.h" />
     <ClInclude Include="filters\mask\edge\edgemask32_sse.h" />
     <ClInclude Include="filters\mask\edge\edgemask_sse.h" />
+    <ClInclude Include="filters\mask\edge\sobel_real_simd.h" />
     <ClInclude Include="filters\mask\functions.h" />
     <ClInclude Include="filters\mask\functions16.h" />
     <ClInclude Include="filters\mask\functions16_avx2.h" />
