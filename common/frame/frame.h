@@ -5,6 +5,18 @@
 
 namespace Filtering {
 
+// Internal slots stay Y/U/V/A (R/G/B/A); YA uses slots 0 and 3, not 0 and 1.
+inline int plane_index(int plane_count, int ordinal)
+{
+    return plane_count == 2 && ordinal == 1 ? 3 : ordinal;
+}
+
+inline bool has_plane(int plane_count, int slot)
+{
+    return slot >= 0 && slot < 4 &&
+        (plane_count == 2 ? slot == 0 || slot == 3 : slot < plane_count);
+}
+
 template<typename T>
 class Frame {
 
@@ -19,11 +31,13 @@ public:
        planes[0] = plane;
    }
 
+   // The array is indexed by internal slot, including slot 3 for YA alpha.
    Frame(const Plane<T> planes[4], int nPlanes) : nPlanes(nPlanes)
    {
-       assert(nPlanes == 1 || nPlanes == 3 || nPlanes == 4);
+       assert(nPlanes >= 1 && nPlanes <= 4);
        for (int i = 0; i < nPlanes; i++) {
-           this->planes[i] = planes[i];
+           const int p = plane_index(i);
+           this->planes[p] = planes[p];
        }
    }
 
@@ -46,60 +60,51 @@ public:
    Frame(const Frame<U> &frame) : nPlanes(frame.plane_count())
    {
        for (int i = 0; i < nPlanes; i++) {
-           planes[i] = Plane<T>(frame.plane(i));
+           const int p = plane_index(i);
+           planes[p] = Plane<T>(frame.plane(p));
        }
    }
 
    Plane<T> plane(int nPlane) const {
-       assert(nPlane < nPlanes);
+       assert(has_plane(nPlanes, nPlane));
        return planes[nPlane];
    }
 
    // width_ratios / height_ratios: the clip's plane size ratios (Clip::width_ratio)
    Frame<T> offset(int x, int y, int w, int h, const int width_ratios[4], const int height_ratios[4]) const
    {
-       if (nPlanes > 1)
-       {
-           w = ((x + w) / width_ratios[2]) * width_ratios[2];
-           h = ((y + h) / height_ratios[2]) * height_ratios[2];
-           x = (x / width_ratios[2]) * width_ratios[2];
-           y = (y / height_ratios[2]) * height_ratios[2];
-           w -= x;
-           h -= y;
-           if (nPlanes == 3) {
-             return Frame<T>(planes[0].offset(x, y, w, h),
-               planes[1].offset(x / width_ratios[1], y / height_ratios[1], w / width_ratios[1], h / height_ratios[1]),
-               planes[2].offset(x / width_ratios[2], y / height_ratios[2], w / width_ratios[2], h / height_ratios[2]));
-           }
-           else {
-             return Frame<T>(planes[0].offset(x, y, w, h),
-               planes[1].offset(x / width_ratios[1], y / height_ratios[1], w / width_ratios[1], h / height_ratios[1]),
-               planes[2].offset(x / width_ratios[2], y / height_ratios[2], w / width_ratios[2], h / height_ratios[2]),
-               planes[3].offset(x, y, w, h)); // alpha
-           }
-       } else {
-           return Frame<T>(planes[0].offset(x, y, w, h));
+       // Y and YA have no chroma grid; their absent U/V slots have zero ratios and must not be used.
+       const int rw = nPlanes >= 3 ? width_ratios[2] : 1;
+       const int rh = nPlanes >= 3 ? height_ratios[2] : 1;
+       w = ((x + w) / rw) * rw;
+       h = ((y + h) / rh) * rh;
+       x = (x / rw) * rw;
+       y = (y / rh) * rh;
+       w -= x;
+       h -= y;
+       Plane<T> result[4];
+       for (int i = 0; i < nPlanes; i++) {
+           const int p = plane_index(i);
+           result[p] = planes[p].offset(x / width_ratios[p], y / height_ratios[p],
+               w / width_ratios[p], h / height_ratios[p]);
        }
+       return Frame<T>(result, nPlanes);
    }
 
    Frame<T> select(int paddx, int paddy) const
    {
-     if (nPlanes == 4)
-       return Frame<T>(planes[0].offset(paddx, paddy, width(0) - 2 * paddx, height(0) - 2 * paddy),
-         planes[1].offset(paddx, paddy, width(1) - 2 * paddx, height(1) - 2 * paddy),
-         planes[2].offset(paddx, paddy, width(2) - 2 * paddx, height(2) - 2 * paddy),
-         planes[3].offset(paddx, paddy, width(3) - 2 * paddx, height(3) - 2 * paddy));
-     else if(nPlanes > 1)
-       return Frame<T>(planes[0].offset(paddx, paddy, width(0) - 2 * paddx, height(0) - 2 * paddy),
-         planes[1].offset(paddx, paddy, width(1) - 2 * paddx, height(1) - 2 * paddy),
-         planes[2].offset(paddx, paddy, width(2) - 2 * paddx, height(2) - 2 * paddy));
-     else
-       return Frame<T>(planes[0].offset(paddx, paddy, width(0) - 2 * paddx, height(0) - 2 * paddy));
+     Plane<T> result[4];
+     for (int i = 0; i < nPlanes; i++) {
+       const int p = plane_index(i);
+       result[p] = planes[p].offset(paddx, paddy, width(p) - 2 * paddx, height(p) - 2 * paddy);
+     }
+     return Frame<T>(result, nPlanes);
    }
 
-   int width(int nPlane) const { assert( nPlane < nPlanes ); return planes[nPlane].width(); }
-   int height(int nPlane) const { assert( nPlane < nPlanes ); return planes[nPlane].height(); }
+   int width(int nPlane) const { return plane(nPlane).width(); }
+   int height(int nPlane) const { return plane(nPlane).height(); }
    int plane_count() const { return nPlanes; }
+   int plane_index(int ordinal) const { return Filtering::plane_index(nPlanes, ordinal); }
 };
 
 } // namespace Filtering

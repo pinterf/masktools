@@ -250,7 +250,8 @@ public:
 
         // Snap the window to the subsampling grid the same way Frame::offset does,
         // so that nCoreWidth/nCoreHeight are the real luma window sizes.
-        if (nPlanes > 1) {
+        // Y and YA have no U/V slots; only 3/4-plane formats have a chroma (RGB uses ratios of 1).
+        if (nPlanes >= 3) {
             const int rw = width_ratios[2];
             const int rh = height_ratios[2];
             const int x1 = (nXOffset + nCoreWidth) / rw * rw;
@@ -392,9 +393,10 @@ public:
             }
         }
 
-        // don't try to process non-existant planes
-        for (int i = nPlanes; i < 4; i++)
-          operators[i] = NONE;
+        // Plane count is not a slot limit: YA has two planes, but alpha still occupies internal slot 3.
+        for (int i = 0; i < 4; i++)
+          if (!childs[0]->has_plane(i))
+            operators[i] = NONE;
 
         /* effective modes */
         print(LOG_DEBUG, "modes : %i %i %i %i\n", operators[0].getMode(), operators[1].getMode(), operators[2].getMode(), operators[3].getMode());
@@ -413,7 +415,8 @@ public:
         print(LOG_DEBUG, "using cpu flags : 0x%x\n", flags);
 
         /* chroma offsets and box */
-        if (nPlanes > 1)
+        // Y and YA have no U/V planes; alpha uses the full-resolution window.
+        if (nPlanes >= 3)
         {
           // also for planar RGB, naming is a bit confusing yet
             nXOffsetUV = nXOffset / width_ratios[1];
@@ -508,20 +511,23 @@ public:
       }
 
       for (int i = 0; i < nPlanes; i++) {
-        constraints[i] = Constraint(plane_flags(output.plane(i)), output.plane(i));
+        const int p = plane_index(i);
+        constraints[p] = Constraint(plane_flags(output.plane(p)), output.plane(p));
       }
 
       for (int i = 0; i < clipcount; i++) {
         for (int j = 0; j < frames[i].plane_count(); j++) {
-          constraints[j] = Constraint(constraints[j], frames[i].plane(j));
+          const int p = frames[i].plane_index(j);
+          constraints[p] = Constraint(constraints[p], frames[i].plane(p));
         }
       }
 
       for (int i = 0; i < nPlanes; i++) {
+        const int p = plane_index(i);
         // a window snapped to the subsampling can be empty (e.g. YV12 offx=0, w=1): nothing to process
-        if (output.plane(i).width() <= 0 || output.plane(i).height() <= 0)
+        if (output.plane(p).width() <= 0 || output.plane(p).height() <= 0)
           continue;
-        process_plane(n, output.plane(i), i, constraints, frames);
+        process_plane(n, output.plane(p), p, constraints, frames);
       }
 
       return output_frame;
@@ -543,26 +549,29 @@ public:
       Constraint constraints[4];
 
       for (int i = 0; i < nPlanes; i++) {
-        const Plane<uint8_t> &o = output.plane(i);
+        const int p = plane_index(i);
+        const Plane<uint8_t> &o = output.plane(p);
         // the output too: in place filters and the "none" mode keep its content
-        out_native[i] = out_buf[i].from_stacked(Plane<const uint8_t>(o.data(), o.pitch(), o.width(), o.height(), o.pixelsize(), o.origheight()));
-        constraints[i] = Constraint(plane_flags(out_native[i]), out_native[i]);
+        out_native[p] = out_buf[p].from_stacked(Plane<const uint8_t>(o.data(), o.pitch(), o.width(), o.height(), o.pixelsize(), o.origheight()));
+        constraints[p] = Constraint(plane_flags(out_native[p]), out_native[p]);
       }
       for (int i = 0; i < clipcount; i++) {
         Plane<const uint8_t> planes[4];
         const int pc = frames[i].plane_count();
         for (int j = 0; j < pc; j++) {
-          Plane<uint8_t> p = in_buf[i][j].from_stacked(frames[i].plane(j));
-          planes[j] = Plane<const uint8_t>(p.data(), p.pitch(), p.width(), p.height(), p.pixelsize(), p.origheight());
-          constraints[j] = Constraint(constraints[j], planes[j]);
+          const int slot = frames[i].plane_index(j);
+          Plane<uint8_t> p = in_buf[i][slot].from_stacked(frames[i].plane(slot));
+          planes[slot] = Plane<const uint8_t>(p.data(), p.pitch(), p.width(), p.height(), p.pixelsize(), p.origheight());
+          constraints[slot] = Constraint(constraints[slot], planes[slot]);
         }
         frames_native[i] = Frame<const uint8_t>(planes, pc);
       }
       for (int i = 0; i < nPlanes; i++) {
-        if (out_native[i].width() <= 0 || out_native[i].height() <= 0)
+        const int p = plane_index(i);
+        if (out_native[p].width() <= 0 || out_native[p].height() <= 0)
           continue;
-        process_plane(n, out_native[i], i, constraints, frames_native);
-        NativePlaneBuffer::to_stacked(out_native[i], output.plane(i));
+        process_plane(n, out_native[p], p, constraints, frames_native);
+        NativePlaneBuffer::to_stacked(out_native[p], output.plane(p));
       }
     }
 
@@ -572,6 +581,7 @@ public:
     bool is_error() const { return !error.empty(); }
     bool is_in_place() const { return inPlace_; }
     int plane_count() const { return nPlanes; }
+    int plane_index(int ordinal) const { return Filtering::plane_index(nPlanes, ordinal); }
 
 };
 

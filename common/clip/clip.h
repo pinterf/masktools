@@ -46,6 +46,8 @@ public:
    int height() const { return nHeight; }
    int frame_count() const { return nFrames; }
    int plane_count() const { return nPlanes; }
+   int plane_index(int ordinal) const { return Filtering::plane_index(nPlanes, ordinal); }
+   bool has_plane(int slot) const { return Filtering::has_plane(nPlanes, slot); }
    int bit_depth() const { return nBitDepth; }
    bool is_rgb() const { return isRGB; }
    int width_ratio(int nPlane) const { return width_ratios[nPlane]; }

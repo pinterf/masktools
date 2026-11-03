@@ -85,8 +85,9 @@ public:
 
       for ( int i = 1; i < nPlanes; i++ )
       {
-         nX[i] = nX[0] / width_ratios[i];
-         nY[i] = nY[0] / height_ratios[i];
+         const int p = plane_index(i);
+         nX[p] = nX[0] / width_ratios[p];
+         nY[p] = nY[0] / height_ratios[p];
       }
    }
 

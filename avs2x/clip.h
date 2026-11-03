@@ -134,10 +134,11 @@ public:
         nBitDepth = supported ? vi.BitsPerComponent() : 0;
         isRGB = supported && (vi.IsPlanarRGB() || vi.IsPlanarRGBA());
         for (int i = 0; i < nPlanes; i++) {
+            const int p = plane_index(i);
             // Y8-style formats have no chroma planes: GetPlane*Subsampling would throw for U/V there
-            const bool chroma = !isRGB && (i == 1 || i == 2);
-            width_ratios[i] = chroma ? 1 << vi.GetPlaneWidthSubsampling(PlaneOrder[i]) : 1;
-            height_ratios[i] = chroma ? 1 << vi.GetPlaneHeightSubsampling(PlaneOrder[i]) : 1;
+            const bool chroma = !isRGB && (p == 1 || p == 2);
+            width_ratios[p] = chroma ? 1 << vi.GetPlaneWidthSubsampling(PlaneOrder[p]) : 1;
+            height_ratios[p] = chroma ? 1 << vi.GetPlaneHeightSubsampling(PlaneOrder[p]) : 1;
         }
     }
     
@@ -150,8 +151,10 @@ public:
         Plane<T> planes[4];
         {
             int nPixelSize = nBitDepth == 8 ? 1 : ((nBitDepth <= 16) ? 2 : 4); // uint8_t, uint16_t, float
-            for (int i = 0; i < nPlanes; i++)
-                planes[i] = Avisynth2x::ConvertTo<T>(frame, isRGB ? PlaneOrderRGB[i] : PlaneOrder[i], nPixelSize);
+            for (int i = 0; i < nPlanes; i++) {
+                const int p = plane_index(i);
+                planes[p] = Avisynth2x::ConvertTo<T>(frame, isRGB ? PlaneOrderRGB[p] : PlaneOrder[p], nPixelSize);
+            }
         }
         return Frame<T>(planes, nPlanes);
     }

@@ -117,8 +117,9 @@ public:
 
         for (int i = 0; i < realInputConfigSize; i++)
           new_args[i] = _filter.get_childs()[i]->get_avs_clip();
+        // Expr takes a compact plane list: YA's second expression comes from our internal alpha slot 3.
         for (int i = 0; i < planecount; i++)
-          new_args[i + realInputConfigSize] = _filter.expr_list[i].c_str();
+          new_args[i + realInputConfigSize] = _filter.expr_list[_filter.plane_index(i)].c_str();
 
         new_args[param_length - extra_param_count + 0] = _filter.expr_scale_inputs.c_str();
         new_args[param_length - extra_param_count + 1] = _filter.expr_clamp_float;
