@@ -16,6 +16,7 @@ extern Processor *convolution_avx2;
 extern Processor *sobel_c;
 extern Processor *sobel_sse2;
 extern Processor *sobel_avx2;
+extern Processor *sobel_real_c;
 
 extern Processor *roberts_c;
 extern Processor *roberts_sse2;
@@ -42,6 +43,8 @@ extern Processor *morpho_sse2;
 extern Processor *morpho_avx2;
 
 // uint16_t
+extern Processor16 *sobel_real_16_c;
+
 #define DEFINE_EXTERNS(name) \
 extern Processor16 *name##_16_c; \
 extern Processor16 *name##_16_sse2; \
@@ -59,6 +62,8 @@ DEFINE_EXTERNS(morpho)
 #undef DEFINE_EXTERNS
 
 // float
+extern Processor32 *sobel_real_32_c;
+
 extern Processor32 *convolution_32_c;
 extern Processor32 *sobel_32_c;
 extern Processor32 *roberts_32_c;
@@ -227,7 +232,23 @@ public:
      }
 
       /* add the processors */
-      if ( parameters["mode"].toString() == "sobel" )
+      if ( parameters["mode"].toString() == "sobel_real" )
+      {
+         print(LOG_DEBUG, "Edge : using Sobel gradient magnitude");
+         switch (bits_per_pixel) {
+         case 8:
+           processors.push_back(Filtering::Processor<Processor>(sobel_real_c, Constraint(CPU_NONE), 0));
+           break;
+         case 10: case 12: case 14: case 16:
+           processors16.push_back(Filtering::Processor<Processor16>(sobel_real_16_c, Constraint(CPU_NONE), 0));
+           break;
+         case 32:
+           processors32.push_back(Filtering::Processor<Processor32>(sobel_real_32_c, Constraint(CPU_NONE), 0));
+           break;
+         }
+      }
+      // The historical directional detector remains the default for script compatibility.
+      else if ( parameters["mode"].toString() == "sobel" )
       {
          print(LOG_DEBUG, "Edge : using sobel detector");
          switch (bits_per_pixel) {

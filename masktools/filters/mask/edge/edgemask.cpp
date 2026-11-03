@@ -1,5 +1,6 @@
 #include "edgemask.h"
 #include "../functions.h"
+#include <cmath>
 
 using namespace Filtering;
 
@@ -12,6 +13,18 @@ inline uint8_t convolution(uint8_t a11, uint8_t a21, uint8_t a31, uint8_t a12, u
    return threshold<uint8_t, int>(abs((a11 * matrix[0] + a21 * matrix[1] + a31 * matrix[2] + 
                                     a12 * matrix[3] + a22 * matrix[4] + a32 * matrix[5] +
                                     a13 * matrix[6] + a23 * matrix[7] + a33 * matrix[8]) / matrix[9]), nLowThreshold, nHighThreshold);
+}
+
+inline uint8_t sobel_real(uint8_t a11, uint8_t a21, uint8_t a31, uint8_t a12, uint8_t a22, uint8_t a32, uint8_t a13, uint8_t a23, uint8_t a33, const int16_t matrix[10], int nLowThreshold, int nHighThreshold)
+{
+   UNUSED(a22); UNUSED(matrix);
+   const int horizontal = (a31 - a11) + (a33 - a13) + 2 * (a32 - a12);
+   const int vertical = (a13 - a11) + (a33 - a31) + 2 * (a23 - a21);
+   const float gx = static_cast<float>(horizontal);
+   const float gy = static_cast<float>(vertical);
+   // Intentionally use native rounding (normally nearest-even), without Expr's +0.5f bias.
+   const int magnitude = static_cast<int>(std::lrint(std::sqrt(gx * gx + gy * gy)));
+   return clip<uint8_t, int>(threshold<int, int>(magnitude, nLowThreshold, nHighThreshold, 0, 255));
 }
 
 inline uint8_t sobel(uint8_t a11, uint8_t a21, uint8_t a31, uint8_t a12, uint8_t a22, uint8_t a32, uint8_t a13, uint8_t a23, uint8_t a33, const int16_t matrix[10], int nLowThreshold, int nHighThreshold)
@@ -124,6 +137,7 @@ using namespace Filters::Mask;
 #define DEFINE_C_VERSIONS(name) \
 Processor *name##_c          = &mask_t<name>;
 
+DEFINE_C_VERSIONS(sobel_real)
 DEFINE_C_VERSIONS(sobel)
 DEFINE_C_VERSIONS(roberts)
 DEFINE_C_VERSIONS(laplace)

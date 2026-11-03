@@ -1,5 +1,6 @@
 #include "edgemask.h"
 #include "../functions32.h"
+#include <cmath>
 
 using namespace Filtering;
 
@@ -14,6 +15,15 @@ inline float convolution(float a11, float a21, float a31, float a12, float a22, 
    return threshold<float, float>(abs((a11 * matrix[0] + a21 * matrix[1] + a31 * matrix[2] + 
                                     a12 * matrix[3] + a22 * matrix[4] + a32 * matrix[5] +
                                     a13 * matrix[6] + a23 * matrix[7] + a33 * matrix[8]) / matrix[9]), nLowThreshold, nHighThreshold);
+}
+
+inline float sobel_real(float a11, float a21, float a31, float a12, float a22, float a32, float a13, float a23, float a33, const float matrix[10], float nLowThreshold, float nHighThreshold)
+{
+   UNUSED(a22); UNUSED(matrix);
+   const float horizontal = (a31 - a11) + (a33 - a13) + 2.0f * (a32 - a12);
+   const float vertical = (a13 - a11) + (a33 - a31) + 2.0f * (a23 - a21);
+   const float magnitude = std::sqrt(horizontal * horizontal + vertical * vertical);
+   return clip<float, float>(threshold<float, float>(magnitude, nLowThreshold, nHighThreshold), 0.0f, 1.0f);
 }
 
 inline float sobel(float a11, float a21, float a31, float a12, float a22, float a32, float a13, float a23, float a33, const float matrix[10], float nLowThreshold, float nHighThreshold)
@@ -126,6 +136,7 @@ using namespace Filters::Mask;
 #define DEFINE_C_VERSIONS(name) \
 Processor32 *name##_32_c          = &mask32_t<name>;
 
+DEFINE_C_VERSIONS(sobel_real)
 DEFINE_C_VERSIONS(sobel)
 DEFINE_C_VERSIONS(roberts)
 DEFINE_C_VERSIONS(laplace)
