@@ -33,6 +33,46 @@ namespace {
       return _mm_packus_epi16(result_lo, result_hi);
    }
 
+   template<bool top_left>
+   void merge_luma_440_sse2_t(uint8_t *dst, ptrdiff_t dst_pitch, const uint8_t *src, ptrdiff_t src_pitch,
+     const uint8_t *mask, ptrdiff_t mask_pitch, int width, int height)
+   {
+     const int wmod = width / 16 * 16;
+     auto dst_start = dst;
+     auto src_start = src;
+     auto mask_start = mask;
+     const auto zero = _mm_setzero_si128();
+     for (int y = 0; y < height; ++y) {
+       const auto above = y == 0 ? mask : mask - mask_pitch;
+       for (int x = 0; x < wmod; x += 16) {
+         auto mid = _mm_loadu_si128(reinterpret_cast<const __m128i*>(mask + x));
+         auto below = _mm_loadu_si128(reinterpret_cast<const __m128i*>(mask + mask_pitch + x));
+         __m128i lo, hi;
+         if constexpr (top_left) {
+           auto prev = _mm_loadu_si128(reinterpret_cast<const __m128i*>(above + x));
+           lo = _mm_add_epi16(_mm_unpacklo_epi8(prev, zero), _mm_unpacklo_epi8(below, zero));
+           hi = _mm_add_epi16(_mm_unpackhi_epi8(prev, zero), _mm_unpackhi_epi8(below, zero));
+           lo = _mm_srli_epi16(_mm_add_epi16(_mm_add_epi16(lo,
+             _mm_slli_epi16(_mm_unpacklo_epi8(mid, zero), 1)), _mm_set1_epi16(2)), 2);
+           hi = _mm_srli_epi16(_mm_add_epi16(_mm_add_epi16(hi,
+             _mm_slli_epi16(_mm_unpackhi_epi8(mid, zero), 1)), _mm_set1_epi16(2)), 2);
+         }
+         else {
+           auto avg = _mm_avg_epu8(mid, below);
+           lo = _mm_unpacklo_epi8(avg, zero);
+           hi = _mm_unpackhi_epi8(avg, zero);
+         }
+         _mm_storeu_si128(reinterpret_cast<__m128i*>(dst + x), merge_sse2_core(dst + x, src + x, lo, hi, zero));
+       }
+       dst += dst_pitch;
+       src += src_pitch;
+       mask += mask_pitch * 2;
+     }
+     if (width > wmod)
+       merge_luma_440_t_c<top_left>(dst_start + wmod, dst_pitch, src_start + wmod, src_pitch,
+         mask_start + wmod, mask_pitch, width - wmod, height);
+   }
+
    void merge_sse2_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
       const uint8_t *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
    {

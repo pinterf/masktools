@@ -32,6 +32,46 @@ namespace {
       return result;
    }
 
+   template<bool top_left>
+   void merge_luma_440_avx2_t(uint8_t *dst, ptrdiff_t dst_pitch, const uint8_t *src, ptrdiff_t src_pitch,
+     const uint8_t *mask, ptrdiff_t mask_pitch, int width, int height)
+   {
+     const int wmod = width / 32 * 32;
+     auto dst_start = dst;
+     auto src_start = src;
+     auto mask_start = mask;
+     const auto zero = _mm256_setzero_si256();
+     for (int y = 0; y < height; ++y) {
+       const auto above = y == 0 ? mask : mask - mask_pitch;
+       for (int x = 0; x < wmod; x += 32) {
+         auto mid = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(mask + x));
+         auto below = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(mask + mask_pitch + x));
+         __m256i lo, hi;
+         if constexpr (top_left) {
+           auto prev = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(above + x));
+           lo = _mm256_add_epi16(_mm256_unpacklo_epi8(prev, zero), _mm256_unpacklo_epi8(below, zero));
+           hi = _mm256_add_epi16(_mm256_unpackhi_epi8(prev, zero), _mm256_unpackhi_epi8(below, zero));
+           lo = _mm256_srli_epi16(_mm256_add_epi16(_mm256_add_epi16(lo,
+             _mm256_slli_epi16(_mm256_unpacklo_epi8(mid, zero), 1)), _mm256_set1_epi16(2)), 2);
+           hi = _mm256_srli_epi16(_mm256_add_epi16(_mm256_add_epi16(hi,
+             _mm256_slli_epi16(_mm256_unpackhi_epi8(mid, zero), 1)), _mm256_set1_epi16(2)), 2);
+         }
+         else {
+           auto avg = _mm256_avg_epu8(mid, below);
+           lo = _mm256_unpacklo_epi8(avg, zero);
+           hi = _mm256_unpackhi_epi8(avg, zero);
+         }
+         _mm256_storeu_si256(reinterpret_cast<__m256i*>(dst + x), merge_avx2_core(dst + x, src + x, lo, hi, zero));
+       }
+       dst += dst_pitch;
+       src += src_pitch;
+       mask += mask_pitch * 2;
+     }
+     if (width > wmod)
+       merge_luma_440_t_c<top_left>(dst_start + wmod, dst_pitch, src_start + wmod, src_pitch,
+         mask_start + wmod, mask_pitch, width - wmod, height);
+   }
+
    enum class WeightedMask { M420, TopLeft420, M422 };
 
    template<WeightedMask mode>
@@ -287,6 +327,8 @@ namespace {
    Processor *merge_luma_420_avx2 = merge_luma_420_avx2_t;
    Processor *merge_luma_422_avx2 = merge_luma_422_avx2_t;
    Processor *merge_luma_411_avx2 = merge_luma_411_avx2_t;
+   Processor *merge_luma_440_avx2 = merge_luma_440_avx2_t<false>;
+   Processor *merge_luma_440_topleft_avx2 = merge_luma_440_avx2_t<true>;
 
 } } } }
 

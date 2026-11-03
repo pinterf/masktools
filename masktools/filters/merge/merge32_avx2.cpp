@@ -8,6 +8,43 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Merge 
 
 namespace {
 
+   template<bool top_left>
+   void merge32_luma_440_avx2_t(uint8_t *dst, ptrdiff_t dst_pitch, const uint8_t *src, ptrdiff_t src_pitch,
+     const uint8_t *mask, ptrdiff_t mask_pitch, int width, int height)
+   {
+     const int wmod = width / 8 * 8;
+     auto dst_start = dst;
+     auto src_start = src;
+     auto mask_start = mask;
+     for (int y = 0; y < height; ++y) {
+       const auto above = y == 0 ? mask : mask - mask_pitch;
+       for (int x = 0; x < wmod; x += 8) {
+         auto mid = _mm256_loadu_ps(reinterpret_cast<const float*>(mask) + x);
+         auto below = _mm256_loadu_ps(reinterpret_cast<const float*>(mask + mask_pitch) + x);
+         __m256 m;
+         if constexpr (top_left) {
+           auto prev = _mm256_loadu_ps(reinterpret_cast<const float*>(above) + x);
+           m = _mm256_mul_ps(_mm256_add_ps(_mm256_add_ps(prev, _mm256_mul_ps(mid, _mm256_set1_ps(2.0f))), below), _mm256_set1_ps(0.25f));
+         }
+         else
+           m = _mm256_mul_ps(_mm256_add_ps(mid, below), _mm256_set1_ps(0.5f));
+         auto d = _mm256_loadu_ps(reinterpret_cast<const float*>(dst) + x);
+         auto s = _mm256_loadu_ps(reinterpret_cast<const float*>(src) + x);
+         // Preserve the C blend order, unfused.
+         auto result = _mm256_add_ps(_mm256_mul_ps(_mm256_sub_ps(_mm256_set1_ps(1.0f), m), d), _mm256_mul_ps(m, s));
+         _mm256_storeu_ps(reinterpret_cast<float*>(dst) + x, result);
+       }
+       dst += dst_pitch;
+       src += src_pitch;
+       mask += mask_pitch * 2;
+     }
+     if (width > wmod) {
+       Processor32 *tail = top_left ? merge32_luma_440_topleft_c : merge32_luma_440_c;
+       tail(dst_start + wmod * sizeof(float), dst_pitch, src_start + wmod * sizeof(float), src_pitch,
+         mask_start + wmod * sizeof(float), mask_pitch, width - wmod, height);
+     }
+   }
+
    static void merge32_avx2_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
       const uint8_t *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
    {
@@ -380,6 +417,9 @@ namespace {
    }
 
 } // namespace
+
+   Processor32 *merge32_luma_440_avx2 = merge32_luma_440_avx2_t<false>;
+   Processor32 *merge32_luma_440_topleft_avx2 = merge32_luma_440_avx2_t<true>;
 
 
    Processor32 *merge32_avx2 = merge32_avx2_t;

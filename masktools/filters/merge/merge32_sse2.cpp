@@ -14,6 +14,43 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Merge 
 
 namespace {
 
+   template<bool top_left>
+   void merge32_luma_440_sse2_t(uint8_t *dst, ptrdiff_t dst_pitch, const uint8_t *src, ptrdiff_t src_pitch,
+     const uint8_t *mask, ptrdiff_t mask_pitch, int width, int height)
+   {
+     const int wmod = width / 4 * 4;
+     auto dst_start = dst;
+     auto src_start = src;
+     auto mask_start = mask;
+     for (int y = 0; y < height; ++y) {
+       const auto above = y == 0 ? mask : mask - mask_pitch;
+       for (int x = 0; x < wmod; x += 4) {
+         auto mid = _mm_loadu_ps(reinterpret_cast<const float*>(mask) + x);
+         auto below = _mm_loadu_ps(reinterpret_cast<const float*>(mask + mask_pitch) + x);
+         __m128 m;
+         if constexpr (top_left) {
+           auto prev = _mm_loadu_ps(reinterpret_cast<const float*>(above) + x);
+           m = _mm_mul_ps(_mm_add_ps(_mm_add_ps(prev, _mm_mul_ps(mid, _mm_set1_ps(2.0f))), below), _mm_set1_ps(0.25f));
+         }
+         else
+           m = _mm_mul_ps(_mm_add_ps(mid, below), _mm_set1_ps(0.5f));
+         auto d = _mm_loadu_ps(reinterpret_cast<const float*>(dst) + x);
+         auto s = _mm_loadu_ps(reinterpret_cast<const float*>(src) + x);
+         // Keep the new format's C blend order, not the older SIMD d + m * (s - d) form.
+         auto result = _mm_add_ps(_mm_mul_ps(_mm_sub_ps(_mm_set1_ps(1.0f), m), d), _mm_mul_ps(m, s));
+         _mm_storeu_ps(reinterpret_cast<float*>(dst) + x, result);
+       }
+       dst += dst_pitch;
+       src += src_pitch;
+       mask += mask_pitch * 2;
+     }
+     if (width > wmod) {
+       Processor32 *tail = top_left ? merge32_luma_440_topleft_c : merge32_luma_440_c;
+       tail(dst_start + wmod * sizeof(float), dst_pitch, src_start + wmod * sizeof(float), src_pitch,
+         mask_start + wmod * sizeof(float), mask_pitch, width - wmod, height);
+     }
+   }
+
    MT_FORCEINLINE __m128 merge32_sse2_core(uint8_t *pDst, const uint8_t *pSrc, const __m128& mask) {
       // ( 1- mask) * dst + mask * src = 
       // dst - dst * mask + src * mask = 
@@ -226,6 +263,9 @@ namespace {
    }
 
 } // namespace
+
+   Processor32 *merge32_luma_440_sse2 = merge32_luma_440_sse2_t<false>;
+   Processor32 *merge32_luma_440_topleft_sse2 = merge32_luma_440_sse2_t<true>;
 
    Processor32 *merge32_sse2 = merge32_sse2_t;
    Processor32 *merge32_luma_420_sse2 = merge32_luma_420_sse2_t;

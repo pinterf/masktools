@@ -153,6 +153,25 @@ MT_FORCEINLINE static __m256i get_mask_411_simd(const uint8_t *ptr, int x) {
   return get_single_mask_value_422(pairs_lo, pairs_hi);
 }
 
+template<bool top_left>
+MT_FORCEINLINE __m256i get_mask_440_simd(const uint8_t *ptr, ptrdiff_t pitch, ptrdiff_t prev_pitch) {
+  auto mid = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(ptr));
+  auto below = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(ptr + pitch));
+  if constexpr (!top_left)
+    return _mm256_avg_epu16(mid, below);
+  else {
+    auto above = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(ptr + prev_pitch));
+    const auto zero = _mm256_setzero_si256();
+    auto lo = _mm256_add_epi32(_mm256_unpacklo_epi16(above, zero), _mm256_unpacklo_epi16(below, zero));
+    auto hi = _mm256_add_epi32(_mm256_unpackhi_epi16(above, zero), _mm256_unpackhi_epi16(below, zero));
+    lo = _mm256_srli_epi32(_mm256_add_epi32(_mm256_add_epi32(lo,
+      _mm256_slli_epi32(_mm256_unpacklo_epi16(mid, zero), 1)), _mm256_set1_epi32(2)), 2);
+    hi = _mm256_srli_epi32(_mm256_add_epi32(_mm256_add_epi32(hi,
+      _mm256_slli_epi32(_mm256_unpackhi_epi16(mid, zero), 1)), _mm256_set1_epi32(2)), 2);
+    return _mm256_packus_epi32(lo, hi);
+  }
+}
+
 template <MaskMode mode>
 static void merge16_t_simd(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
                             const uint8_t *pMask, ptrdiff_t nMaskPitch, int nWidth, int nHeight, int bits_per_pixel)
@@ -200,6 +219,8 @@ static void merge16_t_simd(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pS
               mask = get_mask_422_simd(pMask, i);
             } else if (mode == MASK411) {
               mask = get_mask_411_simd(pMask, i);
+            } else if (mode == MASK440 || mode == MASK440_TOPLEFT) {
+              mask = get_mask_440_simd<mode == MASK440_TOPLEFT>(pMask + i, nMaskPitch, prev_pitch);
             } else {
               mask = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(reinterpret_cast<const __m256i*>(pMask + i)));
             }
@@ -212,7 +233,8 @@ static void merge16_t_simd(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pS
         pDst += nDstPitch;
         pSrc1 += nSrc1Pitch;
 
-        if (mode == MASK420 || mode == MASK420_MPEG2 || mode == MASK420_TOPLEFT) {
+        if (mode == MASK420 || mode == MASK420_MPEG2 || mode == MASK420_TOPLEFT ||
+            mode == MASK440 || mode == MASK440_TOPLEFT) {
             pMask += nMaskPitch * 2;
         } else {
             pMask += nMaskPitch; // 422, 444
@@ -220,7 +242,8 @@ static void merge16_t_simd(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pS
     }
 
     if (nWidth > wMod32) {
-      const int maskShift = mode == MASK411 ? wMod32 * 4 : mode == MASK444 ? wMod32 : wMod32 * 2;
+      const int maskShift = mode == MASK411 ? wMod32 * 4 :
+        (mode == MASK444 || mode == MASK440 || mode == MASK440_TOPLEFT) ? wMod32 : wMod32 * 2;
       Processor16 *tail = merge16_t_c<mode>;
       if constexpr (mode == MASK420_MPEG2 || mode == MASK420_TOPLEFT || mode == MASK422_MPEG2) {
         if (wMod32 != 0)
@@ -243,6 +266,8 @@ Processor16 *merge16_avx2 = merge16_avx2_t<MASK444>;
 Processor16 *merge16_luma_420_avx2 = merge16_avx2_t<MASK420>;
 Processor16 *merge16_luma_422_avx2 = merge16_avx2_t<MASK422>;
 Processor16 *merge16_luma_411_avx2 = merge16_avx2_t<MASK411>;
+Processor16 *merge16_luma_440_avx2 = merge16_avx2_t<MASK440>;
+Processor16 *merge16_luma_440_topleft_avx2 = merge16_avx2_t<MASK440_TOPLEFT>;
 Processor16 *merge16_luma_420_mpeg2_avx2 = merge16_avx2_t<MASK420_MPEG2>;
 Processor16 *merge16_luma_420_topleft_avx2 = merge16_avx2_t<MASK420_TOPLEFT>;
 Processor16 *merge16_luma_422_mpeg2_avx2 = merge16_avx2_t<MASK422_MPEG2>;

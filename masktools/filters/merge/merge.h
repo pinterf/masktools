@@ -30,11 +30,15 @@ extern Processor* merge_luma_420_topleft_sse2;
 extern Processor *merge_luma_422_sse2;
 extern Processor *merge_luma_422_mpeg2_sse2;
 extern Processor *merge_luma_411_sse2;
+extern Processor *merge_luma_440_sse2;
+extern Processor *merge_luma_440_topleft_sse2;
 
 extern Processor *merge_avx2;
 extern Processor *merge_luma_420_avx2;
 extern Processor *merge_luma_422_avx2;
 extern Processor *merge_luma_411_avx2;
+extern Processor *merge_luma_440_avx2;
+extern Processor *merge_luma_440_topleft_avx2;
 extern Processor *merge_luma_420_mpeg2_avx2;
 extern Processor *merge_luma_420_topleft_avx2;
 extern Processor *merge_luma_422_mpeg2_avx2;
@@ -43,6 +47,8 @@ extern Processor *merge_neon;
 extern Processor *merge_luma_420_neon;
 extern Processor *merge_luma_422_neon;
 extern Processor *merge_luma_411_neon;
+extern Processor *merge_luma_440_neon;
+extern Processor *merge_luma_440_topleft_neon;
 #endif
 
 /* 10-16 bit, bits_per_pixel at run time */
@@ -63,6 +69,8 @@ extern Processor16 *merge16_luma_420_topleft_sse2;
 extern Processor16 *merge16_luma_422_sse2;
 extern Processor16 *merge16_luma_422_mpeg2_sse2;
 extern Processor16 *merge16_luma_411_sse2;
+extern Processor16 *merge16_luma_440_sse2;
+extern Processor16 *merge16_luma_440_topleft_sse2;
 
 extern Processor16 *merge16_avx2;
 extern Processor16 *merge16_luma_420_avx2;
@@ -71,11 +79,15 @@ extern Processor16 *merge16_luma_420_mpeg2_avx2;
 extern Processor16 *merge16_luma_420_topleft_avx2;
 extern Processor16 *merge16_luma_422_mpeg2_avx2;
 extern Processor16 *merge16_luma_411_avx2;
+extern Processor16 *merge16_luma_440_avx2;
+extern Processor16 *merge16_luma_440_topleft_avx2;
 #ifdef NEON_INTRINSICS
 extern Processor16 *merge16_neon;
 extern Processor16 *merge16_luma_420_neon;
 extern Processor16 *merge16_luma_422_neon;
 extern Processor16 *merge16_luma_411_neon;
+extern Processor16 *merge16_luma_440_neon;
+extern Processor16 *merge16_luma_440_topleft_neon;
 #endif
 
 /* 32 bit */
@@ -90,17 +102,23 @@ extern Processor32 *merge32_luma_440_c;
 extern Processor32 *merge32_luma_440_topleft_c;
 
 extern Processor32 *merge32_sse2;
+extern Processor32 *merge32_luma_440_sse2;
+extern Processor32 *merge32_luma_440_topleft_sse2;
 extern Processor32 *merge32_luma_420_sse2;
 extern Processor32 *merge32_luma_420_mpeg2_sse2;
 extern Processor32 *merge32_luma_422_sse2;
 extern Processor32 *merge32_luma_422_mpeg2_sse2;
 extern Processor32 *merge32_avx2;
+extern Processor32 *merge32_luma_440_avx2;
+extern Processor32 *merge32_luma_440_topleft_avx2;
 extern Processor32 *merge32_luma_420_avx2;
 extern Processor32 *merge32_luma_420_mpeg2_avx2;
 extern Processor32 *merge32_luma_422_avx2;
 extern Processor32 *merge32_luma_422_mpeg2_avx2;
 #ifdef NEON_INTRINSICS
 extern Processor32 *merge32_neon;
+extern Processor32 *merge32_luma_440_neon;
+extern Processor32 *merge32_luma_440_topleft_neon;
 extern Processor32 *merge32_luma_420_neon;
 extern Processor32 *merge32_luma_422_neon;
 #endif
@@ -126,7 +144,7 @@ protected:
       bits_per_pixel = 16;
     if (use_luma && ((nPlane == 1 || nPlane == 2))) {
       if (!(width_ratios[1] == 1 && height_ratios[1] == 1)) {
-        // 420 or 422 or 411
+        // Subsampled chroma.
         switch (bits_per_pixel) {
         case 8:
           chroma_processors.best_processor(constraints[nPlane])(dst.data(), dst.pitch(),
@@ -288,6 +306,12 @@ public:
         if (is440) {
           chroma_processors.push_back(Filtering::Processor<Processor>(
             isTopLeft ? merge_luma_440_topleft_c : merge_luma_440_c, Constraint(CPU_NONE), 0));
+          MT_X86(chroma_processors.push_back(Filtering::Processor<Processor>(
+            isTopLeft ? merge_luma_440_topleft_sse2 : merge_luma_440_sse2, Constraint(CPU_SSE2), 1)));
+          MT_X86(chroma_processors.push_back(Filtering::Processor<Processor>(
+            isTopLeft ? merge_luma_440_topleft_avx2 : merge_luma_440_avx2, Constraint(CPU_AVX2), 5)));
+          MT_NEON(chroma_processors.push_back(Filtering::Processor<Processor>(
+            isTopLeft ? merge_luma_440_topleft_neon : merge_luma_440_neon, Constraint(CPU_NEON), 1)));
         }
         else if (is420) {
           if (isTopLeft) {
@@ -354,6 +378,12 @@ public:
         if (is440) {
           chroma_processors16.push_back(Filtering::Processor<Processor16>(
             isTopLeft ? merge16_luma_440_topleft_c : merge16_luma_440_c, Constraint(CPU_NONE), 0));
+          MT_X86(chroma_processors16.push_back(Filtering::Processor<Processor16>(
+            isTopLeft ? merge16_luma_440_topleft_sse2 : merge16_luma_440_sse2, Constraint(CPU_SSE2), 1)));
+          MT_X86(chroma_processors16.push_back(Filtering::Processor<Processor16>(
+            isTopLeft ? merge16_luma_440_topleft_avx2 : merge16_luma_440_avx2, Constraint(CPU_AVX2), 4)));
+          MT_NEON(chroma_processors16.push_back(Filtering::Processor<Processor16>(
+            isTopLeft ? merge16_luma_440_topleft_neon : merge16_luma_440_neon, Constraint(CPU_NEON), 1)));
         }
         else if (is411) {
           chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_411_c, Constraint(CPU_NONE), 0));
@@ -405,10 +435,16 @@ public:
 #endif
 
         /* add the chroma processors */
-        // Float 4:1:1 and 4:4:0 currently use C.
+        // Float 4:1:1 currently uses C.
         if (is440) {
           chroma_processors32.push_back(Filtering::Processor<Processor32>(
             isTopLeft ? merge32_luma_440_topleft_c : merge32_luma_440_c, Constraint(CPU_NONE), 0));
+          MT_X86(chroma_processors32.push_back(Filtering::Processor<Processor32>(
+            isTopLeft ? merge32_luma_440_topleft_sse2 : merge32_luma_440_sse2, Constraint(CPU_SSE2), 1)));
+          MT_X86(chroma_processors32.push_back(Filtering::Processor<Processor32>(
+            isTopLeft ? merge32_luma_440_topleft_avx2 : merge32_luma_440_avx2, Constraint(CPU_AVX2), 3)));
+          MT_NEON(chroma_processors32.push_back(Filtering::Processor<Processor32>(
+            isTopLeft ? merge32_luma_440_topleft_neon : merge32_luma_440_neon, Constraint(CPU_NEON), 1)));
         }
         else if (is411) {
           chroma_processors32.push_back(Filtering::Processor<Processor32>(merge32_luma_411_c, Constraint(CPU_NONE), 0));
