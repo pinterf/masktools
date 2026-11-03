@@ -314,7 +314,7 @@ static inline uint16_t threshold16(int x, int mini, int maxi, int top)
   return convert<uint16_t, int>(x <= mini ? 0 : x > maxi ? top : x);
 }
 
-/* width & height ratios, according to the colorspace */
+/* plane counts, according to the colorspace */
 static const int plane_counts[COLORSPACE_COUNT] = { 0, 
 1, 3, 3, 3, 3, 3, 3, 
 3, // 411
@@ -361,32 +361,6 @@ true, true, true, true, true, true // RGBAP 8,10,12,14,16,32/f
 };
 
 template<Colorspace C> bool plane_isRGB() { return planes_isRGB[C]; }
-
-static const int width_ratios[4][COLORSPACE_COUNT] =
-{
-//                                                                                          RGBP              YUVA                                                 RGBAP
-//                           YV                                                             0  1  1  1  1     0        1        1        1        1                 0  1  1  1  1  1
-//      8 bits              411 10          12          14          16          32          8, 0, 2, 4, 6, S  8        0        2        4        6        S        8  0  2  4  6  S
-   { 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
-   { 0, 0, 2, 2, 2, 2, 1, 1, 4, 0, 2, 2, 1, 0, 2, 2, 1, 0, 2, 2, 1, 0, 2, 2, 1, 0, 2, 2, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 2, 2, 1, 2, 2, 1, 2, 2, 1, 2, 2, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1 },
-   { 0, 0, 2, 2, 2, 2, 1, 1, 4, 0, 2, 2, 1, 0, 2, 2, 1, 0, 2, 2, 1, 0, 2, 2, 1, 0, 2, 2, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 2, 2, 1, 2, 2, 1, 2, 2, 1, 2, 2, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1 },
-   { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
-};
-
-template<Colorspace C> int width_ratio(int nPlane) { return width_ratios[nPlane][C]; }
-
-static const int height_ratios[4][COLORSPACE_COUNT] =
-{
-//                                                                                          RGBP              YUVA                                                 RGBAP
-//                           YV                                                             0  1  1  1  1     0        1        1        1        1                 0  1  1  1  1  1
-//      8 bits              411 10          12          14          16          32          8, 0, 2, 4, 6, S  8        0        2        4        6        S        8  0  2  4  6  S
-   { 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
-   { 0, 0, 2, 2, 1, 1, 1, 1, 1, 0, 2, 1, 1, 0, 2, 1, 1, 0, 2, 1, 1, 0, 2, 1, 1, 0, 2, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 2, 1, 1, 2, 1, 1, 2, 1, 1, 2, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1 },
-   { 0, 0, 2, 2, 1, 1, 1, 1, 1, 0, 2, 1, 1, 0, 2, 1, 1, 0, 2, 1, 1, 0, 2, 1, 1, 0, 2, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 2, 1, 1, 2, 1, 1, 2, 1, 1, 2, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1 },
-   { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
-};
-
-template<Colorspace C> int height_ratio(int nPlane) { return height_ratios[nPlane][C]; }
 
 /* bit depths, according to the colorspace */
 static const int bit_depths[COLORSPACE_COUNT] = { 0, 

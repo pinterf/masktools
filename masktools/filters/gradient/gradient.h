@@ -85,8 +85,8 @@ public:
 
       for ( int i = 1; i < plane_counts[C]; i++ )
       {
-         nX[i] = nX[0] / width_ratios[i][C];
-         nY[i] = nY[0] / height_ratios[i][C];
+         nX[i] = nX[0] / width_ratios[i];
+         nY[i] = nY[0] / height_ratios[i];
       }
    }
 

@@ -24,6 +24,7 @@ protected:
 
     int nWidth, nHeight;
     Colorspace C;
+    int width_ratios[4], height_ratios[4]; // of the first clip (Clip::width_ratio)
 
     String error;
     CpuFlags flags;
@@ -228,6 +229,10 @@ public:
         nWidth = childs[0]->width();
         nHeight = childs[0]->height();
         C = childs[0]->colorspace();
+        for (int i = 0; i < 4; i++) {
+            width_ratios[i] = childs[0]->width_ratio(i);
+            height_ratios[i] = childs[0]->height_ratio(i);
+        }
 
         operators[0] = Operator((float)parameters["Y"].toFloat()); // prepare, float for memset
         operators[1] = Operator((float)parameters["U"].toFloat());
@@ -242,8 +247,8 @@ public:
         // Snap the window to the subsampling grid the same way Frame::offset does,
         // so that nCoreWidth/nCoreHeight are the real luma window sizes.
         if (plane_counts[C] > 1) {
-            const int rw = width_ratios[2][C];
-            const int rh = height_ratios[2][C];
+            const int rw = width_ratios[2];
+            const int rh = height_ratios[2];
             const int x1 = (nXOffset + nCoreWidth) / rw * rw;
             const int y1 = (nYOffset + nCoreHeight) / rh * rh;
             nXOffset = nXOffset / rw * rw;
@@ -407,10 +412,10 @@ public:
         if (C != COLORSPACE_Y8 && C != COLORSPACE_Y10 && C != COLORSPACE_Y12 && C != COLORSPACE_Y14 && C != COLORSPACE_Y16 && C != COLORSPACE_Y32 && C != COLORSPACE_NONE)
         {
           // also for planar RGB, naming is a bit confusing yet
-            nXOffsetUV = nXOffset / width_ratios[1][C];
-            nYOffsetUV = nYOffset / height_ratios[1][C];
-            nCoreWidthUV = (nXOffset + nCoreWidth) / width_ratios[1][C] - nXOffsetUV;
-            nCoreHeightUV = (nYOffset + nCoreHeight) / height_ratios[1][C] - nYOffsetUV;
+            nXOffsetUV = nXOffset / width_ratios[1];
+            nYOffsetUV = nYOffset / height_ratios[1];
+            nCoreWidthUV = (nXOffset + nCoreWidth) / width_ratios[1] - nXOffsetUV;
+            nCoreHeightUV = (nYOffset + nCoreHeight) / height_ratios[1] - nYOffsetUV;
         }
 
         /* effective offset */
@@ -473,7 +478,7 @@ public:
 
     virtual Frame<uint8_t> get_frame(int n, const Frame<uint8_t> &output_frame, bool need_copy_frame_properties, PVideoFrame &dst, IScriptEnvironment *env)
     {
-      Frame<uint8_t> output = output_frame.offset(nXOffset, nYOffset, nCoreWidth, nCoreHeight);
+      Frame<uint8_t> output = output_frame.offset(nXOffset, nYOffset, nCoreWidth, nCoreHeight, width_ratios, height_ratios);
 
       Frame<const uint8_t> frames[4];
       Constraint constraints[4];
@@ -487,7 +492,7 @@ public:
         PClip &currentClip = childs[childindex];
         // output in tmp_videoframes
         frames[i] = currentClip->get_const_frame(n + input_configuration()[i].offset(), tmp_videoframes[i], env)
-          .offset(nXOffset, nYOffset, nCoreWidth, nCoreHeight);
+          .offset(nXOffset, nYOffset, nCoreWidth, nCoreHeight, currentClip->width_ratios_ptr(), currentClip->height_ratios_ptr());
         if (need_copy_frame_properties && i == 0) // copy from first
           env->copyFrameProps(tmp_videoframes[0], dst);
       }

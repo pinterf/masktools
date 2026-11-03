@@ -118,7 +118,7 @@ protected:
     if (parameters["stacked"].toBool())
       bits_per_pixel = 16;
     if (use_luma && ((nPlane == 1 || nPlane == 2))) {
-      if (!(width_ratios[1][C] == 1 && height_ratios[1][C] == 1)) {
+      if (!(width_ratios[1] == 1 && height_ratios[1] == 1)) {
         // 420 or 422 or 411
         switch (bits_per_pixel) {
         case 8:
@@ -195,9 +195,9 @@ public:
       bool isStacked = parameters["stacked"].toBool();
       int bits_per_pixel = bit_depths[C];
 
-      bool is420 = width_ratios[1][C] == 2 && height_ratios[1][C] == 2;
-      bool is422 = width_ratios[1][C] == 2 && height_ratios[1][C] == 1;
-      bool is411 = width_ratios[1][C] == 4 && height_ratios[1][C] == 1;
+      bool is420 = width_ratios[1] == 2 && height_ratios[1] == 2;
+      bool is422 = width_ratios[1] == 2 && height_ratios[1] == 1;
+      bool is411 = width_ratios[1] == 4 && height_ratios[1] == 1;
 
       String cplace = parameters["cplace"].toString();
       bool isMpeg2 = false;
@@ -240,7 +240,7 @@ public:
 
       if (use_luma) {
          // PF: implement use_luma for 422 and 411 clips
-        if ((width_ratios[1][c1] != width_ratios[1][c2]) || (height_ratios[1][c1] != height_ratios[1][c2])) {
+        if ((childs[0]->width_ratio(1) != childs[1]->width_ratio(1)) || (childs[0]->height_ratio(1) != childs[1]->height_ratio(1))) {
             error = "clips should have identical colorspace";
             return;
         }

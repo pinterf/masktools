@@ -129,6 +129,12 @@ public:
         nHeight = vi.height;
         nFrames = vi.num_frames;
         C = AVSColorspaceToColorspace(vi.pixel_type);
+        for (int i = 0; i < plane_counts[C]; i++) {
+            // Y8-style formats have no chroma planes: GetPlane*Subsampling would throw for U/V there
+            const bool chroma = !planes_isRGB[C] && (i == 1 || i == 2);
+            width_ratios[i] = chroma ? 1 << vi.GetPlaneWidthSubsampling(PlaneOrder[i]) : 1;
+            height_ratios[i] = chroma ? 1 << vi.GetPlaneHeightSubsampling(PlaneOrder[i]) : 1;
+        }
     }
     
     virtual ~Clip()

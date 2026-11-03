@@ -44,18 +44,6 @@ public:
      planes[3] = a;
    }
 
-   Frame(T* pBuffer, int nWidth, int nHeight, Colorspace C, int nPaddingWidth = 0, int nPaddingHeight = 0) : C(C)
-   {
-      for ( int i = 0; i < plane_counts[C]; i++ )
-      {
-         const int w = nWidth / width_ratios[i][C];
-         const int h = nHeight / height_ratios[i][C];
-
-         planes[i] = Plane<T>( pBuffer, w + 2 * nPaddingWidth, w + 2 * nPaddingWidth, h + 2 * nPaddingHeight );
-         pBuffer += (w + 2 * nPaddingWidth) * (h + 2 * nPaddingHeight);
-      }
-   }
-
    template<class U>
    Frame(const Frame<U> &frame) : C(frame.colorspace())
    {
@@ -69,26 +57,27 @@ public:
        return planes[nPlane];
    }
 
-   Frame<T> offset(int x = 0, int y = 0, int w = 0, int h = 0) const
+   // width_ratios / height_ratios: the clip's plane size ratios (Clip::width_ratio)
+   Frame<T> offset(int x, int y, int w, int h, const int width_ratios[4], const int height_ratios[4]) const
    {
        if (plane_counts[C] > 1)
        {
-           w = ((x + w) / width_ratios[2][C]) * width_ratios[2][C];
-           h = ((y + h) / height_ratios[2][C]) * height_ratios[2][C];
-           x = (x / width_ratios[2][C]) * width_ratios[2][C];
-           y = (y / height_ratios[2][C]) * height_ratios[2][C];
+           w = ((x + w) / width_ratios[2]) * width_ratios[2];
+           h = ((y + h) / height_ratios[2]) * height_ratios[2];
+           x = (x / width_ratios[2]) * width_ratios[2];
+           y = (y / height_ratios[2]) * height_ratios[2];
            w -= x;
            h -= y;
            if (plane_counts[C] == 3) {
              return Frame<T>(planes[0].offset(x, y, w, h),
-               planes[1].offset(x / width_ratios[1][C], y / height_ratios[1][C], w / width_ratios[1][C], h / height_ratios[1][C]),
-               planes[2].offset(x / width_ratios[2][C], y / height_ratios[2][C], w / width_ratios[2][C], h / height_ratios[2][C]),
+               planes[1].offset(x / width_ratios[1], y / height_ratios[1], w / width_ratios[1], h / height_ratios[1]),
+               planes[2].offset(x / width_ratios[2], y / height_ratios[2], w / width_ratios[2], h / height_ratios[2]),
                C);
            }
            else {
              return Frame<T>(planes[0].offset(x, y, w, h),
-               planes[1].offset(x / width_ratios[1][C], y / height_ratios[1][C], w / width_ratios[1][C], h / height_ratios[1][C]),
-               planes[2].offset(x / width_ratios[2][C], y / height_ratios[2][C], w / width_ratios[2][C], h / height_ratios[2][C]),
+               planes[1].offset(x / width_ratios[1], y / height_ratios[1], w / width_ratios[1], h / height_ratios[1]),
+               planes[2].offset(x / width_ratios[2], y / height_ratios[2], w / width_ratios[2], h / height_ratios[2]),
                planes[3].offset(x, y, w, h), // alpha
                C);
            }
