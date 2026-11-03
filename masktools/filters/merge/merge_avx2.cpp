@@ -4,6 +4,8 @@
 
 #include "merge_c.h"
 #include "../../common/simd_avx2.h"
+#define MT_MERGE_410_AVX2
+#include "merge_410_simd.h"
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Merge {
 
@@ -329,6 +331,9 @@ namespace {
    Processor *merge_luma_411_avx2 = merge_luma_411_avx2_t;
    Processor *merge_luma_440_avx2 = merge_luma_440_avx2_t<false>;
    Processor *merge_luma_440_topleft_avx2 = merge_luma_440_avx2_t<true>;
+   Processor *merge_luma_410_avx2 = merge_410_t<uint8_t, false, false, Mask410AVX, merge_avx2_t>;
+   Processor *merge_luma_410_mpeg2_avx2 = merge_410_t<uint8_t, true, false, Mask410AVX, merge_avx2_t>;
+   Processor *merge_luma_410_topleft_avx2 = merge_410_t<uint8_t, true, true, Mask410AVX, merge_avx2_t>;
 
 } } } }
 

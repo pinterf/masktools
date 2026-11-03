@@ -382,6 +382,7 @@
     <ClInclude Include="filters\mask\motion\motionmask_c.h" />
     <ClInclude Include="filters\merge\merge.h" />
     <ClInclude Include="filters\merge\merge16_c.h" />
+    <ClInclude Include="filters\merge\merge_410_simd.h" />
     <ClInclude Include="filters\merge\merge_c.h" />
     <ClInclude Include="filters\merge\merge_mask.h" />
     <ClInclude Include="filters\merge\merge_sse.h" />

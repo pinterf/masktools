@@ -4,6 +4,8 @@
 
 #include "../../common/simd_avx2.h"
 #include "merge16_c.h"
+#define MT_MERGE_410_AVX2
+#include "merge_410_simd.h"
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Merge {
 
@@ -268,6 +270,9 @@ Processor16 *merge16_luma_422_avx2 = merge16_avx2_t<MASK422>;
 Processor16 *merge16_luma_411_avx2 = merge16_avx2_t<MASK411>;
 Processor16 *merge16_luma_440_avx2 = merge16_avx2_t<MASK440>;
 Processor16 *merge16_luma_440_topleft_avx2 = merge16_avx2_t<MASK440_TOPLEFT>;
+Processor16 *merge16_luma_410_avx2 = merge16_410_t<false, false, Mask410AVX, merge16_avx2_t<MASK444>>;
+Processor16 *merge16_luma_410_mpeg2_avx2 = merge16_410_t<true, false, Mask410AVX, merge16_avx2_t<MASK444>>;
+Processor16 *merge16_luma_410_topleft_avx2 = merge16_410_t<true, true, Mask410AVX, merge16_avx2_t<MASK444>>;
 Processor16 *merge16_luma_420_mpeg2_avx2 = merge16_avx2_t<MASK420_MPEG2>;
 Processor16 *merge16_luma_420_topleft_avx2 = merge16_avx2_t<MASK420_TOPLEFT>;
 Processor16 *merge16_luma_422_mpeg2_avx2 = merge16_avx2_t<MASK422_MPEG2>;

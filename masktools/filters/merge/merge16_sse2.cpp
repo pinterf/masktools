@@ -4,6 +4,7 @@
 
 #include "../../common/simd.h"
 #include "merge16_c.h"
+#include "merge_410_simd.h"
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Merge {
 
@@ -311,6 +312,12 @@ Processor16 *merge16_luma_422_mpeg2_sse2 = merge16_sse2_t<MASK422_MPEG2, merge16
 Processor16 *merge16_luma_411_sse2 = merge16_sse2_t<MASK411, merge16_t_c<MASK411>, merge16_t_c<MASK411>>;
 Processor16 *merge16_luma_440_sse2 = merge16_sse2_t<MASK440, merge16_t_c<MASK440>, merge16_t_c<MASK440>>;
 Processor16 *merge16_luma_440_topleft_sse2 = merge16_sse2_t<MASK440_TOPLEFT, merge16_t_c<MASK440_TOPLEFT>, merge16_t_c<MASK440_TOPLEFT>>;
+Processor16 *merge16_luma_410_sse2 = merge16_410_t<false, false, Mask410SSE,
+  merge16_sse2_t<MASK444, merge16_t_c<MASK444>, merge16_t_c<MASK444>>>;
+Processor16 *merge16_luma_410_mpeg2_sse2 = merge16_410_t<true, false, Mask410SSE,
+  merge16_sse2_t<MASK444, merge16_t_c<MASK444>, merge16_t_c<MASK444>>>;
+Processor16 *merge16_luma_410_topleft_sse2 = merge16_410_t<true, true, Mask410SSE,
+  merge16_sse2_t<MASK444, merge16_t_c<MASK444>, merge16_t_c<MASK444>>>;
 
 } } } }
 

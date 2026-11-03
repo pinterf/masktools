@@ -5,9 +5,10 @@
 
 #include "merge_c.h"
 #include <arm_neon.h>
+#include "merge_410_simd.h"
 
 // mt_merge NEON: 4:4:4 (or luma=false) and the luma=true mask downsampling 4:2:0, 4:2:2, 4:1:1 (mpeg1 placement)
-// for 8, 10-16 bit; float 4:4:4, 4:2:0, 4:2:2. Also 4:4:0 centered/top_left at all depths.
+// for 8, 10-16 bit; float 4:4:4, 4:2:0, 4:2:2. Also 4:4:0 and 4:1:0 at all depths/placements.
 // Bit-exact to C (rounded pair averages: vrhadd; float in C order, unfused).
 // mpeg2 / top_left placement for 420/422: C.
 
@@ -245,6 +246,9 @@ Processor *merge_luma_422_neon = &merge8_neon_t<Mode::M422>;
 Processor *merge_luma_411_neon = &merge8_neon_t<Mode::M411>;
 Processor *merge_luma_440_neon = &merge8_neon_t<Mode::M440>;
 Processor *merge_luma_440_topleft_neon = &merge8_neon_t<Mode::TopLeft440>;
+Processor *merge_luma_410_neon = merge_410_t<uint8_t, false, false, Mask410NEON, merge8_neon_t<Mode::M444>>;
+Processor *merge_luma_410_mpeg2_neon = merge_410_t<uint8_t, true, false, Mask410NEON, merge8_neon_t<Mode::M444>>;
+Processor *merge_luma_410_topleft_neon = merge_410_t<uint8_t, true, true, Mask410NEON, merge8_neon_t<Mode::M444>>;
 
 Processor16 *merge16_neon = &merge16_neon_t<Mode::M444>;
 Processor16 *merge16_luma_420_neon = &merge16_neon_t<Mode::M420>;
@@ -252,12 +256,18 @@ Processor16 *merge16_luma_422_neon = &merge16_neon_t<Mode::M422>;
 Processor16 *merge16_luma_411_neon = &merge16_neon_t<Mode::M411>;
 Processor16 *merge16_luma_440_neon = &merge16_neon_t<Mode::M440>;
 Processor16 *merge16_luma_440_topleft_neon = &merge16_neon_t<Mode::TopLeft440>;
+Processor16 *merge16_luma_410_neon = merge16_410_t<false, false, Mask410NEON, merge16_neon_t<Mode::M444>>;
+Processor16 *merge16_luma_410_mpeg2_neon = merge16_410_t<true, false, Mask410NEON, merge16_neon_t<Mode::M444>>;
+Processor16 *merge16_luma_410_topleft_neon = merge16_410_t<true, true, Mask410NEON, merge16_neon_t<Mode::M444>>;
 
 Processor32 *merge32_neon = &merge32_neon_t<Mode::M444>;
 Processor32 *merge32_luma_420_neon = &merge32_neon_t<Mode::M420>;
 Processor32 *merge32_luma_422_neon = &merge32_neon_t<Mode::M422>;
 Processor32 *merge32_luma_440_neon = &merge32_neon_t<Mode::M440>;
 Processor32 *merge32_luma_440_topleft_neon = &merge32_neon_t<Mode::TopLeft440>;
+Processor32 *merge32_luma_410_neon = merge_410_t<float, false, false, Mask410NEON, nullptr>;
+Processor32 *merge32_luma_410_mpeg2_neon = merge_410_t<float, true, false, Mask410NEON, nullptr>;
+Processor32 *merge32_luma_410_topleft_neon = merge_410_t<float, true, true, Mask410NEON, nullptr>;
 
 } } } }
 
