@@ -269,7 +269,7 @@ class Context {
    bool scale_int;
    bool scale_float;
    bool shift_float; // special internal flag since v2.2.20: set when scale_inputs is "floatUV"
-   int clamp_float_i;
+   int clamp_float_i = 0; // A context without explicit scaling/clamping (e.g. LUT weights) must not clamp.
    float chroma_center_i;
    float chroma_center_f;
    float chroma_lo_f;
