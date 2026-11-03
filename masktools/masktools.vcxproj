@@ -385,6 +385,7 @@
     <ClInclude Include="filters\merge\merge_410_simd.h" />
     <ClInclude Include="filters\merge\merge_c.h" />
     <ClInclude Include="filters\merge\merge_mask.h" />
+    <ClInclude Include="filters\merge\merge32_mask_simd.h" />
     <ClInclude Include="filters\merge\merge_sse.h" />
     <ClInclude Include="filters\morphologic\deflate\deflate.h" />
     <ClInclude Include="filters\morphologic\expand\expand.h" />

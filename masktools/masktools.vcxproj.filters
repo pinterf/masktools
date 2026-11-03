@@ -758,6 +758,9 @@
     <ClInclude Include="filters\merge\merge_mask.h">
       <Filter>filters\merge</Filter>
     </ClInclude>
+    <ClInclude Include="filters\merge\merge32_mask_simd.h">
+      <Filter>filters\merge</Filter>
+    </ClInclude>
     <ClInclude Include="filters\merge\merge_410_simd.h">
       <Filter>filters\merge</Filter>
     </ClInclude>

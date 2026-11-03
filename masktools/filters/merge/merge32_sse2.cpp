@@ -3,7 +3,7 @@
 #ifdef INTEL_INTRINSICS
 
 #include "../../common/simd.h"
-#include "merge_410_simd.h"
+#include "merge32_mask_simd.h"
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Merge {
 
@@ -266,6 +266,8 @@ namespace {
 } // namespace
 
    Processor32 *merge32_luma_440_sse2 = merge32_luma_440_sse2_t<false>;
+   Processor32 *merge32_luma_411_sse2 = merge32_luma_411_simd<Mask410SSE>;
+   Processor32 *merge32_luma_420_topleft_sse2 = merge32_luma_420_topleft_simd<Mask410SSE>;
    Processor32 *merge32_luma_440_topleft_sse2 = merge32_luma_440_sse2_t<true>;
    Processor32 *merge32_luma_410_sse2 = merge_410_t<float, false, false, Mask410SSE, nullptr>;
    Processor32 *merge32_luma_410_mpeg2_sse2 = merge_410_t<float, true, false, Mask410SSE, nullptr>;

@@ -65,6 +65,11 @@ struct Mask410SSE<float> {
   static V zero() { return _mm_setzero_ps(); }
   static V add(V a, V b) { return _mm_add_ps(a, b); }
   template<int weight> static V mul(V a) { return _mm_mul_ps(a, _mm_set1_ps(float(weight))); }
+  static void pairs(const float *p, V &even, V &odd) {
+    auto a = _mm_loadu_ps(p), b = _mm_loadu_ps(p + 4);
+    even = _mm_shuffle_ps(a, b, _MM_SHUFFLE(2, 0, 2, 0));
+    odd = _mm_shuffle_ps(a, b, _MM_SHUFFLE(3, 1, 3, 1));
+  }
   static void columns(const float *p, V (&c)[4]) {
     c[0] = _mm_loadu_ps(p); c[1] = _mm_loadu_ps(p + 4);
     c[2] = _mm_loadu_ps(p + 8); c[3] = _mm_loadu_ps(p + 12);
@@ -117,6 +122,12 @@ struct Mask410AVX<float> {
   static V zero() { return _mm256_setzero_ps(); }
   static V add(V a, V b) { return _mm256_add_ps(a, b); }
   template<int weight> static V mul(V a) { return _mm256_mul_ps(a, _mm256_set1_ps(float(weight))); }
+  static void pairs(const float *p, V &even, V &odd) {
+    auto a = _mm256_loadu_ps(p), b = _mm256_loadu_ps(p + 8);
+    const auto order = _mm256_setr_epi32(0, 1, 4, 5, 2, 3, 6, 7);
+    even = _mm256_permutevar8x32_ps(_mm256_shuffle_ps(a, b, _MM_SHUFFLE(2, 0, 2, 0)), order);
+    odd = _mm256_permutevar8x32_ps(_mm256_shuffle_ps(a, b, _MM_SHUFFLE(3, 1, 3, 1)), order);
+  }
   static void columns(const float *p, V (&c)[4]) {
     __m128 lo[4], hi[4];
     Mask410SSE<float>::columns(p, lo);

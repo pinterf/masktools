@@ -5,12 +5,10 @@
 
 #include "merge_c.h"
 #include <arm_neon.h>
-#include "merge_410_simd.h"
+#include "merge32_mask_simd.h"
 
-// mt_merge NEON: 4:4:4 (or luma=false) and the luma=true mask downsampling 4:2:0, 4:2:2, 4:1:1 (mpeg1 placement)
-// for 8, 10-16 bit; float 4:4:4, 4:2:0, 4:2:2. Also 4:4:0 and 4:1:0 at all depths/placements.
+// mt_merge NEON: full-size blending and every supported luma-mask reduction, at all depths/placements.
 // Bit-exact to C (rounded pair averages: vrhadd; float in C order, unfused).
-// mpeg2 / top_left placement for 420/422: C.
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Merge {
 
@@ -238,10 +236,123 @@ void merge32_neon_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, pt
   }
 }
 
+enum class WeightedMode { M420, TopLeft420, M422 };
+
+template<typename T>
+MT_FORCEINLINE void load_mask_pairs(const T *p, typename Mask410NEON<T>::V &even, typename Mask410NEON<T>::V &odd)
+{
+  if constexpr (std::is_same<T, float>::value) {
+    auto r = vld2q_f32(p);
+    even = r.val[0]; odd = r.val[1];
+  }
+  else if constexpr (sizeof(T) == 2) {
+    auto r = vld2_u16(p);
+    even = vmovl_u16(r.val[0]); odd = vmovl_u16(r.val[1]);
+  }
+  else {
+    auto row = vld1_u8(p);
+    auto r = vuzp_u8(row, row);
+    even = vmovl_u16(vget_low_u16(vmovl_u8(r.val[0])));
+    odd = vmovl_u16(vget_low_u16(vmovl_u8(r.val[1])));
+  }
+}
+
+template<typename T, WeightedMode mode>
+MT_FORCEINLINE void weighted_columns_neon(const uint8_t *row, ptrdiff_t pitch, ptrdiff_t prev_pitch, int x,
+  typename Mask410NEON<T>::V &even, typename Mask410NEON<T>::V &odd)
+{
+  using O = Mask410NEON<T>;
+  load_mask_pairs(reinterpret_cast<const T*>(row) + x, even, odd);
+  if constexpr (mode != WeightedMode::M422) {
+    typename O::V below_even, below_odd;
+    load_mask_pairs(reinterpret_cast<const T*>(row + pitch) + x, below_even, below_odd);
+    if constexpr (mode == WeightedMode::TopLeft420) {
+      typename O::V above_even, above_odd;
+      load_mask_pairs(reinterpret_cast<const T*>(row + prev_pitch) + x, above_even, above_odd);
+      // Above + 2*center + below, in the same order as the C float reducer.
+      even = O::add(above_even, O::template mul<2>(even));
+      odd = O::add(above_odd, O::template mul<2>(odd));
+    }
+    even = O::add(even, below_even);
+    odd = O::add(odd, below_odd);
+  }
+}
+
+template<typename T, WeightedMode mode>
+MT_FORCEINLINE T weighted_mask_c(const uint8_t *row, ptrdiff_t pitch, ptrdiff_t prev_pitch, int x)
+{
+  using Sum = typename std::conditional<std::is_same<T, float>::value, float, uint32_t>::type;
+  constexpr int shift = mode == WeightedMode::TopLeft420 ? 4 : mode == WeightedMode::M420 ? 3 : 2;
+  auto column = [&](int i) -> Sum {
+    const Sum mid = reinterpret_cast<const T*>(row)[i];
+    if constexpr (mode == WeightedMode::TopLeft420)
+      return (Sum(reinterpret_cast<const T*>(row + prev_pitch)[i]) + 2 * mid) +
+        Sum(reinterpret_cast<const T*>(row + pitch)[i]);
+    else if constexpr (mode == WeightedMode::M420)
+      return mid + Sum(reinterpret_cast<const T*>(row + pitch)[i]);
+    else return mid;
+  };
+  const Sum sum = (column(std::max(x * 2 - 1, 0)) + 2 * column(x * 2)) + column(x * 2 + 1);
+  if constexpr (std::is_same<T, float>::value) return sum * (1.0f / (1 << shift));
+  else return T((sum + (1u << (shift - 1))) >> shift);
+}
+
+template<typename T, WeightedMode mode>
+void merge_weighted_neon(uint8_t *dst, ptrdiff_t dst_pitch, const uint8_t *src, ptrdiff_t src_pitch,
+  const uint8_t *mask, ptrdiff_t mask_pitch, int width, int height, int bits)
+{
+  using O = Mask410NEON<T>;
+  constexpr int block = O::bytes / sizeof(T);
+  constexpr int shift = mode == WeightedMode::TopLeft420 ? 4 : mode == WeightedMode::M420 ? 3 : 2;
+  const uint32_t max = (1u << bits) - 1;
+  const MergeMagicDiv magic = sizeof(T) == 2 ? get_merge_magic_div(bits) : MergeMagicDiv{};
+  for (int y = 0; y < height; ++y) {
+    T *d = reinterpret_cast<T*>(dst);
+    const T *s = reinterpret_cast<const T*>(src);
+    const ptrdiff_t prev_pitch = y == 0 ? 0 : -mask_pitch;
+    auto scalar = [&](int x) {
+      const T m = weighted_mask_c<T, mode>(mask, mask_pitch, prev_pitch, x);
+      if constexpr (std::is_same<T, float>::value) d[x] = (1.0f - m) * d[x] + m * s[x];
+      else if constexpr (sizeof(T) == 2) d[x] = merge16_core_c(d[x], s[x], m, uint16_t(max), magic);
+      else d[x] = T((uint32_t(d[x]) * (255 - m) + uint32_t(s[x]) * m + 127) / 255);
+    };
+    int x = 0;
+    // The first output replicates column zero; all subsequent loads have a valid left halo.
+    if (width > 0) scalar(x++);
+    for (; x + block <= width; x += block) {
+      alignas(16) T reduced[block];
+      for (int i = 0; i < block; i += O::lanes) {
+        typename O::V mid, right, unused, left;
+        weighted_columns_neon<T, mode>(mask, mask_pitch, prev_pitch, (x + i) * 2, mid, right);
+        weighted_columns_neon<T, mode>(mask, mask_pitch, prev_pitch, (x + i) * 2 - 2, unused, left);
+        auto sum = O::add(O::add(left, O::template mul<2>(mid)), right);
+        O::store(reduced + i, O::template normalize<shift>(sum));
+      }
+      if constexpr (std::is_same<T, float>::value) O::blend(d + x, s + x, reduced);
+      else if constexpr (sizeof(T) == 2)
+        vst1q_u16(d + x, merge16_core(vld1q_u16(d + x), vld1q_u16(s + x), vld1q_u16(reduced), max, magic));
+      else vst1q_u8(d + x, merge8_core(vld1q_u8(d + x), vld1q_u8(s + x), vld1q_u8(reduced)));
+    }
+    for (; x < width; ++x) scalar(x);
+    dst += dst_pitch; src += src_pitch;
+    mask += mask_pitch * (mode == WeightedMode::M422 ? 1 : 2);
+  }
+}
+
+template<typename T, WeightedMode mode>
+void merge_weighted_neon_t(uint8_t *dst, ptrdiff_t dst_pitch, const uint8_t *src, ptrdiff_t src_pitch,
+  const uint8_t *mask, ptrdiff_t mask_pitch, int width, int height)
+{
+  merge_weighted_neon<T, mode>(dst, dst_pitch, src, src_pitch, mask, mask_pitch, width, height, 8);
+}
+
 } // namespace
 
 Processor *merge_neon = &merge8_neon_t<Mode::M444>;
 Processor *merge_luma_420_neon = &merge8_neon_t<Mode::M420>;
+Processor *merge_luma_420_mpeg2_neon = merge_weighted_neon_t<uint8_t, WeightedMode::M420>;
+Processor *merge_luma_420_topleft_neon = merge_weighted_neon_t<uint8_t, WeightedMode::TopLeft420>;
+Processor *merge_luma_422_mpeg2_neon = merge_weighted_neon_t<uint8_t, WeightedMode::M422>;
 Processor *merge_luma_422_neon = &merge8_neon_t<Mode::M422>;
 Processor *merge_luma_411_neon = &merge8_neon_t<Mode::M411>;
 Processor *merge_luma_440_neon = &merge8_neon_t<Mode::M440>;
@@ -252,6 +363,9 @@ Processor *merge_luma_410_topleft_neon = merge_410_t<uint8_t, true, true, Mask41
 
 Processor16 *merge16_neon = &merge16_neon_t<Mode::M444>;
 Processor16 *merge16_luma_420_neon = &merge16_neon_t<Mode::M420>;
+Processor16 *merge16_luma_420_mpeg2_neon = merge_weighted_neon<uint16_t, WeightedMode::M420>;
+Processor16 *merge16_luma_420_topleft_neon = merge_weighted_neon<uint16_t, WeightedMode::TopLeft420>;
+Processor16 *merge16_luma_422_mpeg2_neon = merge_weighted_neon<uint16_t, WeightedMode::M422>;
 Processor16 *merge16_luma_422_neon = &merge16_neon_t<Mode::M422>;
 Processor16 *merge16_luma_411_neon = &merge16_neon_t<Mode::M411>;
 Processor16 *merge16_luma_440_neon = &merge16_neon_t<Mode::M440>;
@@ -262,6 +376,10 @@ Processor16 *merge16_luma_410_topleft_neon = merge16_410_t<true, true, Mask410NE
 
 Processor32 *merge32_neon = &merge32_neon_t<Mode::M444>;
 Processor32 *merge32_luma_420_neon = &merge32_neon_t<Mode::M420>;
+Processor32 *merge32_luma_411_neon = merge32_luma_411_simd<Mask410NEON>;
+Processor32 *merge32_luma_420_mpeg2_neon = merge_weighted_neon_t<float, WeightedMode::M420>;
+Processor32 *merge32_luma_420_topleft_neon = merge_weighted_neon_t<float, WeightedMode::TopLeft420>;
+Processor32 *merge32_luma_422_mpeg2_neon = merge_weighted_neon_t<float, WeightedMode::M422>;
 Processor32 *merge32_luma_422_neon = &merge32_neon_t<Mode::M422>;
 Processor32 *merge32_luma_440_neon = &merge32_neon_t<Mode::M440>;
 Processor32 *merge32_luma_440_topleft_neon = &merge32_neon_t<Mode::TopLeft440>;
