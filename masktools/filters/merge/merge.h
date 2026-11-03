@@ -20,6 +20,8 @@ extern Processor *merge_luma_420_topleft_c;
 extern Processor *merge_luma_422_c;
 extern Processor *merge_luma_422_mpeg2_c;
 extern Processor *merge_luma_411_c;
+extern Processor *merge_luma_440_c;
+extern Processor *merge_luma_440_topleft_c;
 
 extern Processor *merge_sse2;
 extern Processor *merge_luma_420_sse2;
@@ -51,6 +53,8 @@ extern Processor16 *merge16_luma_420_topleft_c;
 extern Processor16 *merge16_luma_422_c;
 extern Processor16 *merge16_luma_422_mpeg2_c;
 extern Processor16 *merge16_luma_411_c;
+extern Processor16 *merge16_luma_440_c;
+extern Processor16 *merge16_luma_440_topleft_c;
 
 extern Processor16 *merge16_sse2;
 extern Processor16 *merge16_luma_420_sse2;
@@ -82,6 +86,8 @@ Processor32 merge32_luma_420_topleft_c;
 Processor32 merge32_luma_422_c;
 Processor32 merge32_luma_422_mpeg2_c;
 Processor32 merge32_luma_411_c;
+extern Processor32 *merge32_luma_440_c;
+extern Processor32 *merge32_luma_440_topleft_c;
 
 extern Processor32 *merge32_sse2;
 extern Processor32 *merge32_luma_420_sse2;
@@ -199,6 +205,7 @@ public:
       bool is420 = width_ratios[1] == 2 && height_ratios[1] == 2;
       bool is422 = width_ratios[1] == 2 && height_ratios[1] == 1;
       bool is411 = width_ratios[1] == 4 && height_ratios[1] == 1;
+      bool is440 = width_ratios[1] == 1 && height_ratios[1] == 2;
 
       String cplace = parameters["cplace"].toString();
       bool isMpeg2 = false;
@@ -208,7 +215,7 @@ public:
         return;
       }
       isMpeg2 = cplace == "mpeg2" && (is420 || is422);
-      isTopLeft = (cplace == "topleft" || cplace == "top_left") && is420; // others using with _
+      isTopLeft = (cplace == "topleft" || cplace == "top_left") && (is420 || is440);
 
       if (isStacked && bits_per_pixel != 8) {
         error = "Stacked specified for a non-8 bit clip";
@@ -277,8 +284,12 @@ public:
 #endif
 
         /* add the chroma processors */
-        // they are used only for 420 and 422
-        if (is420) {
+        // Reduced luma masks for subsampled chroma.
+        if (is440) {
+          chroma_processors.push_back(Filtering::Processor<Processor>(
+            isTopLeft ? merge_luma_440_topleft_c : merge_luma_440_c, Constraint(CPU_NONE), 0));
+        }
+        else if (is420) {
           if (isTopLeft) {
             chroma_processors.push_back(Filtering::Processor<Processor>(merge_luma_420_topleft_c, Constraint(CPU_NONE), 0));
 #ifdef INTEL_INTRINSICS
@@ -339,8 +350,12 @@ public:
         MT_X86(processors16.push_back(Filtering::Processor<Processor16>(merge16_sse2, Constraint(CPU_SSE2), 1)));
         MT_X86(processors16.push_back(Filtering::Processor<Processor16>(merge16_avx2, Constraint(CPU_AVX2), 3)));
         MT_NEON(processors16.push_back(Filtering::Processor<Processor16>(merge16_neon, Constraint(CPU_NEON), 1)));
-        /* chroma: used only for 420, 422 and 411 */
-        if (is411) {
+        /* Reduced luma masks for subsampled chroma. */
+        if (is440) {
+          chroma_processors16.push_back(Filtering::Processor<Processor16>(
+            isTopLeft ? merge16_luma_440_topleft_c : merge16_luma_440_c, Constraint(CPU_NONE), 0));
+        }
+        else if (is411) {
           chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_411_c, Constraint(CPU_NONE), 0));
           MT_X86(chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_411_sse2, Constraint(CPU_SSE2), 1)));
           MT_X86(chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_411_avx2, Constraint(CPU_AVX2), 4)));
@@ -390,8 +405,12 @@ public:
 #endif
 
         /* add the chroma processors */
-        // Float 4:1:1 currently uses C; the other placements keep their existing SIMD paths.
-        if (is411) {
+        // Float 4:1:1 and 4:4:0 currently use C.
+        if (is440) {
+          chroma_processors32.push_back(Filtering::Processor<Processor32>(
+            isTopLeft ? merge32_luma_440_topleft_c : merge32_luma_440_c, Constraint(CPU_NONE), 0));
+        }
+        else if (is411) {
           chroma_processors32.push_back(Filtering::Processor<Processor32>(merge32_luma_411_c, Constraint(CPU_NONE), 0));
         }
         else if (is420) {

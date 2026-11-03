@@ -225,6 +225,24 @@ MT_FORCEINLINE static uint8_t merge8_core_c(uint8_t dst, uint8_t src, uint8_t ma
      }
    }
 
+template<bool top_left>
+void merge_luma_440_t_c(uint8_t *dst, ptrdiff_t dst_pitch, const uint8_t *src, ptrdiff_t src_pitch,
+  const uint8_t *mask, ptrdiff_t mask_pitch, int width, int height)
+{
+  for (int y = 0; y < height; ++y) {
+    const uint8_t *above = y == 0 ? mask : mask - mask_pitch;
+    for (int x = 0; x < width; ++x) {
+      // MPEG1/2 are vertically centered; top_left is vertically co-sited, with a 1-2-1 filter.
+      const int m = top_left ? (above[x] + 2 * mask[x] + mask[mask_pitch + x] + 2) >> 2 :
+        (mask[x] + mask[mask_pitch + x] + 1) >> 1;
+      dst[x] = merge8_core_c(dst[x], src[x], static_cast<uint8_t>(m));
+    }
+    dst += dst_pitch;
+    src += src_pitch;
+    mask += mask_pitch * 2;
+  }
+}
+
 } // namespace
 
 } } } }

@@ -19,6 +19,8 @@ enum MaskMode {
     MASK422,
     MASK422_MPEG2,
     MASK411,
+    MASK440,
+    MASK440_TOPLEFT,
     MASK444
 };
 
@@ -134,6 +136,14 @@ static void internal_merge16_t_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8
               mask = get_mask_422_mpeg2_c(pMask, x, right);
             else if (mode == MASK411)
               mask = get_mask_411_c(pMask, x);
+            else if (mode == MASK440 || mode == MASK440_TOPLEFT) {
+              const uint16_t *row = reinterpret_cast<const uint16_t*>(pMask);
+              const uint16_t *below = reinterpret_cast<const uint16_t*>(pMask + nMaskPitch);
+              const uint16_t *above = reinterpret_cast<const uint16_t*>(pMask + top_or_same);
+              // Only the vertical axis is subsampled: centered pair or co-sited 1-2-1.
+              mask = mode == MASK440_TOPLEFT ? (above[x] + 2 * row[x] + below[x] + 2) >> 2 :
+                (row[x] + below[x] + 1) >> 1;
+            }
             else
               mask = reinterpret_cast<const uint16_t*>(pMask)[x];
 
@@ -144,7 +154,8 @@ static void internal_merge16_t_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8
         pDst += nDstPitch;
         pSrc1 += nSrc1Pitch;
 
-        if (mode == MASK420 || mode == MASK420_MPEG2 || mode == MASK420_TOPLEFT) {
+        if (mode == MASK420 || mode == MASK420_MPEG2 || mode == MASK420_TOPLEFT ||
+            mode == MASK440 || mode == MASK440_TOPLEFT) {
             pMask += nMaskPitch * 2;
         } else {
             pMask += nMaskPitch; // 422, 444
