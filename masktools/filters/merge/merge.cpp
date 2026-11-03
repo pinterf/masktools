@@ -9,11 +9,7 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Merge 
       {
          for (int x = 0; x < nWidth; ++x) {
            const int nMask = pMask[x];
-           if (nMask == 255)
-             pDst[x] = pSrc1[x]; // max mask value (255): keep source
-           else if(nMask != 0)
-             pDst[x] = static_cast<uint8_t>(((256 - int(nMask)) * pDst[x] + int(nMask) * pSrc1[x] + 128) >> 8);
-           // nMask == 0: keep pDst as is
+           pDst[x] = merge8_core_c(pDst[x], pSrc1[x], static_cast<uint8_t>(nMask));
          }
          pDst += nDstPitch;
          pSrc1 += nSrc1Pitch;
@@ -38,11 +34,7 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Merge 
          {
            // 420: both width and height is halved, averaging from 4 pixels of full size mask
             const int nMask = (((pMask[x * 2] + pMask[x * 2 + nSrc2Pitch] + 1) >> 1) + ((pMask[x * 2 + 1] + pMask[x * 2 + nSrc2Pitch + 1] + 1) >> 1) + 1) >> 1;
-            if (nMask == 255)
-              pDst[x] = pSrc1[x];
-            else if (nMask != 0)
-              pDst[x] = static_cast<uint8_t>(((256 - int(nMask)) * pDst[x] + int(nMask) * pSrc1[x] + 128) >> 8);
-            // nMask == 0: keep pDst as is
+            pDst[x] = merge8_core_c(pDst[x], pSrc1[x], static_cast<uint8_t>(nMask));
          }
          pDst += nDstPitch;
          pSrc1 += nSrc1Pitch;
@@ -69,11 +61,7 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Merge 
          right = pMask[x * 2 + 1] + pMask[x * 2 + nSrc2Pitch + 1];
          // 420: both width and height is halved, mpeg2: 1-2-1 weighted averaging from 6 pixels of full size mask
          const int nMask = (left + 2 * mid + right + 4) >> 3;
-         if (nMask == 255)
-           pDst[x] = pSrc1[x];
-         else if (nMask != 0)
-           pDst[x] = static_cast<uint8_t>(((256 - int(nMask)) * pDst[x] + int(nMask) * pSrc1[x] + 128) >> 8);
-         // nMask == 0: keep pDst as is
+         pDst[x] = merge8_core_c(pDst[x], pSrc1[x], static_cast<uint8_t>(nMask));
        }
        pDst += nDstPitch;
        pSrc1 += nSrc1Pitch;
@@ -118,11 +106,7 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Merge 
          // 2-4-2
          // 1-2-1 weighted averaging from 9 pixels of full size mask
          const int nMask = (left + 2 * mid + right + 8) >> 4;
-         if (nMask == 255)
-           pDst[x] = pSrc1[x];
-         else if (nMask != 0)
-           pDst[x] = static_cast<uint8_t>(((256 - int(nMask)) * pDst[x] + int(nMask) * pSrc1[x] + 128) >> 8);
-         // nMask == 0: keep pDst as is
+         pDst[x] = merge8_core_c(pDst[x], pSrc1[x], static_cast<uint8_t>(nMask));
        }
        pDst += nDstPitch;
        pSrc1 += nSrc1Pitch;
@@ -144,11 +128,7 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Merge 
          // 2-4-2
          // 1-2-1 weighted averaging from 9 pixels of full size mask
          const int nMask = (left + 2 * mid + right + 8) >> 4;
-         if (nMask == 255)
-           pDst[x] = pSrc1[x];
-         else if (nMask != 0)
-           pDst[x] = static_cast<uint8_t>(((256 - int(nMask)) * pDst[x] + int(nMask) * pSrc1[x] + 128) >> 8);
-         // nMask == 0: keep pDst as is
+         pDst[x] = merge8_core_c(pDst[x], pSrc1[x], static_cast<uint8_t>(nMask));
        }
        pDst += nDstPitch;
        pSrc1 += nSrc1Pitch;
@@ -174,11 +154,7 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Merge 
        for (int x = 0; x < nWidth; ++x)
        {
          const int nMask = (pMask[x * 2] + pMask[x * 2 + 1] + 1) >> 1; // 422: only width is halved, averaging from two pixels of full size mask
-         if (nMask == 255)
-           pDst[x] = pSrc1[x];
-         else if (nMask != 0)
-           pDst[x] = static_cast<uint8_t>(((256 - int(nMask)) * pDst[x] + int(nMask) * pSrc1[x] + 128) >> 8);
-         // nMask == 0: keep pDst as is
+         pDst[x] = merge8_core_c(pDst[x], pSrc1[x], static_cast<uint8_t>(nMask));
        }
        pDst += nDstPitch;
        pSrc1 += nSrc1Pitch;
@@ -200,11 +176,7 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Merge 
          right = pMask[x * 2 + 1];
          // 422: width is halved, mpeg2: 1-2-1 weighted averaging from 3 pixels of full size mask
          const int nMask = (left + 2 * mid + right + 2) >> 2;
-         if (nMask == 255)
-           pDst[x] = pSrc1[x];
-         else if (nMask != 0)
-           pDst[x] = static_cast<uint8_t>(((256 - int(nMask)) * pDst[x] + int(nMask) * pSrc1[x] + 128) >> 8);
-         // nMask == 0: keep pDst as is
+         pDst[x] = merge8_core_c(pDst[x], pSrc1[x], static_cast<uint8_t>(nMask));
        }
        pDst += nDstPitch;
        pSrc1 += nSrc1Pitch;
@@ -233,11 +205,7 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Merge 
            ((pMask[x * 4 + 0] + pMask[x * 4 + 1] + 1) >> 1) +
            ((pMask[x * 4 + 2] + pMask[x * 4 + 3] + 1) >> 1)
            + 1) >> 1; // 411: averaging from four pixels of full size mask
-         if (nMask == 255)
-           pDst[x] = pSrc1[x];
-         else if (nMask != 0)
-           pDst[x] = static_cast<uint8_t>(((256 - int(nMask)) * pDst[x] + int(nMask) * pSrc1[x] + 128) >> 8);
-         // nMask == 0: keep pDst as is
+         pDst[x] = merge8_core_c(pDst[x], pSrc1[x], static_cast<uint8_t>(nMask));
        }
        pDst += nDstPitch;
        pSrc1 += nSrc1Pitch;

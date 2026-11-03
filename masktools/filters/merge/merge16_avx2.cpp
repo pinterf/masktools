@@ -48,57 +48,34 @@ MT_FORCEINLINE static __m256i get_single_mask_value_422(const __m256i &row1_lo, 
   return _mm256_permute4x64_epi64(avg, (0 << 0) + (2 << 2) + (1 << 4) + (3 << 6));
 }
 
-template<bool lessThan16bits>
-MT_FORCEINLINE static __m256i merge_core_simd(const __m256i &dst, const __m256i &src, const __m256i &mask, const __m256i &max_pixel_value, const __m256i &zero, const __m128i &shift) {
+MT_FORCEINLINE static __m256i merge_magic_div_epi32(const __m256i &value, const __m256i &magic, const __m128i &shift) {
+  // Recombine the exact quotients from the even and odd unsigned 64-bit reciprocal products.
+  auto even = _mm256_srl_epi64(_mm256_mul_epu32(value, magic), shift);
+  auto odd = _mm256_srl_epi64(_mm256_mul_epu32(_mm256_srli_epi64(value, 32), magic), shift);
+  even = _mm256_shuffle_epi32(even, _MM_SHUFFLE(2, 0, 2, 0));
+  odd = _mm256_shuffle_epi32(odd, _MM_SHUFFLE(2, 0, 2, 0));
+  return _mm256_unpacklo_epi32(even, odd);
+}
+
+MT_FORCEINLINE static __m256i merge_core_simd(const __m256i &dst, const __m256i &src, const __m256i &mask,
+                                               const __m256i &max_value, const __m256i &half,
+                                               const __m256i &magic, const __m128i &div_shift,
+                                               const __m256i &zero) {
   auto dst_lo = _mm256_unpacklo_epi16(dst, zero);
   auto dst_hi = _mm256_unpackhi_epi16(dst, zero);
 
   auto src_lo = _mm256_unpacklo_epi16(src, zero);
   auto src_hi = _mm256_unpackhi_epi16(src, zero);
 
-  auto diff_lo = _mm256_sub_epi32(src_lo, dst_lo); // diff = src-dst
-  auto diff_hi = _mm256_sub_epi32(src_hi, dst_hi);
-
   auto mask_lo = _mm256_unpacklo_epi16(mask, zero);
   auto mask_hi = _mm256_unpackhi_epi16(mask, zero);
-
-  // return dst +(((src - dst) * (mask >> 1)) >> (bits_per_pixel - 1));
-
-  __m256i lerp_lo, lerp_hi;
-  __m256i result_lo, result_hi;
-
-  if constexpr (!lessThan16bits) {
-    auto smask_lo = _mm256_srai_epi32(mask_lo, 1); // smask = mask>>1 to avoid int mul overflow
-    auto smask_hi = _mm256_srai_epi32(mask_hi, 1);
-
-    lerp_lo = simd256_mullo_epi32(diff_lo, smask_lo);
-    lerp_lo = _mm256_srai_epi32(lerp_lo, 15); // shr (16 - 1), scale back
-
-    lerp_hi = simd256_mullo_epi32(diff_hi, smask_hi);
-    lerp_hi = _mm256_srai_epi32(lerp_hi, 15);
-
-    result_lo = _mm256_add_epi32(dst_lo, lerp_lo);
-    result_hi = _mm256_add_epi32(dst_hi, lerp_hi);
-  }
-  else {
-    lerp_lo = simd256_mullo_epi32(diff_lo, mask_lo);
-    lerp_lo = _mm256_sra_epi32(lerp_lo, shift); // shift: bits_per_pixel
-    result_lo = _mm256_add_epi32(dst_lo, lerp_lo);
-
-    lerp_hi = simd256_mullo_epi32(diff_hi, mask_hi);
-    lerp_hi = _mm256_sra_epi32(lerp_hi, shift);
-    result_hi = _mm256_add_epi32(dst_hi, lerp_hi);
-  }
-
+  auto inverse_lo = _mm256_sub_epi32(max_value, mask_lo);
+  auto inverse_hi = _mm256_sub_epi32(max_value, mask_hi);
+  auto numerator_lo = _mm256_add_epi32(_mm256_add_epi32(_mm256_mullo_epi32(dst_lo, inverse_lo), _mm256_mullo_epi32(src_lo, mask_lo)), half);
+  auto numerator_hi = _mm256_add_epi32(_mm256_add_epi32(_mm256_mullo_epi32(dst_hi, inverse_hi), _mm256_mullo_epi32(src_hi, mask_hi)), half);
+  auto result_lo = merge_magic_div_epi32(numerator_lo, magic, div_shift);
+  auto result_hi = merge_magic_div_epi32(numerator_hi, magic, div_shift);
   auto result = _mm256_packus_epi32(result_lo, result_hi);
-  if constexpr (lessThan16bits) // otherwise no clamp needed
-    result = _mm256_min_epu16(result, max_pixel_value); 
-
-  auto mask_FFFF = _mm256_cmpeq_epi16(mask, max_pixel_value); // mask == max ? FFFF : 0000
-  auto mask_zero = _mm256_cmpeq_epi16(mask, zero);
-  result = simd256_blend_epi8(mask_zero, dst, result); // ensure that zero mask value returns dst
-  result = simd256_blend_epi8(mask_FFFF, src, result); // ensure that max mask value returns src
-
   return result;
 }
 
@@ -122,7 +99,7 @@ MT_FORCEINLINE static __m256i get_mask_422_simd(const uint8_t *ptr, int x) {
   return get_single_mask_value_422(row1_lo, row1_hi);
 }
 
-template <MaskMode mode, bool lessThan16bits>
+template <MaskMode mode>
 static void merge16_t_simd(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
                             const uint8_t *pMask, ptrdiff_t nMaskPitch, int nWidth, int nHeight, int bits_per_pixel)
 {
@@ -133,13 +110,13 @@ static void merge16_t_simd(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pS
     auto pSrc1_s = pSrc1;
     auto pMask_s = pMask;
 
-    int max = (1 << bits_per_pixel) - 1;
-
     auto zero = _mm256_setzero_si256();
-#pragma warning(disable: 4310)
-    auto max_pixel_value = _mm256_set1_epi16((short)max); // for checking max
-#pragma warning(default: 4310)
-    const auto shift = _mm_cvtsi32_si128(bits_per_pixel);
+    const uint32_t max = (1u << bits_per_pixel) - 1;
+    const auto max_value = _mm256_set1_epi32(static_cast<int32_t>(max));
+    const auto half = _mm256_set1_epi32(static_cast<int32_t>(max / 2));
+    const MergeMagicDiv magic_div = get_merge_magic_div(bits_per_pixel);
+    const auto magic = _mm256_set1_epi32(static_cast<int32_t>(magic_div.div));
+    const auto div_shift = _mm_cvtsi32_si128(32 + magic_div.shift);
 
     for ( int j = 0; j < nHeight; ++j ) {
         for ( int i = 0; i < wMod32; i+=32 ) {
@@ -155,7 +132,7 @@ static void merge16_t_simd(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pS
               mask = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(reinterpret_cast<const __m256i*>(pMask + i)));
             }
 
-            __m256i result = merge_core_simd<lessThan16bits>(dst, src, mask, max_pixel_value, zero, shift);
+            __m256i result = merge_core_simd(dst, src, mask, max_value, half, magic, div_shift, zero);
 
             _mm256_storeu_si256(reinterpret_cast<__m256i*>(reinterpret_cast<__m256i*>(pDst+i)), result);
         }
@@ -180,10 +157,7 @@ template <MaskMode mode>
 static void merge16_avx2_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
                           const uint8_t *pMask, ptrdiff_t nMaskPitch, int nWidth, int nHeight, int bits_per_pixel)
 {
-  if (bits_per_pixel == 16)
-    merge16_t_simd<mode, false>(pDst, nDstPitch, pSrc1, nSrc1Pitch, pMask, nMaskPitch, nWidth, nHeight, bits_per_pixel);
-  else
-    merge16_t_simd<mode, true>(pDst, nDstPitch, pSrc1, nSrc1Pitch, pMask, nMaskPitch, nWidth, nHeight, bits_per_pixel);
+  merge16_t_simd<mode>(pDst, nDstPitch, pSrc1, nSrc1Pitch, pMask, nMaskPitch, nWidth, nHeight, bits_per_pixel);
 }
 
 } // namespace

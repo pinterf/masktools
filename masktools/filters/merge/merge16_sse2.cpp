@@ -38,6 +38,15 @@ MT_FORCEINLINE static __m128i get_mask_121_from_columns(const __m128i &mid_lo, c
   return pack_shifted_epi32<s>(sum_lo, sum_hi);
 }
 
+MT_FORCEINLINE static __m128i merge_magic_div_epi32(__m128i value, const __m128i &magic, const __m128i &shift) {
+  // Recombine the exact quotients from the even and odd unsigned 64-bit reciprocal products.
+  auto even = _mm_srl_epi64(_mm_mul_epu32(value, magic), shift);
+  auto odd = _mm_srl_epi64(_mm_mul_epu32(_mm_srli_si128(value, 4), magic), shift);
+  even = _mm_shuffle_epi32(even, _MM_SHUFFLE(2, 0, 2, 0));
+  odd = _mm_shuffle_epi32(odd, _MM_SHUFFLE(2, 0, 2, 0));
+  return _mm_unpacklo_epi32(even, odd);
+}
+
 MT_FORCEINLINE static __m128i get_single_mask_value_420_mpeg2(const __m128i &row1_lo, const __m128i &row1_hi, const __m128i &row2_lo, const __m128i &row2_hi, __m128i &right_hi) {
   const __m128i evenmask = _mm_set1_epi32(0x0000FFFF);
   // go to 32bit domain
@@ -88,32 +97,26 @@ MT_FORCEINLINE static __m128i get_single_mask_value_422_mpeg2(const __m128i &row
   return get_mask_121_from_columns<2>(mid_lo, mid_hi, right_lo, right_hi, old_right_hi); // / 4
 }
 
-// C: mask == 0: dst, mask == max: src, else dst + (((src - dst) * m) >> shift); m = mask (10-14 bit) or mask >> 1 (16 bit).
-// Same as (src * m + dst * (2^shift - m)) >> shift, which gives dst for m = 0 and src for m = 2^shift: mask == max is
-// mapped to m = 2^shift, no blends needed.
-template<bool lessThan16bits>
-MT_FORCEINLINE static __m128i merge_core_simd(const __m128i &dst, const __m128i &src, const __m128i &mask, const __m128i &max_pixel_value, const __m128i &range, const __m128i &shift) {
-  auto is_max = _mm_cmpeq_epi16(mask, max_pixel_value); // FFFF = -1
-  if constexpr (lessThan16bits) {
-    // every value fits in int16 (m, w <= 2^14): madd, sum < 2^28
-    auto m = _mm_sub_epi16(mask, is_max);
-    auto w = _mm_sub_epi16(range, m);
-    auto lo = _mm_madd_epi16(_mm_unpacklo_epi16(src, dst), _mm_unpacklo_epi16(m, w));
-    auto hi = _mm_madd_epi16(_mm_unpackhi_epi16(src, dst), _mm_unpackhi_epi16(m, w));
-    return _mm_packs_epi32(_mm_sra_epi32(lo, shift), _mm_sra_epi32(hi, shift));
-  }
-  else {
-    // unsigned 16x16 products, m + w = 32768, sum < 2^31
-    auto m = _mm_sub_epi16(_mm_srli_epi16(mask, 1), is_max);
-    auto w = _mm_sub_epi16(range, m);
-    auto s_lo = _mm_mullo_epi16(src, m);
-    auto s_hi = _mm_mulhi_epu16(src, m);
-    auto d_lo = _mm_mullo_epi16(dst, w);
-    auto d_hi = _mm_mulhi_epu16(dst, w);
-    auto lo = _mm_add_epi32(_mm_unpacklo_epi16(s_lo, s_hi), _mm_unpacklo_epi16(d_lo, d_hi));
-    auto hi = _mm_add_epi32(_mm_unpackhi_epi16(s_lo, s_hi), _mm_unpackhi_epi16(d_lo, d_hi));
-    return pack_shifted_epi32<15>(lo, hi);
-  }
+MT_FORCEINLINE static __m128i merge_core_simd(const __m128i &dst, const __m128i &src, const __m128i &mask,
+                                               const __m128i &max_value, const __m128i &half,
+                                               const __m128i &magic, const __m128i &div_shift) {
+  auto dst_lo = _mm_unpacklo_epi16(dst, _mm_setzero_si128());
+  auto dst_hi = _mm_unpackhi_epi16(dst, _mm_setzero_si128());
+  auto src_lo = _mm_unpacklo_epi16(src, _mm_setzero_si128());
+  auto src_hi = _mm_unpackhi_epi16(src, _mm_setzero_si128());
+  auto mask_lo = _mm_unpacklo_epi16(mask, _mm_setzero_si128());
+  auto mask_hi = _mm_unpackhi_epi16(mask, _mm_setzero_si128());
+  auto inverse_lo = _mm_sub_epi32(max_value, mask_lo);
+  auto inverse_hi = _mm_sub_epi32(max_value, mask_hi);
+  auto dst_weighted_lo = simd_mullo_epi32<CPU_SSE2>(dst_lo, inverse_lo);
+  auto src_weighted_lo = simd_mullo_epi32<CPU_SSE2>(src_lo, mask_lo);
+  auto dst_weighted_hi = simd_mullo_epi32<CPU_SSE2>(dst_hi, inverse_hi);
+  auto src_weighted_hi = simd_mullo_epi32<CPU_SSE2>(src_hi, mask_hi);
+  auto numerator_lo = _mm_add_epi32(_mm_add_epi32(dst_weighted_lo, src_weighted_lo), half);
+  auto numerator_hi = _mm_add_epi32(_mm_add_epi32(dst_weighted_hi, src_weighted_hi), half);
+  auto result_lo = merge_magic_div_epi32(numerator_lo, magic, div_shift);
+  auto result_hi = merge_magic_div_epi32(numerator_hi, magic, div_shift);
+  return simd_packus_epi32<CPU_SSE2>(result_lo, result_hi);
 }
 
 MT_FORCEINLINE static __m128i get_mask_420_simd(const uint8_t *ptr, ptrdiff_t pitch, int x) {
@@ -169,7 +172,7 @@ MT_FORCEINLINE static __m128i get_mask_422_mpeg2_simd(const uint8_t *ptr, int x,
   return get_single_mask_value_422_mpeg2(row1_lo, row1_hi, right_hi); // right: in-out
 }
 
-template <MaskMode mode, Processor16 merge_c, Processor16 merge_allow_leftminus1_c, bool lessThan16bits>
+template <MaskMode mode, Processor16 merge_c, Processor16 merge_allow_leftminus1_c>
 static void merge16_t_simd(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
                             const uint8_t *pMask, ptrdiff_t nMaskPitch, int nWidth, int nHeight, int bits_per_pixel)
 {
@@ -180,10 +183,12 @@ static void merge16_t_simd(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pS
     auto pSrc1_s = pSrc1;
     auto pMask_s = pMask;
 
-    const int shift_bits = lessThan16bits ? bits_per_pixel : 15;
-    const auto max_pixel_value = _mm_set1_epi16((int16_t)((1 << bits_per_pixel) - 1));
-    const auto range = _mm_set1_epi16((int16_t)(1 << shift_bits)); // m + w
-    const auto shift = _mm_cvtsi32_si128(shift_bits);
+    const uint32_t max = (1u << bits_per_pixel) - 1;
+    const auto max_value = _mm_set1_epi32(static_cast<int32_t>(max));
+    const auto half = _mm_set1_epi32(static_cast<int32_t>(max / 2));
+    const MergeMagicDiv magic_div = get_merge_magic_div(bits_per_pixel);
+    const auto magic = _mm_set1_epi32(static_cast<int32_t>(magic_div.div));
+    const auto div_shift = _mm_cvtsi32_si128(32 + magic_div.shift);
     const __m128i evenmask = _mm_set1_epi32(0x0000FFFF);
 
     for ( int j = 0; j < nHeight; ++j ) {
@@ -227,7 +232,7 @@ static void merge16_t_simd(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pS
             else
               mask = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pMask + i));
 
-            __m128i result = merge_core_simd<lessThan16bits>(dst, src, mask, max_pixel_value, range, shift);
+            __m128i result = merge_core_simd(dst, src, mask, max_value, half, magic, div_shift);
 
             _mm_storeu_si128(reinterpret_cast<__m128i*>(pDst+i), result);
         }
@@ -256,10 +261,7 @@ template <MaskMode mode, Processor16 merge_c, Processor16 merge_allow_leftminus1
 static void merge16_sse2_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
                           const uint8_t *pMask, ptrdiff_t nMaskPitch, int nWidth, int nHeight, int bits_per_pixel)
 {
-  if (bits_per_pixel == 16)
-    merge16_t_simd<mode, merge_c, merge_allow_leftminus1_c, false>(pDst, nDstPitch, pSrc1, nSrc1Pitch, pMask, nMaskPitch, nWidth, nHeight, bits_per_pixel);
-  else
-    merge16_t_simd<mode, merge_c, merge_allow_leftminus1_c, true>(pDst, nDstPitch, pSrc1, nSrc1Pitch, pMask, nMaskPitch, nWidth, nHeight, bits_per_pixel);
+  merge16_t_simd<mode, merge_c, merge_allow_leftminus1_c>(pDst, nDstPitch, pSrc1, nSrc1Pitch, pMask, nMaskPitch, nWidth, nHeight, bits_per_pixel);
 }
 
 } // namespace

@@ -5,6 +5,12 @@
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Merge {
 
+MT_FORCEINLINE static uint8_t merge8_core_c(uint8_t dst, uint8_t src, uint8_t mask) {
+  const uint32_t numerator = uint32_t(dst) * (255 - mask) + uint32_t(src) * mask + 127;
+  // 0x8081 = ceil(2^23 / 255); this reciprocal gives the exact quotient over the blend numerator range.
+  return static_cast<uint8_t>((numerator * 0x8081u) >> 23);
+}
+
 /* 8 bit */
 typedef void(Processor)(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
                         const uint8_t *pSrc2, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight);

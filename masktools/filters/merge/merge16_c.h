@@ -22,15 +22,31 @@ enum MaskMode {
     MASK444
 };
 
-// 10-14 bit: dst + (((src - dst) * mask) >> bits); 16 bit: (mask >> 1) and >> 15 to avoid the int overflow
-MT_FORCEINLINE static uint16_t merge16_core_c(uint16_t dst, uint16_t src, uint16_t mask, uint16_t max, int mask_shift, int shift) {
-    if (mask == 0) {
-        return dst;
-    } else if (mask == max) {
-        return src;
-    } else {
-        return dst + (((src - dst) * (mask >> mask_shift)) >> shift);
+struct MergeMagicDiv {
+    uint32_t div;
+    uint8_t shift;
+};
+
+// For max = 2^bpp - 1, these reciprocals make (n * div) >> (32 + shift) equal floor(n / max)
+// throughout the rounded blend numerator range.
+MT_FORCEINLINE static MergeMagicDiv get_merge_magic_div(int bits_per_pixel) {
+    switch (bits_per_pixel) {
+    case 10: return { 0x80200803, 9 };
+    case 12: return { 0x80080081, 11 };
+    case 14: return { 0x80020009, 13 };
+    case 16: return { 0x80008001, 15 };
+    default: return { 0, 0 };
     }
+}
+
+MT_FORCEINLINE static uint16_t merge16_magic_div(uint32_t value, MergeMagicDiv magic) {
+    return static_cast<uint16_t>((static_cast<uint64_t>(value) * magic.div) >> (32 + magic.shift));
+}
+
+MT_FORCEINLINE static uint16_t merge16_core_c(uint16_t dst, uint16_t src, uint16_t mask, uint16_t max, MergeMagicDiv magic) {
+    // Round the weighted sum, then normalize by max (rather than 2^bpp).
+    const uint32_t numerator = uint32_t(dst) * (max - mask) + uint32_t(src) * mask + max / 2;
+    return merge16_magic_div(numerator, magic);
 }
 
 /* Native */
@@ -87,8 +103,7 @@ static void internal_merge16_t_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8
                          const uint8_t *pMask, ptrdiff_t nMaskPitch, int nWidth, int nHeight, int bits_per_pixel)
 {
     const uint16_t max = (uint16_t)((1 << bits_per_pixel) - 1);
-    const int mask_shift = bits_per_pixel == 16 ? 1 : 0;
-    const int shift = bits_per_pixel - mask_shift;
+    const MergeMagicDiv magic = get_merge_magic_div(bits_per_pixel);
     for ( int y = 0; y < nHeight; ++y )
     {
         constexpr auto left_or_same = allow_leftminus1 ? -1 : 0;
@@ -122,7 +137,7 @@ static void internal_merge16_t_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8
             else
               mask = reinterpret_cast<const uint16_t*>(pMask)[x];
 
-            uint16_t output = merge16_core_c(dst, src, mask, max, mask_shift, shift);
+            uint16_t output = merge16_core_c(dst, src, mask, max, magic);
 
             reinterpret_cast<uint16_t*>(pDst)[x] = output;
         }

@@ -15,11 +15,7 @@ namespace {
       {
          for (int x = 0; x < nWidth; ++x) {
            const int nMask = pMask[x];
-           if (nMask == 255)
-             pDst[x] = pSrc1[x]; // max mask value (255): keep source
-           else if (nMask != 0)
-             pDst[x] = static_cast<uint8_t>(((256 - int(nMask)) * pDst[x] + int(nMask) * pSrc1[x] + 128) >> 8);
-           // nMask == 0: keep pDst as is
+           pDst[x] = merge8_core_c(pDst[x], pSrc1[x], static_cast<uint8_t>(nMask));
          }
          pDst += nDstPitch;
          pSrc1 += nSrc1Pitch;
@@ -36,11 +32,7 @@ namespace {
          {
            // 420: both width and height is halved, averaging from 4 pixels of full size mask
             const int nMask = (((pMask[x * 2] + pMask[x * 2 + nSrc2Pitch] + 1) >> 1) + ((pMask[x * 2 + 1] + pMask[x * 2 + nSrc2Pitch + 1] + 1) >> 1) + 1) >> 1;
-            if (nMask == 255)
-              pDst[x] = pSrc1[x];
-            else if (nMask != 0)
-              pDst[x] = static_cast<uint8_t>(((256 - int(nMask)) * pDst[x] + int(nMask) * pSrc1[x] + 128) >> 8);
-            // nMask == 0: keep pDst as is
+            pDst[x] = merge8_core_c(pDst[x], pSrc1[x], static_cast<uint8_t>(nMask));
          }
          pDst += nDstPitch;
          pSrc1 += nSrc1Pitch;
@@ -56,11 +48,7 @@ namespace {
        for (int x = 0; x < nWidth; ++x)
        {
          const int nMask = (pMask[x * 2] + pMask[x * 2 + 1] + 1) >> 1; // 422: only width is halved, averaging from two pixels of full size mask
-         if (nMask == 255)
-           pDst[x] = pSrc1[x];
-         else if (nMask != 0)
-           pDst[x] = static_cast<uint8_t>(((256 - int(nMask)) * pDst[x] + int(nMask) * pSrc1[x] + 128) >> 8);
-         // nMask == 0: keep pDst as is
+         pDst[x] = merge8_core_c(pDst[x], pSrc1[x], static_cast<uint8_t>(nMask));
        }
        pDst += nDstPitch;
        pSrc1 += nSrc1Pitch;
@@ -79,11 +67,7 @@ namespace {
            ((pMask[x * 4 + 0] + pMask[x * 4 + 1] + 1) >> 1) +
            ((pMask[x * 4 + 2] + pMask[x * 4 + 3] + 1) >> 1)
            + 1) >> 1; // 411: averaging from four pixels of full size mask
-         if (nMask == 255)
-           pDst[x] = pSrc1[x];
-         else if (nMask != 0)
-           pDst[x] = static_cast<uint8_t>(((256 - int(nMask)) * pDst[x] + int(nMask) * pSrc1[x] + 128) >> 8);
-         // nMask == 0: keep pDst as is
+         pDst[x] = merge8_core_c(pDst[x], pSrc1[x], static_cast<uint8_t>(nMask));
        }
        pDst += nDstPitch;
        pSrc1 += nSrc1Pitch;
@@ -92,7 +76,7 @@ namespace {
    }
 
    MT_FORCEINLINE __m256i merge_avx2_core(uint8_t *pDst, const uint8_t *pSrc, const __m256i& mask_lo, const __m256i& mask_hi,
-      const __m256i& v128, const __m256i& zero, const __m256i& maxMaskFF) {
+      const __m256i& zero) {
       auto dst = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(pDst));
       auto dst_lo = _mm256_unpacklo_epi8(dst, zero);
       auto dst_hi = _mm256_unpackhi_epi8(dst, zero);
@@ -101,31 +85,16 @@ namespace {
       auto src1_lo = _mm256_unpacklo_epi8(src, zero);
       auto src1_hi = _mm256_unpackhi_epi8(src, zero);
 
-      auto dst_lo_sh = _mm256_slli_epi16(dst_lo, 8);
-      auto diff_lo = _mm256_sub_epi16(src1_lo, dst_lo);
-      auto tmp1_lo = _mm256_mullo_epi16(diff_lo, mask_lo); // (p2-p1)*mask
-      auto tmp2_lo = _mm256_or_si256(dst_lo_sh, v128);    // p1<<8 + 128 == p1<<8 | 128
-      auto result_lo = _mm256_add_epi16(tmp1_lo, tmp2_lo);
-      result_lo = _mm256_srli_epi16(result_lo, 8);
-
-      auto dst_hi_sh = _mm256_slli_epi16(dst_hi, 8);
-      auto diff_hi = _mm256_sub_epi16(src1_hi, dst_hi);
-      auto tmp1_hi = _mm256_mullo_epi16(diff_hi, mask_hi); // (p2-p1)*mask
-      auto tmp2_hi = _mm256_or_si256(dst_hi_sh, v128);    // p1<<8 + 128 == p1<<8 | 128
-      auto result_hi = _mm256_add_epi16(tmp1_hi, tmp2_hi);
-      result_hi = _mm256_srli_epi16(result_hi, 8);
-
+      auto inverse_lo = _mm256_sub_epi16(_mm256_set1_epi16(255), mask_lo);
+      auto inverse_hi = _mm256_sub_epi16(_mm256_set1_epi16(255), mask_hi);
+      auto rounder = _mm256_set1_epi16(127);
+      // 0x8081 = ceil(2^23 / 255); mulhi plus this shift computes exact division by 255.
+      auto magic = _mm256_set1_epi16(static_cast<short>(0x8081));
+      auto numerator_lo = _mm256_add_epi16(_mm256_add_epi16(_mm256_mullo_epi16(dst_lo, inverse_lo), _mm256_mullo_epi16(src1_lo, mask_lo)), rounder);
+      auto numerator_hi = _mm256_add_epi16(_mm256_add_epi16(_mm256_mullo_epi16(dst_hi, inverse_hi), _mm256_mullo_epi16(src1_hi, mask_hi)), rounder);
+      auto result_lo = _mm256_srli_epi16(_mm256_mulhi_epu16(numerator_lo, magic), 7);
+      auto result_hi = _mm256_srli_epi16(_mm256_mulhi_epu16(numerator_hi, magic), 7);
       auto result = _mm256_packus_epi16(result_lo, result_hi);
-      // 2.2.7:
-      // when mask is FF, keep src
-      // when mask is 00, keep dst
-      auto mask = _mm256_packus_epi16(mask_lo, mask_hi);
-      auto mask_FF = _mm256_cmpeq_epi8(mask, maxMaskFF); // mask == max ? FF : 00
-      auto mask_00 = _mm256_cmpeq_epi8(mask, zero);
-
-      result = simd256_blend_epi8(mask_FF, src, result); // ensure that max mask value returns src
-      result = simd256_blend_epi8(mask_00, dst, result); // ensure that zero mask value returns dst
-
       return result;
    }
 
@@ -136,22 +105,14 @@ namespace {
       auto pDst_s = pDst;
       auto pSrc1_s = pSrc1;
       auto pMask_s = pMask;
-      auto v128 = _mm256_set1_epi16(0x0080);
       auto zero = _mm256_setzero_si256();
-#pragma warning(disable: 4309)
-      auto maxMaskFF = _mm256_set1_epi8(0xFF);
-#pragma warning(default: 4309)
       for (int j = 0; j < nHeight; ++j) {
          for (int i = 0; i < wMod32; i += 32) {
             auto src2 = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(pMask + i));
             auto mask_t1 = _mm256_unpacklo_epi8(src2, zero);
             auto mask_t2 = _mm256_unpackhi_epi8(src2, zero);
 
-            auto result = merge_avx2_core(pDst + i, pSrc1 + i, mask_t1, mask_t2, v128, zero, maxMaskFF);
-            // remark: when mask is 255 then second clip's 255 becomes 254 and 0 becomes 1
-            // it 16 bit merge this problem is solved: special ensures that mask 255 returns second clip
-            // mask 0 returns first clip
-
+            auto result = merge_avx2_core(pDst + i, pSrc1 + i, mask_t1, mask_t2, zero);
             _mm256_storeu_si256(reinterpret_cast<__m256i*>(pDst + i), result);
          }
          pDst += nDstPitch;
@@ -173,8 +134,6 @@ namespace {
      auto pMask_s = pMask;
      auto v255 = _mm256_set1_epi16(0x00FF);
 #pragma warning(disable: 4309)
-     auto v128 = _mm256_set1_epi16(0x0080);
-     auto maxMaskFF = _mm256_set1_epi8(0xFF);
 #pragma warning(default: 4309)
      auto zero = _mm256_setzero_si256();
      for (int j = 0; j < nHeight; ++j) {
@@ -195,7 +154,7 @@ namespace {
          auto mask_t2 = _mm256_permute2x128_si256(avg_t1, avg_t2, (1 << 0) + (3 << 4));
          mask_t1 = _mm256_and_si256(mask_t1, v255);
          mask_t2 = _mm256_and_si256(mask_t2, v255);
-         auto result = merge_avx2_core(pDst + i, pSrc1 + i, mask_t1, mask_t2, v128, zero, maxMaskFF);
+         auto result = merge_avx2_core(pDst + i, pSrc1 + i, mask_t1, mask_t2, zero);
 
          _mm256_storeu_si256(reinterpret_cast<__m256i*>(pDst + i), result);
        }
@@ -217,10 +176,8 @@ namespace {
      auto pSrc1_s = pSrc1;
      auto pMask_s = pMask;
      auto v255 = _mm256_set1_epi16(0x00FF);
-     auto v128 = _mm256_set1_epi16(0x0080);
      auto zero = _mm256_setzero_si256();
 #pragma warning(disable: 4309)
-     auto maxMaskFF = _mm256_set1_epi8(0xFF);
 #pragma warning(default: 4309)
      for (int j = 0; j < nHeight; ++j) {
        for (int i = 0; i < wMod32; i += 32) {
@@ -237,7 +194,7 @@ namespace {
          mask_t1 = _mm256_and_si256(mask_t1, v255);
          mask_t2 = _mm256_and_si256(mask_t2, v255);
 
-         auto result = merge_avx2_core(pDst + i, pSrc1 + i, mask_t1, mask_t2, v128, zero, maxMaskFF);
+         auto result = merge_avx2_core(pDst + i, pSrc1 + i, mask_t1, mask_t2, zero);
 
          _mm256_storeu_si256(reinterpret_cast<__m256i*>(pDst + i), result);
        }
@@ -278,10 +235,8 @@ namespace {
      auto pDst_s = pDst;
      auto pSrc1_s = pSrc1;
      auto pMask_s = pMask;
-     auto v128 = _mm256_set1_epi16(0x0080);
      auto zero = _mm256_setzero_si256();
 #pragma warning(disable: 4309)
-     auto maxMaskFF = _mm256_set1_epi8(0xFF);
 #pragma warning(default: 4309)
      for (int j = 0; j < nHeight; ++j) {
        for (int i = 0; i < wMod32; i += 32) {
@@ -292,7 +247,7 @@ namespace {
          auto mask_t1 = _mm256_set_m128i(lo1, lo0);
          auto mask_t2 = _mm256_set_m128i(hi1, hi0);
 
-         auto result = merge_avx2_core(pDst + i, pSrc1 + i, mask_t1, mask_t2, v128, zero, maxMaskFF);
+         auto result = merge_avx2_core(pDst + i, pSrc1 + i, mask_t1, mask_t2, zero);
 
          _mm256_storeu_si256(reinterpret_cast<__m256i*>(pDst + i), result);
        }

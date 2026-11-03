@@ -1,4 +1,5 @@
 #include "merge.h"
+#include "merge16_c.h"
 
 #ifdef NEON_INTRINSICS
 
@@ -36,16 +37,22 @@ MT_FORCEINLINE uint8x16_t mask8(const uint8_t *pMask, ptrdiff_t pitch, int x)
   }
 }
 
-// ((256 - m) * d + m * s + 128) >> 8; m == 255: s (m == 0 gives d by the formula)
 MT_FORCEINLINE uint8x16_t merge8_core(uint8x16_t d, uint8x16_t s, uint8x16_t m)
 {
-  const uint16x8_t v256 = vdupq_n_u16(256);
-  const uint16x8_t v128 = vdupq_n_u16(128);
+  const uint16x8_t v255 = vdupq_n_u16(255);
+  const uint16x8_t v127 = vdupq_n_u16(127);
   uint16x8_t mlo = vmovl_u8(vget_low_u8(m)), mhi = vmovl_u8(vget_high_u8(m));
-  uint16x8_t lo = vmlaq_u16(vmlaq_u16(v128, vsubq_u16(v256, mlo), vmovl_u8(vget_low_u8(d))), mlo, vmovl_u8(vget_low_u8(s)));
-  uint16x8_t hi = vmlaq_u16(vmlaq_u16(v128, vsubq_u16(v256, mhi), vmovl_u8(vget_high_u8(d))), mhi, vmovl_u8(vget_high_u8(s)));
-  uint8x16_t r = vcombine_u8(vshrn_n_u16(lo, 8), vshrn_n_u16(hi, 8));
-  return vbslq_u8(vceqq_u8(m, vdupq_n_u8(255)), s, r);
+  uint16x8_t lo = vaddq_u16(vaddq_u16(vmulq_u16(vmovl_u8(vget_low_u8(d)), vsubq_u16(v255, mlo)), vmulq_u16(vmovl_u8(vget_low_u8(s)), mlo)), v127);
+  uint16x8_t hi = vaddq_u16(vaddq_u16(vmulq_u16(vmovl_u8(vget_high_u8(d)), vsubq_u16(v255, mhi)), vmulq_u16(vmovl_u8(vget_high_u8(s)), mhi)), v127);
+  // 0x8081 = ceil(2^23 / 255); the right shift yields exact division for this numerator range.
+  uint32x4_t lo_product = vmull_n_u16(vget_low_u16(lo), 0x8081);
+  uint32x4_t hi_product = vmull_n_u16(vget_high_u16(lo), 0x8081);
+  uint32x4_t lo_product_hi = vmull_n_u16(vget_low_u16(hi), 0x8081);
+  uint32x4_t hi_product_hi = vmull_n_u16(vget_high_u16(hi), 0x8081);
+  int32x4_t shift = vdupq_n_s32(-23);
+  uint16x8_t result_lo = vcombine_u16(vmovn_u32(vshlq_u32(lo_product, shift)), vmovn_u32(vshlq_u32(hi_product, shift)));
+  uint16x8_t result_hi = vcombine_u16(vmovn_u32(vshlq_u32(lo_product_hi, shift)), vmovn_u32(vshlq_u32(hi_product_hi, shift)));
+  return vcombine_u8(vmovn_u16(result_lo), vmovn_u16(result_hi));
 }
 
 template<Mode mode>
@@ -93,22 +100,27 @@ MT_FORCEINLINE uint16x8_t mask16(const uint8_t *pMask, ptrdiff_t pitch, int x)
   }
 }
 
-// d + (((s - d) * (m >> mask_shift)) >> shift): 10-14 bit mask_shift 0, shift bpp; 16 bit 1 and 15 (no int overflow);
-// arithmetic shift as in C (vshl by a negative count); m == max: s
-MT_FORCEINLINE int32x4_t merge16_half(uint16x4_t d, uint16x4_t s, uint16x4_t m, int16x4_t neg_mask_shift, int32x4_t neg_shift)
+MT_FORCEINLINE uint32x4_t merge16_half(uint16x4_t d, uint16x4_t s, uint16x4_t m, uint32_t max, MergeMagicDiv magic)
 {
-  int32x4_t d32 = vreinterpretq_s32_u32(vmovl_u16(d));
-  int32x4_t diff = vsubq_s32(vreinterpretq_s32_u32(vmovl_u16(s)), d32);
-  int32x4_t m32 = vreinterpretq_s32_u32(vmovl_u16(vshl_u16(m, neg_mask_shift)));
-  return vaddq_s32(d32, vshlq_s32(vmulq_s32(diff, m32), neg_shift));
+  uint32x4_t d32 = vmovl_u16(d);
+  uint32x4_t s32 = vmovl_u16(s);
+  uint32x4_t m32 = vmovl_u16(m);
+  uint32x4_t inverse = vsubq_u32(vdupq_n_u32(max), m32);
+  uint32x4_t numerator = vaddq_u32(vaddq_u32(vmulq_u32(d32, inverse), vmulq_u32(s32, m32)), vdupq_n_u32(max / 2));
+  // The unsigned reciprocal product, shifted by 32 + magic.shift, gives floor(numerator / max).
+  int64x2_t shift = vdupq_n_s64(-(int64_t)(32 + magic.shift));
+  uint64x2_t product_lo = vmull_n_u32(vget_low_u32(numerator), magic.div);
+  uint64x2_t product_hi = vmull_n_u32(vget_high_u32(numerator), magic.div);
+  uint32x2_t quotient_lo = vmovn_u64(vshlq_u64(product_lo, shift));
+  uint32x2_t quotient_hi = vmovn_u64(vshlq_u64(product_hi, shift));
+  return vcombine_u32(quotient_lo, quotient_hi);
 }
 
-MT_FORCEINLINE uint16x8_t merge16_core(uint16x8_t d, uint16x8_t s, uint16x8_t m, uint16x8_t max, int16x4_t neg_mask_shift, int32x4_t neg_shift)
+MT_FORCEINLINE uint16x8_t merge16_core(uint16x8_t d, uint16x8_t s, uint16x8_t m, uint32_t max, MergeMagicDiv magic)
 {
-  int32x4_t lo = merge16_half(vget_low_u16(d), vget_low_u16(s), vget_low_u16(m), neg_mask_shift, neg_shift);
-  int32x4_t hi = merge16_half(vget_high_u16(d), vget_high_u16(s), vget_high_u16(m), neg_mask_shift, neg_shift);
-  uint16x8_t r = vcombine_u16(vmovn_u32(vreinterpretq_u32_s32(lo)), vmovn_u32(vreinterpretq_u32_s32(hi)));
-  return vbslq_u16(vceqq_u16(m, max), s, r);
+  uint32x4_t lo = merge16_half(vget_low_u16(d), vget_low_u16(s), vget_low_u16(m), max, magic);
+  uint32x4_t hi = merge16_half(vget_high_u16(d), vget_high_u16(s), vget_high_u16(m), max, magic);
+  return vcombine_u16(vmovn_u32(lo), vmovn_u32(hi));
 }
 
 template<Mode mode>
@@ -116,10 +128,8 @@ void merge16_neon_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, pt
                     const uint8_t *pMask, ptrdiff_t nMaskPitch, int nWidth, int nHeight, int bits_per_pixel)
 {
   constexpr int mstep = mode == Mode::M420 || mode == Mode::M422 ? 2 : mode == Mode::M411 ? 4 : 1;
-  const int mask_shift = bits_per_pixel == 16 ? 1 : 0;
-  const uint16x8_t max = vdupq_n_u16((uint16_t)((1 << bits_per_pixel) - 1));
-  const int16x4_t neg_mask_shift = vdup_n_s16((int16_t)-mask_shift);
-  const int32x4_t neg_shift = vdupq_n_s32(-(bits_per_pixel - mask_shift));
+  const uint32_t max = (1u << bits_per_pixel) - 1;
+  const MergeMagicDiv magic = get_merge_magic_div(bits_per_pixel);
   const int wmod = nWidth / 8 * 8;
   uint8_t *pDst0 = pDst;
   const uint8_t *pSrc0 = pSrc1, *pMask0 = pMask;
@@ -127,7 +137,7 @@ void merge16_neon_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, pt
     uint16_t *d16 = reinterpret_cast<uint16_t *>(pDst);
     const uint16_t *s16 = reinterpret_cast<const uint16_t *>(pSrc1);
     for (int x = 0; x < wmod; x += 8)
-      vst1q_u16(d16 + x, merge16_core(vld1q_u16(d16 + x), vld1q_u16(s16 + x), mask16<mode>(pMask, nMaskPitch, x), max, neg_mask_shift, neg_shift));
+      vst1q_u16(d16 + x, merge16_core(vld1q_u16(d16 + x), vld1q_u16(s16 + x), mask16<mode>(pMask, nMaskPitch, x), max, magic));
     pDst += nDstPitch;
     pSrc1 += nSrc1Pitch;
     pMask += mode == Mode::M420 ? nMaskPitch * 2 : nMaskPitch;
