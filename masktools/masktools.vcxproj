@@ -383,6 +383,7 @@
     <ClInclude Include="filters\merge\merge.h" />
     <ClInclude Include="filters\merge\merge16_c.h" />
     <ClInclude Include="filters\merge\merge_c.h" />
+    <ClInclude Include="filters\merge\merge_mask.h" />
     <ClInclude Include="filters\merge\merge_sse.h" />
     <ClInclude Include="filters\morphologic\deflate\deflate.h" />
     <ClInclude Include="filters\morphologic\expand\expand.h" />

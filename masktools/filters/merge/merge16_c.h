@@ -4,6 +4,7 @@
 // merge16: C functions, also used by the SIMD versions. Private header of the filter.
 
 #include "merge.h"
+#include "merge_mask.h"
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Merge {
 
@@ -21,6 +22,9 @@ enum MaskMode {
     MASK411,
     MASK440,
     MASK440_TOPLEFT,
+    MASK410,
+    MASK410_MPEG2,
+    MASK410_TOPLEFT,
     MASK444
 };
 
@@ -136,6 +140,8 @@ static void internal_merge16_t_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8
               mask = get_mask_422_mpeg2_c(pMask, x, right);
             else if (mode == MASK411)
               mask = get_mask_411_c(pMask, x);
+            else if (mode == MASK410 || mode == MASK410_MPEG2 || mode == MASK410_TOPLEFT)
+              mask = get_mask_410_c<uint16_t, mode != MASK410, mode == MASK410_TOPLEFT>(pMask, nMaskPitch, x, y);
             else if (mode == MASK440 || mode == MASK440_TOPLEFT) {
               const uint16_t *row = reinterpret_cast<const uint16_t*>(pMask);
               const uint16_t *below = reinterpret_cast<const uint16_t*>(pMask + nMaskPitch);
@@ -154,7 +160,9 @@ static void internal_merge16_t_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8
         pDst += nDstPitch;
         pSrc1 += nSrc1Pitch;
 
-        if (mode == MASK420 || mode == MASK420_MPEG2 || mode == MASK420_TOPLEFT ||
+        if (mode == MASK410 || mode == MASK410_MPEG2 || mode == MASK410_TOPLEFT) {
+            pMask += nMaskPitch * 4;
+        } else if (mode == MASK420 || mode == MASK420_MPEG2 || mode == MASK420_TOPLEFT ||
             mode == MASK440 || mode == MASK440_TOPLEFT) {
             pMask += nMaskPitch * 2;
         } else {

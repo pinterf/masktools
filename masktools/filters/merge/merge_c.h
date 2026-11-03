@@ -3,6 +3,7 @@
 
 // Private C kernels, also compiled locally for each SIMD tier's tails.
 #include "merge.h"
+#include "merge_mask.h"
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Merge {
 
@@ -224,6 +225,19 @@ MT_FORCEINLINE static uint8_t merge8_core_c(uint8_t dst, uint8_t src, uint8_t ma
        pMask += nSrc2Pitch;
      }
    }
+
+template<bool left, bool top>
+void merge_luma_410_t_c(uint8_t *dst, ptrdiff_t dst_pitch, const uint8_t *src, ptrdiff_t src_pitch,
+  const uint8_t *mask, ptrdiff_t mask_pitch, int width, int height)
+{
+  for (int y = 0; y < height; ++y) {
+    for (int x = 0; x < width; ++x)
+      dst[x] = merge8_core_c(dst[x], src[x], get_mask_410_c<uint8_t, left, top>(mask, mask_pitch, x, y));
+    dst += dst_pitch;
+    src += src_pitch;
+    mask += mask_pitch * 4;
+  }
+}
 
 template<bool top_left>
 void merge_luma_440_t_c(uint8_t *dst, ptrdiff_t dst_pitch, const uint8_t *src, ptrdiff_t src_pitch,

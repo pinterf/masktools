@@ -22,6 +22,9 @@ extern Processor *merge_luma_422_mpeg2_c;
 extern Processor *merge_luma_411_c;
 extern Processor *merge_luma_440_c;
 extern Processor *merge_luma_440_topleft_c;
+extern Processor *merge_luma_410_c;
+extern Processor *merge_luma_410_mpeg2_c;
+extern Processor *merge_luma_410_topleft_c;
 
 extern Processor *merge_sse2;
 extern Processor *merge_luma_420_sse2;
@@ -61,6 +64,9 @@ extern Processor16 *merge16_luma_422_mpeg2_c;
 extern Processor16 *merge16_luma_411_c;
 extern Processor16 *merge16_luma_440_c;
 extern Processor16 *merge16_luma_440_topleft_c;
+extern Processor16 *merge16_luma_410_c;
+extern Processor16 *merge16_luma_410_mpeg2_c;
+extern Processor16 *merge16_luma_410_topleft_c;
 
 extern Processor16 *merge16_sse2;
 extern Processor16 *merge16_luma_420_sse2;
@@ -100,6 +106,9 @@ Processor32 merge32_luma_422_mpeg2_c;
 Processor32 merge32_luma_411_c;
 extern Processor32 *merge32_luma_440_c;
 extern Processor32 *merge32_luma_440_topleft_c;
+extern Processor32 *merge32_luma_410_c;
+extern Processor32 *merge32_luma_410_mpeg2_c;
+extern Processor32 *merge32_luma_410_topleft_c;
 
 extern Processor32 *merge32_sse2;
 extern Processor32 *merge32_luma_440_sse2;
@@ -224,6 +233,7 @@ public:
       bool is422 = width_ratios[1] == 2 && height_ratios[1] == 1;
       bool is411 = width_ratios[1] == 4 && height_ratios[1] == 1;
       bool is440 = width_ratios[1] == 1 && height_ratios[1] == 2;
+      bool is410 = width_ratios[1] == 4 && height_ratios[1] == 4;
 
       String cplace = parameters["cplace"].toString();
       bool isMpeg2 = false;
@@ -232,8 +242,8 @@ public:
         error = "cplace: only mpeg1, mpeg2 and top_left allowed";
         return;
       }
-      isMpeg2 = cplace == "mpeg2" && (is420 || is422);
-      isTopLeft = (cplace == "topleft" || cplace == "top_left") && (is420 || is440);
+      isMpeg2 = cplace == "mpeg2" && (is420 || is422 || is410);
+      isTopLeft = (cplace == "topleft" || cplace == "top_left") && (is420 || is440 || is410);
 
       if (isStacked && bits_per_pixel != 8) {
         error = "Stacked specified for a non-8 bit clip";
@@ -303,7 +313,12 @@ public:
 
         /* add the chroma processors */
         // Reduced luma masks for subsampled chroma.
-        if (is440) {
+        if (is410) {
+          chroma_processors.push_back(Filtering::Processor<Processor>(
+            isTopLeft ? merge_luma_410_topleft_c : isMpeg2 ? merge_luma_410_mpeg2_c : merge_luma_410_c,
+            Constraint(CPU_NONE), 0));
+        }
+        else if (is440) {
           chroma_processors.push_back(Filtering::Processor<Processor>(
             isTopLeft ? merge_luma_440_topleft_c : merge_luma_440_c, Constraint(CPU_NONE), 0));
           MT_X86(chroma_processors.push_back(Filtering::Processor<Processor>(
@@ -375,7 +390,12 @@ public:
         MT_X86(processors16.push_back(Filtering::Processor<Processor16>(merge16_avx2, Constraint(CPU_AVX2), 3)));
         MT_NEON(processors16.push_back(Filtering::Processor<Processor16>(merge16_neon, Constraint(CPU_NEON), 1)));
         /* Reduced luma masks for subsampled chroma. */
-        if (is440) {
+        if (is410) {
+          chroma_processors16.push_back(Filtering::Processor<Processor16>(
+            isTopLeft ? merge16_luma_410_topleft_c : isMpeg2 ? merge16_luma_410_mpeg2_c : merge16_luma_410_c,
+            Constraint(CPU_NONE), 0));
+        }
+        else if (is440) {
           chroma_processors16.push_back(Filtering::Processor<Processor16>(
             isTopLeft ? merge16_luma_440_topleft_c : merge16_luma_440_c, Constraint(CPU_NONE), 0));
           MT_X86(chroma_processors16.push_back(Filtering::Processor<Processor16>(
@@ -435,8 +455,13 @@ public:
 #endif
 
         /* add the chroma processors */
-        // Float 4:1:1 currently uses C.
-        if (is440) {
+        // Float 4:1:1 and all 4:1:0 reductions currently use C.
+        if (is410) {
+          chroma_processors32.push_back(Filtering::Processor<Processor32>(
+            isTopLeft ? merge32_luma_410_topleft_c : isMpeg2 ? merge32_luma_410_mpeg2_c : merge32_luma_410_c,
+            Constraint(CPU_NONE), 0));
+        }
+        else if (is440) {
           chroma_processors32.push_back(Filtering::Processor<Processor32>(
             isTopLeft ? merge32_luma_440_topleft_c : merge32_luma_440_c, Constraint(CPU_NONE), 0));
           MT_X86(chroma_processors32.push_back(Filtering::Processor<Processor32>(

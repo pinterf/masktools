@@ -71,6 +71,18 @@ static bool IsSupportedPixelType(int pixel_type)
    case VideoInfo::CS_YUVA440P14:
    case VideoInfo::CS_YUVA440P16:
    case VideoInfo::CS_YUVA440PS:
+   case VideoInfo::CS_YUV410:
+   case VideoInfo::CS_YUV410P10:
+   case VideoInfo::CS_YUV410P12:
+   case VideoInfo::CS_YUV410P14:
+   case VideoInfo::CS_YUV410P16:
+   case VideoInfo::CS_YUV410PS:
+   case VideoInfo::CS_YUVA410:
+   case VideoInfo::CS_YUVA410P10:
+   case VideoInfo::CS_YUVA410P12:
+   case VideoInfo::CS_YUVA410P14:
+   case VideoInfo::CS_YUVA410P16:
+   case VideoInfo::CS_YUVA410PS:
 
    // new color spaces from v2.2.0
    case VideoInfo::CS_Y10:

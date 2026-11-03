@@ -1,4 +1,5 @@
 #include "merge.h"
+#include "merge_mask.h"
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Merge {
 
@@ -198,6 +199,23 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Merge 
    }
 
    namespace {
+   template<bool left, bool top>
+   void merge32_luma_410_t_c(uint8_t *pDst, ptrdiff_t dst_pitch, const uint8_t *pSrc, ptrdiff_t src_pitch,
+     const uint8_t *pMask, ptrdiff_t mask_pitch, int width, int height)
+   {
+     for (int y = 0; y < height; ++y) {
+       float *dst = reinterpret_cast<float*>(pDst);
+       const float *src = reinterpret_cast<const float*>(pSrc);
+       for (int x = 0; x < width; ++x) {
+         const float m = get_mask_410_c<float, left, top>(pMask, mask_pitch, x, y);
+         dst[x] = (1.0f - m) * dst[x] + m * src[x];
+       }
+       pDst += dst_pitch;
+       pSrc += src_pitch;
+       pMask += mask_pitch * 4;
+     }
+   }
+
    template<bool top_left>
    void merge32_luma_440_t_c(uint8_t *pDst, ptrdiff_t dst_pitch, const uint8_t *pSrc, ptrdiff_t src_pitch,
      const uint8_t *pMask, ptrdiff_t mask_pitch, int width, int height)
@@ -222,5 +240,8 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Merge 
 
    Processor32 *merge32_luma_440_c = merge32_luma_440_t_c<false>;
    Processor32 *merge32_luma_440_topleft_c = merge32_luma_440_t_c<true>;
+   Processor32 *merge32_luma_410_c = merge32_luma_410_t_c<false, false>;
+   Processor32 *merge32_luma_410_mpeg2_c = merge32_luma_410_t_c<true, false>;
+   Processor32 *merge32_luma_410_topleft_c = merge32_luma_410_t_c<true, true>;
 
 } } } }
