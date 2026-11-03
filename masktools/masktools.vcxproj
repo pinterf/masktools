@@ -226,9 +226,6 @@
     </ClCompile>
     <ClCompile Include="filters\merge\merge_neon.cpp" />
     <ClCompile Include="filters\merge\merge_sse2.cpp" />
-    <ClCompile Include="filters\merge\merge_sse41.cpp">
-      <AdditionalOptions Condition="'$(Configuration)'=='Rel_Clang'">-msse4.1 %(AdditionalOptions)</AdditionalOptions>
-    </ClCompile>
     <ClCompile Include="filters\morphologic\deflate\deflate.cpp" />
     <ClCompile Include="filters\morphologic\deflate\deflate16.cpp" />
     <ClCompile Include="filters\morphologic\deflate\deflate16_avx2.cpp">

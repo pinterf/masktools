@@ -1,20 +1,12 @@
 #ifndef __Mt_merge_SSE_H__
 #define __Mt_merge_SSE_H__
 
-// merge: x86 kernels, instantiated in merge_sse2.cpp and merge_sse41.cpp
+// merge: SSE2 kernels, instantiated in merge_sse2.cpp
 
 #include "merge.h"
 #include "../../common/simd.h"
 
 namespace Filtering { namespace MaskTools { namespace Filters { namespace Merge {
-
-// C versions, for the right edge
-   void merge_luma_420_mpeg2_allow_leftminus1_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
-     const uint8_t *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight);
-   void merge_luma_420_topleft_allow_leftminus1_c(uint8_t* pDst, ptrdiff_t nDstPitch, const uint8_t* pSrc1, ptrdiff_t nSrc1Pitch,
-     const uint8_t* pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight);
-   void merge_luma_422_mpeg2_allow_leftminus1_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
-     const uint8_t *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight);
 
 namespace {
 
@@ -40,7 +32,6 @@ namespace {
       return _mm_packus_epi16(result_lo, result_hi);
    }
 
-   template <CpuFlags flags>
    void merge_sse2_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
       const uint8_t *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
    {
@@ -68,7 +59,6 @@ namespace {
       }
    }
 
-   template <CpuFlags flags>
    void merge_luma_420_sse2_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
      const uint8_t *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
    {
@@ -78,8 +68,6 @@ namespace {
      auto pMask_s = pMask;
      auto v255 = _mm_set1_epi16(0x00FF);
      auto zero = _mm_setzero_si128();
-#pragma warning(disable: 4309)
-#pragma warning(default: 4309)
      for (int j = 0; j < nHeight; ++j) {
        for (int i = 0; i < wMod16; i += 16) {
          // preparing mask
@@ -111,7 +99,6 @@ namespace {
      }
    }
 
-   template <CpuFlags flags>
    void merge_luma_420_mpeg2_sse2_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
      const uint8_t *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
    {
@@ -120,8 +107,6 @@ namespace {
      auto pSrc1_s = pSrc1;
      auto pMask_s = pMask;
      auto zero = _mm_setzero_si128();
-#pragma warning(disable: 4309)
-#pragma warning(default: 4309)
      for (int j = 0; j < nHeight; ++j) {
        // prepare "right_hi": we need only pixel column #0 as the rightmost word (14-15th byte)
        auto row1 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pMask + 0 * 2));
@@ -172,7 +157,6 @@ namespace {
      }
    }
 
-   template <CpuFlags flags>
    void merge_luma_420_topleft_sse2_t(uint8_t* pDst, ptrdiff_t nDstPitch, const uint8_t* pSrc1, ptrdiff_t nSrc1Pitch,
      const uint8_t* pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
    {
@@ -181,8 +165,6 @@ namespace {
      auto pSrc1_s = pSrc1;
      auto pMask_s = pMask;
      auto zero = _mm_setzero_si128();
-#pragma warning(disable: 4309)
-#pragma warning(default: 4309)
 
      for (int j = 0; j < nHeight; ++j) {
        const auto top_or_same = j == 0 ? 0 : -nSrc2Pitch;
@@ -260,7 +242,6 @@ namespace {
      }
    }
 
-   template <CpuFlags flags>
    void merge_luma_422_sse2_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
      const uint8_t *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
    {
@@ -297,7 +278,6 @@ namespace {
      }
    }
 
-   template <CpuFlags flags>
    void merge_luma_422_mpeg2_sse2_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
      const uint8_t *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
    {
@@ -305,8 +285,6 @@ namespace {
      auto pDst_s = pDst;
      auto pSrc1_s = pSrc1;
      auto pMask_s = pMask;
-#pragma warning(disable: 4309)
-#pragma warning(default: 4309)
      auto zero = _mm_setzero_si128();
      for (int j = 0; j < nHeight; ++j) {
        // prepare "right_hi": we need only pixel column #0 as the rightmost word (14-15th byte)
@@ -374,7 +352,6 @@ namespace {
      mask_hi = _mm_and_si128(_mm_avg_epu8(p23, _mm_srli_si128(p23, 1)), v255);
    }
 
-   template <CpuFlags flags>
    void merge_luma_411_sse2_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
      const uint8_t *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
    {
@@ -382,8 +359,6 @@ namespace {
      auto pDst_s = pDst;
      auto pSrc1_s = pSrc1;
      auto pMask_s = pMask;
-#pragma warning(disable: 4309)
-#pragma warning(default: 4309)
      auto zero = _mm_setzero_si128();
      for (int j = 0; j < nHeight; ++j) {
        for (int i = 0; i < wMod16; i += 16) {

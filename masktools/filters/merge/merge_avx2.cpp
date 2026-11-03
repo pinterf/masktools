@@ -98,6 +98,90 @@ namespace {
       return result;
    }
 
+   enum class WeightedMask { M420, TopLeft420, M422 };
+
+   template<WeightedMask mode>
+   MT_FORCEINLINE void mask_columns(const uint8_t *p, ptrdiff_t pitch, ptrdiff_t prev_pitch,
+     __m256i &mid, __m256i &right) {
+     auto row = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(p));
+     const auto evenmask = _mm256_set1_epi16(255);
+     mid = _mm256_and_si256(row, evenmask);
+     right = _mm256_srli_epi16(row, 8);
+     if constexpr (mode != WeightedMask::M422) {
+       auto below = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(p + pitch));
+       if constexpr (mode == WeightedMask::TopLeft420) {
+         auto above = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(p + prev_pitch));
+         mid = _mm256_add_epi16(_mm256_slli_epi16(mid, 1), _mm256_and_si256(above, evenmask));
+         right = _mm256_add_epi16(_mm256_slli_epi16(right, 1), _mm256_srli_epi16(above, 8));
+       }
+       mid = _mm256_add_epi16(mid, _mm256_and_si256(below, evenmask));
+       right = _mm256_add_epi16(right, _mm256_srli_epi16(below, 8));
+     }
+   }
+
+   MT_FORCEINLINE __m256i previous_column(__m256i right, __m256i previous) {
+     // Carry across both 128-bit lanes and vector blocks, not just within each lane.
+     auto carry = _mm256_permute2x128_si256(previous, right, 0x21);
+     return _mm256_alignr_epi8(right, carry, 14);
+   }
+
+   template<WeightedMask mode>
+   void merge_weighted_avx2_t(uint8_t *pDst, ptrdiff_t dst_pitch, const uint8_t *pSrc, ptrdiff_t src_pitch,
+     const uint8_t *pMask, ptrdiff_t mask_pitch, int width, int height) {
+     constexpr int shift = mode == WeightedMask::TopLeft420 ? 4 : mode == WeightedMask::M420 ? 3 : 2;
+     const int vector_width = width / 32 * 32;
+     auto dst_start = pDst;
+     auto src_start = pSrc;
+     auto mask_start = pMask;
+     const auto zero = _mm256_setzero_si256();
+     const auto rounder = _mm256_set1_epi16(1 << (shift - 1));
+     for (int y = 0; y < height; ++y) {
+       const ptrdiff_t prev_pitch = y == 0 ? 0 : -mask_pitch;
+       __m256i previous = zero;
+       if (vector_width != 0) {
+         // Repeat the first column at the left edge, as in the C mask filter.
+         int first = pMask[0];
+         if constexpr (mode == WeightedMask::TopLeft420)
+           first = pMask[prev_pitch] + 2 * first + pMask[mask_pitch];
+         else if constexpr (mode == WeightedMask::M420)
+           first += pMask[mask_pitch];
+         previous = _mm256_set1_epi16(static_cast<short>(first));
+       }
+       for (int x = 0; x < vector_width; x += 32) {
+         __m256i mid_lo, right_lo, mid_hi, right_hi;
+         mask_columns<mode>(pMask + x * 2, mask_pitch, prev_pitch, mid_lo, right_lo);
+         mask_columns<mode>(pMask + x * 2 + 32, mask_pitch, prev_pitch, mid_hi, right_hi);
+         auto left_lo = previous_column(right_lo, previous);
+         auto left_hi = previous_column(right_hi, right_lo);
+         previous = right_hi;
+         // Horizontal 1-2-1 over column sums: /4 (422), /8 (420), /16 (top-left 420).
+         auto lo = _mm256_srli_epi16(_mm256_add_epi16(_mm256_add_epi16(
+           _mm256_add_epi16(left_lo, _mm256_slli_epi16(mid_lo, 1)), right_lo), rounder), shift);
+         auto hi = _mm256_srli_epi16(_mm256_add_epi16(_mm256_add_epi16(
+           _mm256_add_epi16(left_hi, _mm256_slli_epi16(mid_hi, 1)), right_hi), rounder), shift);
+         // Match the lane-local byte unpacks in the blend core.
+         auto mask_lo = _mm256_permute2x128_si256(lo, hi, 0x20);
+         auto mask_hi = _mm256_permute2x128_si256(lo, hi, 0x31);
+         _mm256_storeu_si256(reinterpret_cast<__m256i*>(pDst + x),
+           merge_avx2_core(pDst + x, pSrc + x, mask_lo, mask_hi, zero));
+       }
+       pDst += dst_pitch;
+       pSrc += src_pitch;
+       pMask += mode == WeightedMask::M422 ? mask_pitch : mask_pitch * 2;
+     }
+     if (width > vector_width) {
+       Processor *tail;
+       if constexpr (mode == WeightedMask::TopLeft420)
+         tail = vector_width ? merge_luma_420_topleft_allow_leftminus1_c : merge_luma_420_topleft_c;
+       else if constexpr (mode == WeightedMask::M420)
+         tail = vector_width ? merge_luma_420_mpeg2_allow_leftminus1_c : merge_luma_420_mpeg2_c;
+       else
+         tail = vector_width ? merge_luma_422_mpeg2_allow_leftminus1_c : merge_luma_422_mpeg2_c;
+       tail(dst_start + vector_width, dst_pitch, src_start + vector_width, src_pitch,
+         mask_start + vector_width * 2, mask_pitch, width - vector_width, height);
+     }
+   }
+
    void merge_avx2_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
       const uint8_t *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
    {
@@ -262,8 +346,10 @@ namespace {
 
 } // namespace
 
-   // no MPEG2 option here in 8bit AVX2
    Processor *merge_avx2 = merge_avx2_t;
+   Processor *merge_luma_420_mpeg2_avx2 = merge_weighted_avx2_t<WeightedMask::M420>;
+   Processor *merge_luma_420_topleft_avx2 = merge_weighted_avx2_t<WeightedMask::TopLeft420>;
+   Processor *merge_luma_422_mpeg2_avx2 = merge_weighted_avx2_t<WeightedMask::M422>;
    Processor *merge_luma_420_avx2 = merge_luma_420_avx2_t;
    Processor *merge_luma_422_avx2 = merge_luma_422_avx2_t;
    Processor *merge_luma_411_avx2 = merge_luma_411_avx2_t;

@@ -378,9 +378,6 @@
     <ClCompile Include="filters\merge\merge_sse2.cpp">
       <Filter>filters\merge</Filter>
     </ClCompile>
-    <ClCompile Include="filters\merge\merge_sse41.cpp">
-      <Filter>filters\merge</Filter>
-    </ClCompile>
     <ClCompile Include="filters\morphologic\deflate\deflate.cpp">
       <Filter>filters\morphologic\deflate</Filter>
     </ClCompile>
