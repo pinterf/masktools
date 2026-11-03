@@ -215,10 +215,10 @@ public:
         bits_per_pixel = 16; // processed as native 16 bit
 
       use_luma = parameters["luma"].toBool();
-      // PF: for greyscale: graceful fallback to chromaless operation
-      if (nPlanes == 1) {
+      // Y and YA have no chroma: luma=true must not force processing of YA's alpha.
+      if (nPlanes < 3) {
         use_luma = false;
-        operators[1] = operators[2] = operators[3] = NONE;
+        operators[1] = operators[2] = NONE;
       }
 
       // childs[2]: the mask
@@ -243,6 +243,22 @@ public:
         /* if "luma" is set, we force the chroma processing. Much more handy */
         operators[1] = operators[2] = PROCESS;
         /* no need to change U/V default processing, because of in place filter */
+      }
+
+      for (int i = 0; i < nPlanes; ++i) {
+        const int p = plane_index(i);
+        if (operators[p] != PROCESS)
+          continue;
+        if (!childs[1]->has_plane(p)) {
+          error = "source clip lacks a processed plane";
+          return;
+        }
+        // luma=true substitutes the Y mask only for U/V; alpha still needs an alpha mask.
+        const int mask_plane = use_luma && (p == 1 || p == 2) ? 0 : p;
+        if (!childs[2]->has_plane(mask_plane)) {
+          error = "mask clip lacks a processed plane";
+          return;
+        }
       }
 
       switch (bits_per_pixel) {

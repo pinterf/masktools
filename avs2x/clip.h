@@ -29,7 +29,7 @@ template<> inline Plane<const uint8_t> ConvertTo<const uint8_t>(const PVideoFram
    return Plane<const uint8_t>( frame->GetReadPtr( nPlane ), frame->GetPitch( nPlane ), frame->GetRowSize( nPlane ), frame->GetHeight( nPlane ), nPixelSize, frame->GetHeight(nPlane));
 }
 
-/* the supported formats (planar Y, YUV(A), RGB(A); 4:1:1 at 8 bit only) */
+/* the supported formats (planar Y(A), YUV(A), RGB(A); 4:1:1 at 8 bit only) */
 static bool IsSupportedPixelType(int pixel_type)
 {
    switch ( pixel_type )
@@ -39,6 +39,13 @@ static bool IsSupportedPixelType(int pixel_type)
    case VideoInfo::CS_YV16:
    case VideoInfo::CS_YV24:
    case VideoInfo::CS_Y8  :
+
+   case VideoInfo::CS_YA8:
+   case VideoInfo::CS_YA10:
+   case VideoInfo::CS_YA12:
+   case VideoInfo::CS_YA14:
+   case VideoInfo::CS_YA16:
+   case VideoInfo::CS_YAS:
 
    case VideoInfo::CS_YV411: // new from 2.2.1
 

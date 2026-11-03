@@ -430,7 +430,7 @@ public:
 
         /* check the colorspace */
         if (nPlanes == 0)
-            error = "masktools: unsupported colorspace, use Y8, YV12, YV16, YV24, YV411, greyscale, YUV(A)xxxP10-16/S, Planar RGB(A)";
+            error = "masktools: unsupported colorspace, use Y8, YV12, YV16, YV24, YV411, greyscale, YA, YUV(A)xxxP10-16/S, Planar RGB(A)";
 
         // use avs+ expr instead of realcalc lut
         // overridden in lut##.h
