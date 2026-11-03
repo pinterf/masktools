@@ -141,6 +141,18 @@ MT_FORCEINLINE static __m256i get_mask_422_simd(const uint8_t *ptr, int x) {
   return get_single_mask_value_422(row1_lo, row1_hi);
 }
 
+MT_FORCEINLINE static __m256i get_mask_411_simd(const uint8_t *ptr, int x) {
+  ptr += x * 4; // x is a destination byte offset; the mask is four times wider.
+  auto pairs_lo = get_single_mask_value_422(
+    _mm256_loadu_si256(reinterpret_cast<const __m256i*>(ptr)),
+    _mm256_loadu_si256(reinterpret_cast<const __m256i*>(ptr + 32)));
+  auto pairs_hi = get_single_mask_value_422(
+    _mm256_loadu_si256(reinterpret_cast<const __m256i*>(ptr + 64)),
+    _mm256_loadu_si256(reinterpret_cast<const __m256i*>(ptr + 96)));
+  // Each reduction restores linear lane order before the next pairwise average.
+  return get_single_mask_value_422(pairs_lo, pairs_hi);
+}
+
 template <MaskMode mode>
 static void merge16_t_simd(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
                             const uint8_t *pMask, ptrdiff_t nMaskPitch, int nWidth, int nHeight, int bits_per_pixel)
@@ -186,6 +198,8 @@ static void merge16_t_simd(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pS
               mask = get_mask_420_simd(pMask, nMaskPitch, i); 
             } else if (mode == MASK422) {
               mask = get_mask_422_simd(pMask, i);
+            } else if (mode == MASK411) {
+              mask = get_mask_411_simd(pMask, i);
             } else {
               mask = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(reinterpret_cast<const __m256i*>(pMask + i)));
             }
@@ -206,7 +220,7 @@ static void merge16_t_simd(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pS
     }
 
     if (nWidth > wMod32) {
-      const int maskShift = mode == MASK444 ? wMod32 : wMod32 * 2;
+      const int maskShift = mode == MASK411 ? wMod32 * 4 : mode == MASK444 ? wMod32 : wMod32 * 2;
       Processor16 *tail = merge16_t_c<mode>;
       if constexpr (mode == MASK420_MPEG2 || mode == MASK420_TOPLEFT || mode == MASK422_MPEG2) {
         if (wMod32 != 0)
@@ -228,6 +242,7 @@ static void merge16_avx2_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pS
 Processor16 *merge16_avx2 = merge16_avx2_t<MASK444>;
 Processor16 *merge16_luma_420_avx2 = merge16_avx2_t<MASK420>;
 Processor16 *merge16_luma_422_avx2 = merge16_avx2_t<MASK422>;
+Processor16 *merge16_luma_411_avx2 = merge16_avx2_t<MASK411>;
 Processor16 *merge16_luma_420_mpeg2_avx2 = merge16_avx2_t<MASK420_MPEG2>;
 Processor16 *merge16_luma_420_topleft_avx2 = merge16_avx2_t<MASK420_TOPLEFT>;
 Processor16 *merge16_luma_422_mpeg2_avx2 = merge16_avx2_t<MASK422_MPEG2>;

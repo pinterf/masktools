@@ -58,6 +58,7 @@ extern Processor16 *merge16_luma_420_mpeg2_sse2;
 extern Processor16 *merge16_luma_420_topleft_sse2;
 extern Processor16 *merge16_luma_422_sse2;
 extern Processor16 *merge16_luma_422_mpeg2_sse2;
+extern Processor16 *merge16_luma_411_sse2;
 
 extern Processor16 *merge16_avx2;
 extern Processor16 *merge16_luma_420_avx2;
@@ -65,6 +66,7 @@ extern Processor16 *merge16_luma_422_avx2;
 extern Processor16 *merge16_luma_420_mpeg2_avx2;
 extern Processor16 *merge16_luma_420_topleft_avx2;
 extern Processor16 *merge16_luma_422_mpeg2_avx2;
+extern Processor16 *merge16_luma_411_avx2;
 #ifdef NEON_INTRINSICS
 extern Processor16 *merge16_neon;
 extern Processor16 *merge16_luma_420_neon;
@@ -79,6 +81,7 @@ Processor32 merge32_luma_420_mpeg2_c;
 Processor32 merge32_luma_420_topleft_c;
 Processor32 merge32_luma_422_c;
 Processor32 merge32_luma_422_mpeg2_c;
+Processor32 merge32_luma_411_c;
 
 extern Processor32 *merge32_sse2;
 extern Processor32 *merge32_luma_420_sse2;
@@ -337,8 +340,10 @@ public:
         MT_X86(processors16.push_back(Filtering::Processor<Processor16>(merge16_avx2, Constraint(CPU_AVX2), 3)));
         MT_NEON(processors16.push_back(Filtering::Processor<Processor16>(merge16_neon, Constraint(CPU_NEON), 1)));
         /* chroma: used only for 420, 422 and 411 */
-        if (is411) { /* no x86 SIMD so far */
+        if (is411) {
           chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_411_c, Constraint(CPU_NONE), 0));
+          MT_X86(chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_411_sse2, Constraint(CPU_SSE2), 1)));
+          MT_X86(chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_411_avx2, Constraint(CPU_AVX2), 4)));
           MT_NEON(chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_411_neon, Constraint(CPU_NEON), 1)));
         }
         else if (is420) {
@@ -385,8 +390,11 @@ public:
 #endif
 
         /* add the chroma processors */
-        // they are used only for 420 and 422
-        if (is420) {
+        // Float 4:1:1 currently uses C; the other placements keep their existing SIMD paths.
+        if (is411) {
+          chroma_processors32.push_back(Filtering::Processor<Processor32>(merge32_luma_411_c, Constraint(CPU_NONE), 0));
+        }
+        else if (is420) {
           if (isTopLeft) {
             chroma_processors32.push_back(Filtering::Processor<Processor32>(merge32_luma_420_topleft_c, Constraint(CPU_NONE), 0)); \
           } else if (isMpeg2) {

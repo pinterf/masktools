@@ -29,7 +29,7 @@ template<> inline Plane<const uint8_t> ConvertTo<const uint8_t>(const PVideoFram
    return Plane<const uint8_t>( frame->GetReadPtr( nPlane ), frame->GetPitch( nPlane ), frame->GetRowSize( nPlane ), frame->GetHeight( nPlane ), nPixelSize, frame->GetHeight(nPlane));
 }
 
-/* the supported formats (planar Y(A), YUV(A), RGB(A); 4:1:1 at 8 bit only) */
+/* the supported formats (planar Y(A), YUV(A), RGB(A)) */
 static bool IsSupportedPixelType(int pixel_type)
 {
    switch ( pixel_type )
@@ -48,6 +48,17 @@ static bool IsSupportedPixelType(int pixel_type)
    case VideoInfo::CS_YAS:
 
    case VideoInfo::CS_YV411: // new from 2.2.1
+   case VideoInfo::CS_YUV411P10:
+   case VideoInfo::CS_YUV411P12:
+   case VideoInfo::CS_YUV411P14:
+   case VideoInfo::CS_YUV411P16:
+   case VideoInfo::CS_YUV411PS:
+   case VideoInfo::CS_YUVA411:
+   case VideoInfo::CS_YUVA411P10:
+   case VideoInfo::CS_YUVA411P12:
+   case VideoInfo::CS_YUVA411P14:
+   case VideoInfo::CS_YUVA411P16:
+   case VideoInfo::CS_YUVA411PS:
 
    // new color spaces from v2.2.0
    case VideoInfo::CS_Y10:

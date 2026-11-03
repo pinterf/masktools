@@ -163,6 +163,18 @@ MT_FORCEINLINE static __m128i get_mask_422_simd(const uint8_t *ptr, int x) {
   return get_single_mask_value_422(row1_lo, row1_hi);
 }
 
+MT_FORCEINLINE static __m128i get_mask_411_simd(const uint8_t *ptr, int x) {
+  ptr += x * 4; // x is a destination byte offset; the mask is four times wider.
+  auto pairs_lo = get_single_mask_value_422(
+    _mm_loadu_si128(reinterpret_cast<const __m128i*>(ptr)),
+    _mm_loadu_si128(reinterpret_cast<const __m128i*>(ptr + 16)));
+  auto pairs_hi = get_single_mask_value_422(
+    _mm_loadu_si128(reinterpret_cast<const __m128i*>(ptr + 32)),
+    _mm_loadu_si128(reinterpret_cast<const __m128i*>(ptr + 48)));
+  // Two rounded pair reductions, exactly as get_mask_411_c (not a single rounded /4).
+  return get_single_mask_value_422(pairs_lo, pairs_hi);
+}
+
 MT_FORCEINLINE static __m128i get_mask_422_mpeg2_simd(const uint8_t *ptr, int x, __m128i &right_hi) {
   x = x * 2;
 
@@ -229,6 +241,8 @@ static void merge16_t_simd(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pS
               mask = get_mask_422_simd(pMask, i);
             else if constexpr (mode == MASK422_MPEG2)
               mask = get_mask_422_mpeg2_simd(pMask, i, right_hi);
+            else if constexpr (mode == MASK411)
+              mask = get_mask_411_simd(pMask, i);
             else
               mask = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pMask + i));
 
@@ -248,7 +262,7 @@ static void merge16_t_simd(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pS
     }
 
     if (nWidth > wMod16) {
-        const int maskShift = (mode == MASK420 || mode == MASK420_MPEG2 || mode == MASK420_TOPLEFT || mode == MASK422 || mode == MASK422_MPEG2) ? wMod16 * 2 : wMod16;
+        const int maskShift = mode == MASK411 ? wMod16 * 4 : mode == MASK444 ? wMod16 : wMod16 * 2;
         if(wMod16 != 0 && (mode == MASK420_MPEG2 || mode == MASK420_TOPLEFT || mode == MASK422_MPEG2)) // indexing leftmost - 1 is allowed
           merge_allow_leftminus1_c(pDst_s + wMod16, nDstPitch, pSrc1_s + wMod16, nSrc1Pitch, pMask_s + maskShift, nMaskPitch, (nWidth - wMod16) / sizeof(uint16_t), nHeight, bits_per_pixel);
         else
@@ -272,6 +286,7 @@ Processor16 *merge16_luma_420_mpeg2_sse2 = merge16_sse2_t<MASK420_MPEG2, merge16
 Processor16 *merge16_luma_420_topleft_sse2 = merge16_sse2_t<MASK420_TOPLEFT, merge16_t_c<MASK420_TOPLEFT>, merge16_t_allow_leftminus1_c<MASK420_TOPLEFT>>;
 Processor16 *merge16_luma_422_sse2 = merge16_sse2_t<MASK422, merge16_t_c<MASK422>, merge16_t_c<MASK422>>;
 Processor16 *merge16_luma_422_mpeg2_sse2 = merge16_sse2_t<MASK422_MPEG2, merge16_t_c<MASK422_MPEG2>, merge16_t_allow_leftminus1_c<MASK422_MPEG2>>;
+Processor16 *merge16_luma_411_sse2 = merge16_sse2_t<MASK411, merge16_t_c<MASK411>, merge16_t_c<MASK411>>;
 
 } } } }
 

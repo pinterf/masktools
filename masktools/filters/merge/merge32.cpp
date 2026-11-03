@@ -139,6 +139,24 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Merge 
      }
    }
 
+   void merge32_luma_411_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
+     const uint8_t *pMask, ptrdiff_t nMaskPitch, int nWidth, int nHeight)
+   {
+     for (int y = 0; y < nHeight; ++y) {
+       const float *mask = reinterpret_cast<const float *>(pMask);
+       float *dst = reinterpret_cast<float *>(pDst);
+       const float *src = reinterpret_cast<const float *>(pSrc1);
+       for (int x = 0; x < nWidth; ++x) {
+         // Float counterpart of the integer pairwise 4:1:1 reduction; no integer rounding.
+         const float m = ((mask[x * 4] + mask[x * 4 + 1]) + (mask[x * 4 + 2] + mask[x * 4 + 3])) * 0.25f;
+         dst[x] = (1.0f - m) * dst[x] + m * src[x];
+       }
+       pDst += nDstPitch;
+       pSrc1 += nSrc1Pitch;
+       pMask += nMaskPitch;
+     }
+   }
+
    template<bool allow_leftminus1>
    void internal_merge32_luma_422_mpeg2_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
      const uint8_t *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
