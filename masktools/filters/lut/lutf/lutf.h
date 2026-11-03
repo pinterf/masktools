@@ -85,7 +85,7 @@ protected:
               (uint16_t *)frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
               nullptr, &ctx, dst.width(), dst.height(), bits_per_pixel);
           else {
-            const bool chroma = ((nPlane == 1 || nPlane == 2) && !planes_isRGB[C]);
+            const bool chroma = ((nPlane == 1 || nPlane == 2) && !isRGB);
             processors32.best_processor(constraints[nPlane])((float *)dst.data(), dst.pitch(),
               (float *)frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
               &ctx, dst.width(), dst.height(), chroma);
@@ -121,7 +121,7 @@ public:
 
       Parser::Parser parser = Parser::getDefaultParser().addSymbol(Parser::Symbol::X).addSymbol(Parser::Symbol::Y);
 
-      bits_per_pixel = bit_depths[C];
+      bits_per_pixel = nBitDepth;
       realtime = parameters["realtime"].toBool();
       scale_inputs = parameters["scale_inputs"].toString();
       if (!checkValidScaleInputs(scale_inputs, error))

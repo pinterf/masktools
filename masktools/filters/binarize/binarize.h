@@ -106,7 +106,7 @@ public:
    Binarize(const Parameters &parameters, CpuFlags cpuFlags) : MaskTools::Filter(parameters, FilterProcessingType::INPLACE, (CpuFlags)cpuFlags)
    {
      bool isStacked = parameters["stacked"].toBool();
-     bits_per_pixel = bit_depths[C];
+     bits_per_pixel = nBitDepth;
 
      if (isStacked && bits_per_pixel != 8) {
        error = "Stacked specified for a non-8 bit clip";
@@ -122,7 +122,7 @@ public:
        nThreshold_f = (float)parameters["threshold"].toFloat();
        nThreshold = parameters["threshold"].toInt();
        String scalemode = parameters["paramscale"].toString();
-       bool fullscale = planes_isRGB[C];
+       bool fullscale = isRGB;
        if (!ScaleParam(scalemode, nThreshold_f, bits_per_pixel, nThreshold_f, nThreshold, fullscale, false, false))
        {
          error = "invalid parameter: paramscale. Use i8, i10, i12, i14, i16, f32 for scale or none/empty to disable scaling";

@@ -133,7 +133,7 @@ protected:
                 nullptr, nullptr, &ctx, nullptr, pCoordinates, nCoordinates, dst.width(), dst.height(), mode, bits_per_pixel);
             }
             else {
-              const bool chroma = ((nPlane == 1 || nPlane == 2) && !planes_isRGB[C]);
+              const bool chroma = ((nPlane == 1 || nPlane == 2) && !isRGB);
               processors32.best_processor(constraints[nPlane])(dst.data(), dst.pitch(),
                 frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
                 nullptr, nullptr, &ctx, nullptr, pCoordinates, nCoordinates, dst.width(), dst.height(), mode, chroma);
@@ -147,7 +147,7 @@ protected:
                 nullptr, nullptr, &ctx, &ctx_w, pCoordinates, nCoordinates, dst.width(), dst.height(), mode, bits_per_pixel);
             }
             else {
-              const bool chroma = ((nPlane == 1 || nPlane == 2) && !planes_isRGB[C]);
+              const bool chroma = ((nPlane == 1 || nPlane == 2) && !isRGB);
               processors32_weight.best_processor(constraints[nPlane])(dst.data(), dst.pitch(),
                 frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
                 nullptr, nullptr, &ctx, &ctx_w, pCoordinates, nCoordinates, dst.width(), dst.height(), mode, chroma);
@@ -189,7 +189,7 @@ public:
 
      Parser::Parser parser = Parser::getDefaultParser().addSymbol(Parser::Symbol::X).addSymbol(Parser::Symbol::Y);
 
-     bits_per_pixel = bit_depths[C];
+     bits_per_pixel = nBitDepth;
      realtime = parameters["realtime"].toBool();
      scale_inputs = parameters["scale_inputs"].toString();
      if (!checkValidScaleInputs(scale_inputs, error))

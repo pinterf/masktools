@@ -94,7 +94,7 @@ protected:
               &ctx, pCoordinates, nCoordinates, dst.width(), dst.height(), mode1, mode2, bits_per_pixel);
           }
           else {
-            const bool chroma = ((nPlane == 1 || nPlane == 2) && !planes_isRGB[C]);
+            const bool chroma = ((nPlane == 1 || nPlane == 2) && !isRGB);
             processorsCtx32.best_processor(constraints[nPlane])(dst.data(), dst.pitch(),
               frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
               frames[1].plane(nPlane).data(), frames[1].plane(nPlane).pitch(),
@@ -116,7 +116,7 @@ public:
        parsed_expressions[i] = nullptr;
      }
 
-     bits_per_pixel = bit_depths[C];
+     bits_per_pixel = nBitDepth;
      realtime = parameters["realtime"].toBool();
      scale_inputs = parameters["scale_inputs"].toString();
      if (!checkValidScaleInputs(scale_inputs, error))

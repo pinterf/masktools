@@ -36,7 +36,7 @@ protected:
 
 public:
     Hysteresis(const Parameters &parameters, CpuFlags cpuFlags) : MaskTools::Filter(parameters, FilterProcessingType::CHILD, (CpuFlags)cpuFlags) {
-      bits_per_pixel = bit_depths[C];
+      bits_per_pixel = nBitDepth;
       const bool corners = parameters["corners"].toBool();
 
       switch (bits_per_pixel) {

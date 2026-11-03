@@ -41,7 +41,7 @@ protected:
 public:
   Invert(const Parameters &parameters, CpuFlags cpuFlags) : MaskTools::Filter(parameters, FilterProcessingType::INPLACE, (CpuFlags)cpuFlags)
   {
-    bits_per_pixel = bit_depths[C];
+    bits_per_pixel = nBitDepth;
 
     /* add the processors */
     switch (bits_per_pixel) {

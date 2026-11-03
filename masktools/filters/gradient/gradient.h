@@ -54,7 +54,7 @@ protected:
 public:
    Gradient(const Parameters &parameters, CpuFlags cpuFlags) : MaskTools::Filter( parameters, FilterProcessingType::CHILD, (CpuFlags)cpuFlags)
    {
-      bits_per_pixel = bit_depths[C];
+      bits_per_pixel = nBitDepth;
      
       /* add the processors */
       if (parameters["distorsion"].toString() == "sad")
@@ -83,7 +83,7 @@ public:
       nY[0] = parameters["size_y"].is_defined() ? clip<int, int>(parameters["size_y"].toInt(), 0, nCoreHeight - 1) : nCoreHeight / 2;
       nPrecision = parameters["precision"].toInt();
 
-      for ( int i = 1; i < plane_counts[C]; i++ )
+      for ( int i = 1; i < nPlanes; i++ )
       {
          nX[i] = nX[0] / width_ratios[i];
          nY[i] = nY[0] / height_ratios[i];

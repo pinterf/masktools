@@ -88,10 +88,10 @@ protected:
 public:
   MotionMask(const Parameters &parameters, CpuFlags cpuFlags) : MaskTools::Filter(parameters, FilterProcessingType::INPLACE, (CpuFlags)cpuFlags)
   {
-    bits_per_pixel = bit_depths[C];
+    bits_per_pixel = nBitDepth;
     bool isFloat = bits_per_pixel == 32;
 
-    bool fullscale = planes_isRGB[C];
+    bool fullscale = isRGB;
 
     String scalemode = parameters["paramscale"].toString();
 

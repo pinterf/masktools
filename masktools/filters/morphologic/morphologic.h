@@ -66,7 +66,7 @@ public:
     MorphologicFilter(const Parameters &parameters, CpuFlags cpuFlags) : MaskTools::Filter(parameters, FilterProcessingType::CHILD, (CpuFlags)cpuFlags), coordinates_list(NULL), coordinates_count(0)
     {
       isStacked = parameters["stacked"].toBool();
-      bits_per_pixel = bit_depths[C];
+      bits_per_pixel = nBitDepth;
 
       if (isStacked && bits_per_pixel != 8) {
         error = "Stacked specified for a non-8 bit clip";
@@ -77,7 +77,7 @@ public:
         bits_per_pixel = 16;
 
       bool isFloat = bits_per_pixel == 32;
-      bool fullscale = planes_isRGB[C];
+      bool fullscale = isRGB;
       String scalemode = parameters["paramscale"].toString();
 
       int thY, thC;

@@ -114,7 +114,7 @@ protected:
   virtual void process(int n, const Plane<uint8_t> &dst, int nPlane, const Frame<const uint8_t> frames[4], const Constraint constraints[4]) override
   {
     UNUSED(n);
-    int bits_per_pixel = bit_depths[C];
+    int bits_per_pixel = nBitDepth;
     if (parameters["stacked"].toBool())
       bits_per_pixel = 16;
     if (use_luma && ((nPlane == 1 || nPlane == 2))) {
@@ -193,7 +193,7 @@ public:
    Merge(const Parameters &parameters, CpuFlags cpuFlags) : MaskTools::Filter( parameters, FilterProcessingType::INPLACE, (CpuFlags)cpuFlags)
    {
       bool isStacked = parameters["stacked"].toBool();
-      int bits_per_pixel = bit_depths[C];
+      int bits_per_pixel = nBitDepth;
 
       bool is420 = width_ratios[1] == 2 && height_ratios[1] == 2;
       bool is422 = width_ratios[1] == 2 && height_ratios[1] == 1;
@@ -218,22 +218,19 @@ public:
 
       use_luma = parameters["luma"].toBool();
       // PF: for greyscale: graceful fallback to chromaless operation
-      if (plane_counts[C] == 1) {
+      if (nPlanes == 1) {
         use_luma = false;
         operators[1] = operators[2] = operators[3] = NONE;
       }
 
-      auto c1 = childs[0]->colorspace();
-      auto c2 = childs[1]->colorspace();
-      auto c3 = childs[2]->colorspace(); // mask
-
-      if (bit_depths[c1] != bit_depths[c2] || bit_depths[c1] != bit_depths[c3]) {
+      // childs[2]: the mask
+      if (childs[0]->bit_depth() != childs[1]->bit_depth() || childs[0]->bit_depth() != childs[2]->bit_depth()) {
         error = "clips should have identical bit depths";
         return;
       }
 
       // error when when mask clip is greyscale and 'u' or 'v' or 'a' processing is set (2.2.27-)
-      if (!use_luma && plane_counts[c3] == 1 && (operators[1] == PROCESS || operators[2] == PROCESS || operators[3] == PROCESS)) {
+      if (!use_luma && childs[2]->plane_count() == 1 && (operators[1] == PROCESS || operators[2] == PROCESS || operators[3] == PROCESS)) {
         error = "mask clip is greyscale and 'u' or 'v' or 'a' processing is set with luma=false";
         return;
       }

@@ -85,7 +85,7 @@ protected:
           else if (bits_per_pixel <= 16)
             processorCtx16(dst.data(), dst.pitch(), frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(), dst.width(), dst.height(), ctx, bits_per_pixel);
           else {
-            const bool chroma = ((nPlane == 1 || nPlane == 2) && !planes_isRGB[C]);
+            const bool chroma = ((nPlane == 1 || nPlane == 2) && !isRGB);
             processorCtx32(dst.data(), dst.pitch(), frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(), dst.width(), dst.height(), chroma, ctx); // extra parameter
           }
         }
@@ -111,7 +111,7 @@ public:
 
       Parser::Parser parser = Parser::getDefaultParser().addSymbol(Parser::Symbol::X).addSymbol(Parser::Symbol::Y);
 
-      bits_per_pixel = bit_depths[C];
+      bits_per_pixel = nBitDepth;
       realtime = parameters["realtime"].toBool();
       scale_inputs = parameters["scale_inputs"].toString();
       if (!checkValidScaleInputs(scale_inputs, error))

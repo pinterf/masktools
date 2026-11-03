@@ -54,7 +54,7 @@ protected:
 public:
    MappedBlur(const Parameters &parameters, CpuFlags cpuFlags) : MaskTools::Filter( parameters, FilterProcessingType::CHILD, (CpuFlags)cpuFlags)
    {
-      bits_per_pixel = bit_depths[C];
+      bits_per_pixel = nBitDepth;
       bool isFloat = bits_per_pixel == 32;
 
       auto coeffs = Parser::getDefaultParser().parse(parameters["kernel"].toString(), Parser::SYMBOL_SEPARATORS).getExpression();

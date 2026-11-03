@@ -65,7 +65,7 @@ protected:
 public:
    Convolution(const Parameters &parameters, CpuFlags cpuFlags) : MaskTools::Filter( parameters, FilterProcessingType::CHILD, (CpuFlags)cpuFlags)
    {
-      bits_per_pixel = bit_depths[C];
+      bits_per_pixel = nBitDepth;
      
       i_vertical = i_horizontal = NULL;
       f_vertical = f_horizontal = NULL;

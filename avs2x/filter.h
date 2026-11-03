@@ -88,7 +88,7 @@ public:
       // copy-plane or fill operators are also converted to valid expression strings (single "x" or like "128")
       const bool effective_expr_need_process = _filter.expr_need_process[0] || _filter.expr_need_process[1] || _filter.expr_need_process[2] || _filter.expr_need_process[3];
       if (effective_expr_need_process) {
-        const int planecount = plane_counts[_filter.colorspace()];
+        const int planecount = _filter.plane_count();
 
         // lut, lutxy, lutxyz, lutxyza: InPlaceTwoFrame: size is less by one, first clip is explicit
         int realInputConfigSize = inputConfigSize + 1;

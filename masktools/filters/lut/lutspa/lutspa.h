@@ -27,7 +27,7 @@ protected:
 public:
    Lutspa(const Parameters &parameters, CpuFlags cpuFlags) : MaskTools::Filter(parameters, FilterProcessingType::CHILD, (CpuFlags)cpuFlags)
    {
-      bits_per_pixel = bit_depths[C];
+      bits_per_pixel = nBitDepth;
       pixelsize = bits_per_pixel == 8 ? 1 : (bits_per_pixel <= 16) ? 2 : 4;
 
       static const char *expr_strs[] = { "yExpr", "uExpr", "vExpr", "aExpr" };
@@ -118,7 +118,7 @@ public:
              }
            break;
          case 32:
-           const bool chroma = !planes_isRGB[C] && (i == 1 || i == 2); // not RGB and plane U or V
+           const bool chroma = !isRGB && (i == 1 || i == 2); // not RGB and plane U or V
            for (int x = 0; x < w; x++)
              for (int y = 0; y < h; y++) {
                float val = is_relative ?

@@ -138,18 +138,18 @@ protected:
     virtual void process(int n, const Plane<uint8_t> &dst, int nPlane, const Filtering::Frame<const uint8_t> frames[4], const Constraint constraints[4]) override
     {
         UNUSED(n);
-        if (bit_depths[C] == 8) {
+        if (nBitDepth == 8) {
           processors.best_processor(constraints[nPlane])(dst.data(), dst.pitch(),
             frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
             matrix, nLowThresholds[nPlane], nHighThresholds[nPlane], dst.width(), dst.height());
         }
-        else if(bit_depths[C] <= 16) {
+        else if(nBitDepth <= 16) {
           // 16 bit, low threshold 65535: only values above 65535 (prewitt, hprewitt, cartoon, custom matrix) give
           // max, the SIMD versions saturate them to 65535 before the threshold -> C (no 32 bit compare in SIMD)
-          const bool cOnly = bit_depths[C] == 16 && nLowThresholds[nPlane] >= 65535;
+          const bool cOnly = nBitDepth == 16 && nLowThresholds[nPlane] >= 65535;
           processors16.best_processor(cOnly ? Constraint(CPU_NONE) : constraints[nPlane])((uint16_t *)dst.data(), dst.pitch(),
             (uint16_t *)frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
-            matrix, nLowThresholds[nPlane], nHighThresholds[nPlane], dst.width(), dst.height(), bit_depths[C]);
+            matrix, nLowThresholds[nPlane], nHighThresholds[nPlane], dst.width(), dst.height(), nBitDepth);
         }
         else { // float
           processors32.best_processor(constraints[nPlane])((float *)dst.data(), dst.pitch(),
@@ -161,10 +161,10 @@ protected:
 public:
    EdgeMask(const Parameters &parameters, CpuFlags cpuFlags) : MaskTools::Filter( parameters, FilterProcessingType::CHILD, (CpuFlags)cpuFlags)
    {
-     int bits_per_pixel = bit_depths[C];
+     int bits_per_pixel = nBitDepth;
      bool isFloat = bits_per_pixel == 32;
 
-     bool fullscale = planes_isRGB[C];
+     bool fullscale = isRGB;
      String scalemode = parameters["paramscale"].toString();
 
      int thY1, thC1, thY2, thC2;

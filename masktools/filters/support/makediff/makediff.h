@@ -54,7 +54,7 @@ protected:
             frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
             dst.width(), dst.height(), bits_per_pixel);
         else {
-          const bool chroma = ((nPlane == 1 || nPlane == 2) && !planes_isRGB[C]); // chroma center is 0.0 others are 0.5
+          const bool chroma = ((nPlane == 1 || nPlane == 2) && !isRGB); // chroma center is 0.0 others are 0.5
           processors32.best_processor(constraints[nPlane])(dst.data(), dst.pitch(),
             frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
             dst.width(), dst.height(), chroma);
@@ -65,7 +65,7 @@ public:
     MakeDiff(const Parameters &parameters, CpuFlags cpuFlags) : MaskTools::Filter(parameters, FilterProcessingType::INPLACE, (CpuFlags)cpuFlags)
     {
       bool isStacked = parameters["stacked"].toBool();
-      bits_per_pixel = bit_depths[C];
+      bits_per_pixel = nBitDepth;
 
       if (isStacked && bits_per_pixel != 8) {
         error = "Stacked specified for a non-8 bit clip";

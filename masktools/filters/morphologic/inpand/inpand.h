@@ -66,7 +66,7 @@ class Inpand : public Morphologic::MorphologicFilter
 public:
   Inpand(const Parameters&parameters, CpuFlags cpuFlags) : Morphologic::MorphologicFilter(parameters, (CpuFlags)cpuFlags)
   {
-    int _bits_per_pixel = bit_depths[C];
+    int _bits_per_pixel = nBitDepth;
     bool _isStacked = parameters["stacked"].toBool();
     if (_isStacked)
       _bits_per_pixel = 16;

@@ -23,7 +23,9 @@ protected:
     Parameters parameters;
 
     int nWidth, nHeight;
-    Colorspace C;
+    int nPlanes; // of the first clip
+    int nBitDepth; // of the first clip
+    bool isRGB; // the first clip is planar RGB(A)
     int width_ratios[4], height_ratios[4]; // of the first clip (Clip::width_ratio)
 
     String error;
@@ -228,7 +230,9 @@ public:
 
         nWidth = childs[0]->width();
         nHeight = childs[0]->height();
-        C = childs[0]->colorspace();
+        nPlanes = childs[0]->plane_count();
+        nBitDepth = childs[0]->bit_depth();
+        isRGB = childs[0]->is_rgb();
         for (int i = 0; i < 4; i++) {
             width_ratios[i] = childs[0]->width_ratio(i);
             height_ratios[i] = childs[0]->height_ratio(i);
@@ -246,7 +250,7 @@ public:
 
         // Snap the window to the subsampling grid the same way Frame::offset does,
         // so that nCoreWidth/nCoreHeight are the real luma window sizes.
-        if (plane_counts[C] > 1) {
+        if (nPlanes > 1) {
             const int rw = width_ratios[2];
             const int rh = height_ratios[2];
             const int x1 = (nXOffset + nCoreWidth) / rw * rw;
@@ -258,8 +262,8 @@ public:
         }
 
         String scalemode = parameters["paramscale"].toString();
-        const bool fullscale = planes_isRGB[C];
-        const int bits_per_pixel = bit_depths[C];
+        const bool fullscale = isRGB;
+        const int bits_per_pixel = nBitDepth;
 
         if (parameters["chroma"].is_defined())
         {
@@ -351,7 +355,7 @@ public:
           if (operators[i].getMode() != MEMSET) continue;
           float op_f = operators[i].value_f();
           int op;
-          const bool as_chroma = !planes_isRGB[C] && (i == 1 || i == 2); // scales to float specially
+          const bool as_chroma = !isRGB && (i == 1 || i == 2); // scales to float specially
           const bool as_fullscale = fullscale || i == 3; // alpha channel is always fullscale
           if (!ScaleParam(scalemode, op_f, bits_per_pixel, op_f, op, as_fullscale, false, as_chroma))
           {
@@ -389,7 +393,7 @@ public:
         }
 
         // don't try to process non-existant planes
-        for (int i = plane_counts[C]; i < 4; i++)
+        for (int i = nPlanes; i < 4; i++)
           operators[i] = NONE;
 
         /* effective modes */
@@ -409,7 +413,7 @@ public:
         print(LOG_DEBUG, "using cpu flags : 0x%x\n", flags);
 
         /* chroma offsets and box */
-        if (C != COLORSPACE_Y8 && C != COLORSPACE_Y10 && C != COLORSPACE_Y12 && C != COLORSPACE_Y14 && C != COLORSPACE_Y16 && C != COLORSPACE_Y32 && C != COLORSPACE_NONE)
+        if (nPlanes > 1)
         {
           // also for planar RGB, naming is a bit confusing yet
             nXOffsetUV = nXOffset / width_ratios[1];
@@ -422,7 +426,7 @@ public:
         print(LOG_DEBUG, "offset : %i %i, width x height : %i x %i\n", nXOffset, nYOffset, nCoreWidth, nCoreHeight);
 
         /* check the colorspace */
-        if (C == COLORSPACE_NONE)
+        if (nPlanes == 0)
             error = "masktools: unsupported colorspace, use Y8, YV12, YV16, YV24, YV411, greyscale, YUV(A)xxxP10-16/S, Planar RGB(A)";
 
         // use avs+ expr instead of realcalc lut
@@ -503,17 +507,17 @@ public:
         return output_frame;
       }
 
-      for (int i = 0; i < plane_counts[C]; i++) {
+      for (int i = 0; i < nPlanes; i++) {
         constraints[i] = Constraint(plane_flags(output.plane(i)), output.plane(i));
       }
 
       for (int i = 0; i < clipcount; i++) {
-        for (int j = 0; j < plane_counts[frames[i].colorspace()]; j++) {
+        for (int j = 0; j < frames[i].plane_count(); j++) {
           constraints[j] = Constraint(constraints[j], frames[i].plane(j));
         }
       }
 
-      for (int i = 0; i < plane_counts[C]; i++) {
+      for (int i = 0; i < nPlanes; i++) {
         // a window snapped to the subsampling can be empty (e.g. YV12 offx=0, w=1): nothing to process
         if (output.plane(i).width() <= 0 || output.plane(i).height() <= 0)
           continue;
@@ -538,8 +542,7 @@ public:
       Frame<const uint8_t> frames_native[4];
       Constraint constraints[4];
 
-      const int planecount = plane_counts[C];
-      for (int i = 0; i < planecount; i++) {
+      for (int i = 0; i < nPlanes; i++) {
         const Plane<uint8_t> &o = output.plane(i);
         // the output too: in place filters and the "none" mode keep its content
         out_native[i] = out_buf[i].from_stacked(Plane<const uint8_t>(o.data(), o.pitch(), o.width(), o.height(), o.pixelsize(), o.origheight()));
@@ -547,15 +550,15 @@ public:
       }
       for (int i = 0; i < clipcount; i++) {
         Plane<const uint8_t> planes[4];
-        const int pc = plane_counts[frames[i].colorspace()];
+        const int pc = frames[i].plane_count();
         for (int j = 0; j < pc; j++) {
           Plane<uint8_t> p = in_buf[i][j].from_stacked(frames[i].plane(j));
           planes[j] = Plane<const uint8_t>(p.data(), p.pitch(), p.width(), p.height(), p.pixelsize(), p.origheight());
           constraints[j] = Constraint(constraints[j], planes[j]);
         }
-        frames_native[i] = Frame<const uint8_t>(planes, frames[i].colorspace());
+        frames_native[i] = Frame<const uint8_t>(planes, pc);
       }
-      for (int i = 0; i < planecount; i++) {
+      for (int i = 0; i < nPlanes; i++) {
         if (out_native[i].width() <= 0 || out_native[i].height() <= 0)
           continue;
         process_plane(n, out_native[i], i, constraints, frames_native);
@@ -568,7 +571,7 @@ public:
     String get_error() const { return error; }
     bool is_error() const { return !error.empty(); }
     bool is_in_place() const { return inPlace_; }
-    Colorspace colorspace() const { return C; }
+    int plane_count() const { return nPlanes; }
 
 };
 

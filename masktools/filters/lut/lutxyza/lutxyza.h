@@ -88,7 +88,7 @@ protected:
               frames[2].plane(nPlane).data(), frames[2].plane(nPlane).pitch(),
               dst.width(), dst.height(), ctx, bits_per_pixel);
           else {
-            const bool chroma = ((nPlane == 1 || nPlane == 2) && !planes_isRGB[C]);
+            const bool chroma = ((nPlane == 1 || nPlane == 2) && !isRGB);
             processorCtx32(dst.data(), dst.pitch(),
               frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
               frames[1].plane(nPlane).data(), frames[1].plane(nPlane).pitch(),
@@ -118,7 +118,7 @@ public:
         luts[i].ptr = nullptr;
       }
 
-      bits_per_pixel = bit_depths[C];
+      bits_per_pixel = nBitDepth;
       realtime = parameters["realtime"].toBool();
       scale_inputs = parameters["scale_inputs"].toString();
       if (!checkValidScaleInputs(scale_inputs, error))

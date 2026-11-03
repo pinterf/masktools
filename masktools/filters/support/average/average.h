@@ -60,7 +60,7 @@ public:
     Average(const Parameters &parameters, CpuFlags cpuFlags) : MaskTools::Filter(parameters, FilterProcessingType::INPLACE, (CpuFlags)cpuFlags)
     {
       bool isStacked = parameters["stacked"].toBool();
-      bits_per_pixel = bit_depths[C];
+      bits_per_pixel = nBitDepth;
 
       if (isStacked && bits_per_pixel != 8) {
         error = "Stacked specified for a non-8 bit clip";

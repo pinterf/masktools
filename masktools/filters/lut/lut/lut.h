@@ -88,7 +88,7 @@ protected:
           else if (bits_per_pixel <= 16)
             processorCtx16(dst.data(), dst.pitch(), dst.width(), dst.height(), ctx, bits_per_pixel);
           else {
-            const bool chroma = ((nPlane == 1 || nPlane == 2) && !planes_isRGB[C]);
+            const bool chroma = ((nPlane == 1 || nPlane == 2) && !isRGB);
             processorCtx32(dst.data(), dst.pitch(), dst.width(), dst.height(), chroma, ctx); // extra parameter
           }
         }
@@ -115,7 +115,7 @@ public:
       Parser::Parser parser = Parser::getDefaultParser().addSymbol(Parser::Symbol::X);
 
       isStacked = parameters["stacked"].toBool();
-      bits_per_pixel = bit_depths[C];
+      bits_per_pixel = nBitDepth;
 
       if (isStacked && bits_per_pixel != 8) {
         error = "Stacked specified for a non-8 bit clip";
