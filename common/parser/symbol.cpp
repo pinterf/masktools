@@ -777,8 +777,9 @@ double Context::rec_compute()
 
     case Symbol::DUP: {
       int distance = s.nParameter; // 1..9  duplicates the nth distance stack value to the top
+      exprstack.push_back(last); // the current top stays below the copy
       if (distance != 0) {
-        auto newptr = (int)exprstack.size() - distance;
+        auto newptr = (int)exprstack.size() - 1 - distance;
         if (newptr < 0) { // out of stack addressing. FIXME: error?
           compute_error = compute_error_t::CE_DUP_INDEX;
           last = 0.0;
@@ -786,7 +787,6 @@ double Context::rec_compute()
         else
           last = exprstack[newptr];
       }
-      exprstack.push_back(last);
       break;
     }
 
