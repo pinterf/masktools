@@ -207,7 +207,7 @@ public:
      // chroma threshold
      if (parameters["thC1"].is_defined()) {
        thC1_f = (float)parameters["thC1"].toFloat();
-       if (!ScaleParam(scalemode, thC1_f, bits_per_pixel, thC1_f, thC1, fullscale, false, true))
+       if (!ScaleParam(scalemode, thC1_f, bits_per_pixel, thC1_f, thC1, fullscale, false, false)) // a difference, not a chroma level
        {
          error = errortxt;
          return;
@@ -216,7 +216,7 @@ public:
 
      if (parameters["thC2"].is_defined()) {
        thC2_f = (float)parameters["thC2"].toFloat();
-       if (!ScaleParam(scalemode, thC2_f, bits_per_pixel, thC2_f, thC2, fullscale, false, true))
+       if (!ScaleParam(scalemode, thC2_f, bits_per_pixel, thC2_f, thC2, fullscale, false, false)) // a difference, not a chroma level
        {
          error = errortxt;
          return;
