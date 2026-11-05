@@ -38,10 +38,21 @@ namespace {
     }
   }
 
+// Very wide planes in column chunks: the tiers sum a row in 32 bit, some of them signed. 65535 * 2^15 < 2^31.
+template <decltype(sad16_c_op) sad>
+uint64_t sad16_chunked(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nWidth, int nHeight)
+{
+    const int nChunk = 1 << 15;
+    uint64_t nSad = 0;
+    for (int x = 0; x < nWidth; x += min<int>(nChunk, nWidth - x))
+        nSad += sad(pDst + (ptrdiff_t)x * sizeof(uint16_t), nDstPitch, pSrc + (ptrdiff_t)x * sizeof(uint16_t), nSrcPitch, min<int>(nChunk, nWidth - x), nHeight);
+    return nSad;
+}
+
 template <decltype(sad16_c_op) sad, decltype(mask16_c_op) mask>
 bool mask16_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, ptrdiff_t nSrcPitch, int nLowThreshold, int nHighThreshold, int nMotionThreshold, int nSceneChange, int nSceneChangeValue, int nWidth, int nHeight, int bits_per_pixel)
 {
-    bool scenechange = nSceneChange >= 2 ? nSceneChange == 3 : sad(pDst, nDstPitch, pSrc, nSrcPitch, nWidth, nHeight) > (uint64_t)nMotionThreshold * nWidth * nHeight;
+    bool scenechange = nSceneChange >= 2 ? nSceneChange == 3 : sad16_chunked<sad>(pDst, nDstPitch, pSrc, nSrcPitch, nWidth, nHeight) > (uint64_t)nMotionThreshold * nWidth * nHeight;
 
     if (scenechange) {
         Functions::memset_plane_16((uint8_t *)pDst, nDstPitch, nWidth, nHeight, static_cast<uint16_t>(nSceneChangeValue));
