@@ -63,13 +63,8 @@ protected:
       signature.add( Parameter( 0, "offY", false) );
       signature.add( Parameter( -1, "w", false) );
       signature.add( Parameter( -1, "h", false) );
-      signature.add( Parameter( true, "sse2", false) );
-      signature.add( Parameter( true, "sse3", false) );
-      signature.add( Parameter( true, "ssse3", false) );
-      signature.add( Parameter( true, "sse4", false) );
-      signature.add( Parameter( true, "avx", false));
-      signature.add( Parameter( true, "avx2", false));
-      signature.add( Parameter( 1.0f, "A", true)); // put it at the end, don't change original parameter order
+      signature.add( Parameter( 0, "opt", false) ); // debug: 0 auto, 1 C, 2 SSE2, 3 SSE4.1, 4 AVX, 5 AVX2; aarch64: 1 C, else NEON
+      signature.add( Parameter( 1.0f, "A", true));
       signature.add(Parameter(Value(String("")), "alpha", false)); // same function as "chroma", for alpha plane
       signature.add(Parameter(String("i8"), "paramscale", false)); // like in expressions + none
 
@@ -439,15 +434,16 @@ public:
         print(LOG_DEBUG, "modes : %i %i %i %i\n", operators[0].getMode(), operators[1].getMode(), operators[2].getMode(), operators[3].getMode());
 
         /* cpu flags */
-        if (!parameters["sse2"].toBool()) flags &= ~CPU_SSE2;
-        if (!parameters["sse3"].toBool()) flags &= ~CPU_SSE3;
-        if (!parameters["ssse3"].toBool()) flags &= ~CPU_SSSE3;
-        if (!parameters["sse4"].toBool()) {
-            flags &= ~CPU_SSE4_1;
-            flags &= ~CPU_SSE4_2;
+        /* the highest code path to use, capped by what the CPU has */
+        const int opt = parameters["opt"].toInt();
+        if (opt < 0 || opt > 5) {
+            error = "opt must be 0 (auto), 1 (C), 2 (SSE2), 3 (SSE4.1), 4 (AVX) or 5 (AVX2)";
+            return;
         }
-        if (!parameters["avx"].toBool()) flags &= ~CPU_AVX;
-        if (!parameters["avx2"].toBool()) flags &= ~CPU_AVX2;
+        if (opt == 1) flags = CPU_NONE;
+        if (opt == 2) flags &= ~(CPU_SSE3 | CPU_SSSE3 | CPU_SSE4_1 | CPU_SSE4_2 | CPU_AVX | CPU_AVX2);
+        if (opt == 3) flags &= ~(CPU_AVX | CPU_AVX2);
+        if (opt == 4) flags &= ~CPU_AVX2;
 
         print(LOG_DEBUG, "using cpu flags : 0x%x\n", flags);
 
