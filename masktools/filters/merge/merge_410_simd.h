@@ -203,43 +203,55 @@ struct Mask410NEON<float> {
 };
 #endif
 
-template<typename T, bool left, bool top, template<typename> class Ops>
-MT_FORCEINLINE typename Ops<T>::V get_mask_410_simd(const uint8_t *row, ptrdiff_t pitch, int x, int y)
+// Same additions in the same order as mask_filter_sum: float results are identical to C.
+template<MaskFilter F, typename O>
+MT_FORCEINLINE typename O::V mask_filter_sum_simd(const typename O::V *v)
+{
+  if constexpr (F == MF_ID) {
+    return v[0];
+  }
+  else if constexpr (F == MF_TENT7) {
+    const auto s0 = O::add(O::add(O::add(v[0], v[1]), v[2]), v[3]);
+    const auto s1 = O::add(O::add(O::add(v[1], v[2]), v[3]), v[4]);
+    const auto s2 = O::add(O::add(O::add(v[2], v[3]), v[4]), v[5]);
+    const auto s3 = O::add(O::add(O::add(v[3], v[4]), v[5]), v[6]);
+    return O::add(O::add(O::add(s0, s1), s2), s3);
+  }
+  else {
+    return O::add(mask_filter_sum_simd<MF_TENT7, O>(v), mask_filter_sum_simd<MF_TENT7, O>(v + 1));
+  }
+}
+
+// O::lanes chroma masks from chroma position x on. Reads the 4 luma pixels before the block of x;
+// the triangle also the 4 after the block of the last lane.
+template<typename T, MaskFilter H, MaskFilter V, template<typename> class Ops>
+MT_FORCEINLINE typename Ops<T>::V get_mask_filtered_simd(const T *const *rows, int x)
 {
   using O = Ops<T>;
-  constexpr int shift = (left ? 4 : 2) + (top ? 4 : 2);
-  auto sum = O::zero();
-  for (int dy = top ? -3 : 0; dy <= 3; ++dy) {
-    const int offset = std::max(y * 4 + dy, 0) - y * 4;
-    const T *p = reinterpret_cast<const T*>(row + offset * pitch) + x * 4;
-    typename O::V c[4];
-    O::columns(p, c);
-    auto h = O::zero();
-    if constexpr (left) {
-      typename O::V prev[4];
-      O::columns(p - 4, prev);
-      h = O::add(h, O::template mul<1>(prev[1]));
-      h = O::add(h, O::template mul<2>(prev[2]));
-      h = O::add(h, O::template mul<3>(prev[3]));
-      h = O::add(h, O::template mul<4>(c[0]));
-      h = O::add(h, O::template mul<3>(c[1]));
-      h = O::add(h, O::template mul<2>(c[2]));
-      h = O::add(h, O::template mul<1>(c[3]));
+  constexpr int taps_h = mask_filter_taps<H>;
+  constexpr int taps_v = mask_filter_taps<V>;
+  typename O::V values[8][8]; // [column][row]
+  for (int j = 0; j < taps_v; ++j) {
+    const T *p = rows[j] + x * 4;
+    typename O::V prev[4], cur[4];
+    O::columns(p - 4, prev);
+    O::columns(p, cur);
+    if constexpr (H == MF_TENT7) {
+      values[0][j] = prev[1]; values[1][j] = prev[2]; values[2][j] = prev[3];
+      values[3][j] = cur[0]; values[4][j] = cur[1]; values[5][j] = cur[2]; values[6][j] = cur[3];
     }
-    else
-      for (int i = 0; i < 4; ++i) h = O::add(h, O::template mul<1>(c[i]));
-    // Keep the C horizontal-then-vertical float operation order (including the initial zero).
-    if constexpr (top) {
-      switch (4 - std::abs(dy)) {
-      case 1: sum = O::add(sum, O::template mul<1>(h)); break;
-      case 2: sum = O::add(sum, O::template mul<2>(h)); break;
-      case 3: sum = O::add(sum, O::template mul<3>(h)); break;
-      case 4: sum = O::add(sum, O::template mul<4>(h)); break;
-      }
+    else {
+      typename O::V next[4];
+      O::columns(p + 4, next);
+      values[0][j] = prev[2]; values[1][j] = prev[3];
+      values[2][j] = cur[0]; values[3][j] = cur[1]; values[4][j] = cur[2]; values[5][j] = cur[3];
+      values[6][j] = next[0]; values[7][j] = next[1];
     }
-    else sum = O::add(sum, O::template mul<1>(h));
   }
-  return O::template normalize<shift>(sum);
+  typename O::V columns[8];
+  for (int k = 0; k < taps_h; ++k)
+    columns[k] = mask_filter_sum_simd<V, O>(values[k]);
+  return O::template normalize<mask_filter_log2<H> + mask_filter_log2<V>>(mask_filter_sum_simd<H, O>(columns));
 }
 
 template<typename T, bool left, bool top, template<typename> class Ops, auto blend>
@@ -247,23 +259,32 @@ void merge_410_simd(uint8_t *dst, ptrdiff_t dst_pitch, const uint8_t *src, ptrdi
   const uint8_t *mask, ptrdiff_t mask_pitch, int width, int height, int bits)
 {
   using O = Ops<T>;
+  constexpr MaskFilter H = left ? MF_TENT7 : MF_TRI8;
+  constexpr MaskFilter V = top ? MF_TENT7 : MF_TRI8;
   constexpr int block = O::bytes / sizeof(T);
+  // The triangle reads into the block after the last lane, and clamps in the last column.
+  constexpr int right_margin = H == MF_TRI8 ? 1 : 0;
   const uint32_t max = std::is_same<T, float>::value ? 0 : (1u << bits) - 1;
   for (int y = 0; y < height; ++y) {
     T *d = reinterpret_cast<T*>(dst);
     const T *s = reinterpret_cast<const T*>(src);
+    const T *rows[8];
+    for (int j = 0; j < mask_filter_taps<V>; ++j) {
+      const int luma_y = std::min(std::max(y * 4 + mask_filter_first<V> + j, 0), height * 4 - 1);
+      rows[j] = reinterpret_cast<const T*>(mask + (luma_y - y * 4) * mask_pitch);
+    }
     auto scalar = [&](int x) {
-      const T m = get_mask_410_c<T, left, top>(mask, mask_pitch, x, y);
+      const T m = get_mask_filtered_c<T, left ? MF_TENT7 : MF_TRI8, top ? MF_TENT7 : MF_TRI8>(mask, mask_pitch, x, y, width, height);
       if constexpr (std::is_same<T, float>::value) d[x] = (1.0f - m) * d[x] + m * s[x];
       else d[x] = T((uint32_t(d[x]) * (max - m) + uint32_t(s[x]) * m + max / 2) / max);
     };
     int x = 0;
-    // Only the first co-sited pixel needs horizontal replication. Preserve the mask origin for tails.
-    if constexpr (left) { if (width > 0) scalar(x++); }
-    for (; x + block <= width; x += block) {
+    // The first column clamps on the left.
+    if (width > 0) scalar(x++);
+    for (; x + block + right_margin <= width; x += block) {
       alignas(32) T reduced[block];
       for (int i = 0; i < block; i += O::lanes)
-        O::store(reduced + i, get_mask_410_simd<T, left, top, Ops>(mask, mask_pitch, x + i, y));
+        O::store(reduced + i, get_mask_filtered_simd<T, H, V, Ops>(rows, x + i));
       if constexpr (std::is_same<T, float>::value) O::blend(d + x, s + x, reduced);
       else if constexpr (sizeof(T) == 2)
         blend(reinterpret_cast<uint8_t*>(d + x), 0, reinterpret_cast<const uint8_t*>(s + x), 0,

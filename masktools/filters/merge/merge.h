@@ -362,11 +362,15 @@ public:
           chroma_processors.push_back(Filtering::Processor<Processor>(
             isTopLeft ? merge_luma_410_topleft_c : isMpeg2 ? merge_luma_410_mpeg2_c : merge_luma_410_c,
             Constraint(CPU_NONE), 0));
-          if (isTopLeft) {
-            MT_X86(chroma_processors.push_back(Filtering::Processor<Processor>(merge_luma_410_topleft_sse2, Constraint(CPU_SSE2), 1)));
-            MT_X86(chroma_processors.push_back(Filtering::Processor<Processor>(merge_luma_410_topleft_avx2, Constraint(CPU_AVX2), 5)));
-            MT_NEON(chroma_processors.push_back(Filtering::Processor<Processor>(merge_luma_410_topleft_neon, Constraint(CPU_NEON), 1)));
-          }
+          MT_X86(chroma_processors.push_back(Filtering::Processor<Processor>(
+            isTopLeft ? merge_luma_410_topleft_sse2 : isMpeg2 ? merge_luma_410_mpeg2_sse2 : merge_luma_410_sse2,
+            Constraint(CPU_SSE2), 1)));
+          MT_X86(chroma_processors.push_back(Filtering::Processor<Processor>(
+            isTopLeft ? merge_luma_410_topleft_avx2 : isMpeg2 ? merge_luma_410_mpeg2_avx2 : merge_luma_410_avx2,
+            Constraint(CPU_AVX2), 5)));
+          MT_NEON(chroma_processors.push_back(Filtering::Processor<Processor>(
+            isTopLeft ? merge_luma_410_topleft_neon : isMpeg2 ? merge_luma_410_mpeg2_neon : merge_luma_410_neon,
+            Constraint(CPU_NEON), 1)));
         }
         else if (is440) {
           chroma_processors.push_back(Filtering::Processor<Processor>(
@@ -440,11 +444,15 @@ public:
           chroma_processors16.push_back(Filtering::Processor<Processor16>(
             isTopLeft ? merge16_luma_410_topleft_c : isMpeg2 ? merge16_luma_410_mpeg2_c : merge16_luma_410_c,
             Constraint(CPU_NONE), 0));
-          if (isTopLeft) {
-            MT_X86(chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_410_topleft_sse2, Constraint(CPU_SSE2), 1)));
-            MT_X86(chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_410_topleft_avx2, Constraint(CPU_AVX2), 4)));
-            MT_NEON(chroma_processors16.push_back(Filtering::Processor<Processor16>(merge16_luma_410_topleft_neon, Constraint(CPU_NEON), 1)));
-          }
+          MT_X86(chroma_processors16.push_back(Filtering::Processor<Processor16>(
+            isTopLeft ? merge16_luma_410_topleft_sse2 : isMpeg2 ? merge16_luma_410_mpeg2_sse2 : merge16_luma_410_sse2,
+            Constraint(CPU_SSE2), 1)));
+          MT_X86(chroma_processors16.push_back(Filtering::Processor<Processor16>(
+            isTopLeft ? merge16_luma_410_topleft_avx2 : isMpeg2 ? merge16_luma_410_mpeg2_avx2 : merge16_luma_410_avx2,
+            Constraint(CPU_AVX2), 4)));
+          MT_NEON(chroma_processors16.push_back(Filtering::Processor<Processor16>(
+            isTopLeft ? merge16_luma_410_topleft_neon : isMpeg2 ? merge16_luma_410_mpeg2_neon : merge16_luma_410_neon,
+            Constraint(CPU_NEON), 1)));
         }
         else if (is440) {
           chroma_processors16.push_back(Filtering::Processor<Processor16>(
@@ -510,6 +518,15 @@ public:
           chroma_processors32.push_back(Filtering::Processor<Processor32>(
             isTopLeft ? merge32_luma_410_topleft_c : isMpeg2 ? merge32_luma_410_mpeg2_c : merge32_luma_410_c,
             Constraint(CPU_NONE), 0));
+          MT_X86(chroma_processors32.push_back(Filtering::Processor<Processor32>(
+            isTopLeft ? merge32_luma_410_topleft_sse2 : isMpeg2 ? merge32_luma_410_mpeg2_sse2 : merge32_luma_410_sse2,
+            Constraint(CPU_SSE2), 1)));
+          MT_X86(chroma_processors32.push_back(Filtering::Processor<Processor32>(
+            isTopLeft ? merge32_luma_410_topleft_avx2 : isMpeg2 ? merge32_luma_410_mpeg2_avx2 : merge32_luma_410_avx2,
+            Constraint(CPU_AVX2), 3)));
+          MT_NEON(chroma_processors32.push_back(Filtering::Processor<Processor32>(
+            isTopLeft ? merge32_luma_410_topleft_neon : isMpeg2 ? merge32_luma_410_mpeg2_neon : merge32_luma_410_neon,
+            Constraint(CPU_NEON), 1)));
         }
         else if (is440) {
           chroma_processors32.push_back(Filtering::Processor<Processor32>(
