@@ -39,6 +39,18 @@ protected:
     bool has_avs_expr_support;
 
    virtual void process(int n, const Plane<uint8_t> &dst, int nPlane, const Frame<const uint8_t> frames[4], const Constraint constraints[4]) = 0;
+   // For a decision shared by the planes of one frame. frame_state starts at 0 in each GetFrame: the filter object is
+   // shared between threads (MT_NICE_FILTER), so such a value must not be a member.
+   // prepare_frame runs before any plane is touched (not for stacked clips).
+   virtual void prepare_frame(const Frame<uint8_t> &output, const Frame<const uint8_t> frames[4], int &frame_state)
+   {
+      UNUSED(output); UNUSED(frames); UNUSED(frame_state);
+   }
+   virtual void process_with_frame_state(int n, const Plane<uint8_t> &dst, int nPlane, const Frame<const uint8_t> frames[4], const Constraint constraints[4], int &frame_state)
+   {
+      UNUSED(frame_state);
+      process(n, dst, nPlane, frames, constraints);
+   }
    virtual InputConfiguration &input_configuration() const = 0;
 
    static Signature &add_defaults(Signature &signature)
@@ -465,7 +477,7 @@ public:
         }
     }
 
-    void process_plane(int n, const Plane<uint8_t> &output_plane, int nPlane, const Constraint constraints[4], const Frame<const uint8_t> frames[4])
+    void process_plane(int n, const Plane<uint8_t> &output_plane, int nPlane, const Constraint constraints[4], const Frame<const uint8_t> frames[4], int &frame_state)
     {
         // stacked clips arrive here as native 16 bit planes (process_stacked)
         switch (operators[nPlane].getMode())
@@ -501,7 +513,7 @@ public:
             }
         break;
         case PROCESS:
-            process(n, output_plane, nPlane, frames, constraints);
+            process_with_frame_state(n, output_plane, nPlane, frames, constraints, frame_state);
             break;
         case NONE:
         default: break;
@@ -547,12 +559,14 @@ public:
         }
       }
 
+      int frame_state = 0;
+      prepare_frame(output, frames, frame_state);
       for (int i = 0; i < nPlanes; i++) {
         const int p = plane_index(i);
         // a window snapped to the subsampling can be empty (e.g. YV12 offx=0, w=1): nothing to process
         if (output.plane(p).width() <= 0 || output.plane(p).height() <= 0)
           continue;
-        process_plane(n, output.plane(p), p, constraints, frames);
+        process_plane(n, output.plane(p), p, constraints, frames, frame_state);
       }
 
       return output_frame;
@@ -591,11 +605,12 @@ public:
         }
         frames_native[i] = Frame<const uint8_t>(planes, pc);
       }
+      int frame_state = 0;
       for (int i = 0; i < nPlanes; i++) {
         const int p = plane_index(i);
         if (out_native[p].width() <= 0 || out_native[p].height() <= 0)
           continue;
-        process_plane(n, out_native[p], p, constraints, frames_native);
+        process_plane(n, out_native[p], p, constraints, frames_native, frame_state);
         NativePlaneBuffer::to_stacked(out_native[p], output.plane(p));
       }
     }

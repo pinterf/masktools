@@ -27,6 +27,11 @@ extern Processor16 *mask16_neon;
 extern Processor32 *mask32_neon;
 #endif
 
+// the frame is a scene change: the plain measure, for when the luma plane itself is not processed
+bool scene_change_c(uint8_t *pCurrent, ptrdiff_t nCurrentPitch, const uint8_t *pPrevious, ptrdiff_t nPreviousPitch, int nWidth, int nHeight, int nMotionThreshold);
+bool scene_change16_c(uint8_t *pCurrent, ptrdiff_t nCurrentPitch, const uint8_t *pPrevious, ptrdiff_t nPreviousPitch, int nWidth, int nHeight, int nMotionThreshold);
+bool scene_change32_c(uint8_t *pCurrent, ptrdiff_t nCurrentPitch, const uint8_t *pPrevious, ptrdiff_t nPreviousPitch, int nWidth, int nHeight, float nMotionThreshold);
+
 class MotionMask : public MaskTools::Filter
 {
    int nLowThresholds[4];
@@ -41,8 +46,6 @@ class MotionMask : public MaskTools::Filter
    ProcessorList<Processor16> processors16;
    ProcessorList<Processor32> processors32;
 
-   int nSceneChange;
-   
    int nSceneChangeValue;
    float nSceneChangeValue_f;
 
@@ -50,39 +53,58 @@ class MotionMask : public MaskTools::Filter
 
 protected:
 
+    // Never called: the base class comes through process_with_frame_state.
     virtual void process(int n, const Plane<uint8_t> &dst, int nPlane, const Filtering::Frame<const uint8_t> frames[4], const Constraint constraints[4]) override
     {
+        int scene_change = 0;
+        process_with_frame_state(n, dst, nPlane, frames, constraints, scene_change);
+    }
+
+    // The luma plane decides for the whole frame, also when it is not processed. Measured here in that case: before
+    // the plane loop, since y=-128 or y=4 overwrite the luma of the frame first.
+    virtual void prepare_frame(const Filtering::Frame<uint8_t> &output, const Filtering::Frame<const uint8_t> frames[4], int &scene_change) override
+    {
+        if (operators[0] == PROCESS)
+            return;
+        bool needed = false;
+        for (int i = 1; i < 4; i++)
+            needed = needed || operators[i] == PROCESS;
+        const Plane<uint8_t> &current = output.plane(0);
+        if (!needed || current.width() <= 0 || current.height() <= 0)
+            return;
+        const Plane<const uint8_t> &previous = frames[0].plane(0);
+        bool is_scene_change;
+        if (bits_per_pixel == 8)
+            is_scene_change = scene_change_c(current.data(), current.pitch(), previous.data(), previous.pitch(), current.width(), current.height(), nMotionThreshold);
+        else if (bits_per_pixel <= 16)
+            is_scene_change = scene_change16_c(current.data(), current.pitch(), previous.data(), previous.pitch(), current.width(), current.height(), nMotionThreshold);
+        else
+            is_scene_change = scene_change32_c(current.data(), current.pitch(), previous.data(), previous.pitch(), current.width(), current.height(), nMotionThreshold_f);
+        scene_change = is_scene_change ? 3 : 2;
+    }
+
+    // scene_change: 0 measure on this plane (only luma gets here with 0), 2 no, 3 yes.
+    virtual void process_with_frame_state(int n, const Plane<uint8_t> &dst, int nPlane, const Filtering::Frame<const uint8_t> frames[4], const Constraint constraints[4], int &scene_change) override
+    {
         UNUSED(n);
+        bool is_scene_change;
         if (bits_per_pixel == 8) {
-          if (nPlane == 0)
-            nSceneChange = processors.best_processor(constraints[nPlane])(dst.data(), dst.pitch(),
-              frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
-              nLowThresholds[nPlane], nHighThresholds[nPlane], nMotionThreshold, 0, nSceneChangeValue, dst.width(), dst.height()) ? 3 : 2;
-          else
-            processors.best_processor(constraints[nPlane])(dst.data(), dst.pitch(),
-              frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
-              nLowThresholds[nPlane], nHighThresholds[nPlane], nMotionThreshold, nSceneChange, nSceneChangeValue, dst.width(), dst.height());
+          is_scene_change = processors.best_processor(constraints[nPlane])(dst.data(), dst.pitch(),
+            frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
+            nLowThresholds[nPlane], nHighThresholds[nPlane], nMotionThreshold, scene_change, nSceneChangeValue, dst.width(), dst.height());
         }
         else if (bits_per_pixel <= 16) {
-          if (nPlane == 0)
-            nSceneChange = processors16.best_processor(constraints[nPlane])(dst.data(), dst.pitch(),
-              frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
-              nLowThresholds[nPlane], nHighThresholds[nPlane], nMotionThreshold, 0, nSceneChangeValue, dst.width(), dst.height(), bits_per_pixel) ? 3 : 2;
-          else
-            processors16.best_processor(constraints[nPlane])(dst.data(), dst.pitch(),
-              frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
-              nLowThresholds[nPlane], nHighThresholds[nPlane], nMotionThreshold, nSceneChange, nSceneChangeValue, dst.width(), dst.height(), bits_per_pixel);
+          is_scene_change = processors16.best_processor(constraints[nPlane])(dst.data(), dst.pitch(),
+            frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
+            nLowThresholds[nPlane], nHighThresholds[nPlane], nMotionThreshold, scene_change, nSceneChangeValue, dst.width(), dst.height(), bits_per_pixel);
         }
         else {
-          if (nPlane == 0)
-            nSceneChange = processors32.best_processor(constraints[nPlane])(dst.data(), dst.pitch(),
-              frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
-              nLowThresholds_f[nPlane], nHighThresholds_f[nPlane], nMotionThreshold_f, 0, nSceneChangeValue_f, dst.width(), dst.height()) ? 3 : 2;
-          else
-            processors32.best_processor(constraints[nPlane])(dst.data(), dst.pitch(),
-              frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
-              nLowThresholds_f[nPlane], nHighThresholds_f[nPlane], nMotionThreshold_f, nSceneChange, nSceneChangeValue_f, dst.width(), dst.height());
+          is_scene_change = processors32.best_processor(constraints[nPlane])(dst.data(), dst.pitch(),
+            frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
+            nLowThresholds_f[nPlane], nHighThresholds_f[nPlane], nMotionThreshold_f, scene_change, nSceneChangeValue_f, dst.width(), dst.height());
         }
+        if (nPlane == 0)
+          scene_change = is_scene_change ? 3 : 2;
     }
 
 public:
