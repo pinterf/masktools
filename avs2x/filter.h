@@ -30,7 +30,6 @@ static CpuFlags AvsToInternalCpuFlags(int avsCpuFlags) {
 template<class T>
 class Filter : public GenericVideoFilter
 {
-    bool has_at_least_v8; // avs+ frame properties support
     T _filter;
     Signature signature;
     int inputConfigSize; // to prevent MT static init problems with /Zc:threadSafeInit- settings for WinXP
@@ -66,15 +65,6 @@ public:
         if (_filter.is_error())
         {
             env->ThrowError((signature.getName() + " : " + _filter.get_error()).c_str());
-        }
-
-        // querying v8 interface for frame properties support
-        has_at_least_v8 = true;
-        try { 
-          env->CheckVersion(8); 
-        } catch (const AvisynthError&) 
-        { 
-          has_at_least_v8 = false; 
         }
     }
 

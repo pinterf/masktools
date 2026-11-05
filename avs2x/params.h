@@ -6,6 +6,13 @@
 
 namespace Filtering { namespace Avisynth2x {
 
+// The host has frame properties (interface V8). Set once, in AvisynthPluginInit3.
+// C++17 inline variable: a single variable in the whole plugin, even if more source files include this header.
+// Not about code inlining, it stays a normal global, changeable at run time.
+// C++ interface only. On a move to the C interface, a single V9.1 check is enough instead: frame property access crashes
+// there in V8, avs_new_video_frame_p with a non-NULL source and avs_prop_get_data work from V9.1.
+inline bool has_at_least_v8 = false;
+
 static Value AVSValueToValue(const AVSValue& value, const Parameter &param)
 {
     switch (param.getType())
@@ -63,12 +70,8 @@ Parameter GetParameter(const AVSValue &value, const Parameter &default_param)
 // Overlay and Layer choose it (chromaLocationToMaskPlacement). nullptr: no valid property, the format default applies.
 static const char *CplaceFromFrameProps(const AVSValue &first_clip, IScriptEnvironment *env)
 {
-    try {
-        env->CheckVersion(8); // frame properties
-    }
-    catch (const AvisynthError &) {
+    if (!has_at_least_v8)
         return nullptr;
-    }
     ::PClip clip = first_clip.AsClip();
     const VideoInfo &vi = clip->GetVideoInfo();
     if (vi.num_frames <= 0 || !vi.IsPlanar() || !vi.IsYUV() || vi.IsY())
