@@ -283,7 +283,8 @@ public:
         error = "cplace: only mpeg1, mpeg2 and top_left allowed";
         return;
       }
-      isMpeg2 = cplace == "mpeg2" && (is420 || is422 || is410);
+      // 4:2:2 is subsampled only horizontally: top_left and mpeg2 are the same siting there
+      isMpeg2 = is422 ? cplace != "mpeg1" : cplace == "mpeg2" && (is420 || is410);
       isTopLeft = (cplace == "topleft" || cplace == "top_left") && (is420 || is440 || is410);
 
       if (isStacked && bits_per_pixel != 8) {
