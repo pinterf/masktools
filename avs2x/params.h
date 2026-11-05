@@ -59,13 +59,52 @@ Parameter GetParameter(const AVSValue &value, const Parameter &default_param)
     return parameter;
 }
 
+// mt_merge cplace "auto": the kernel for the _ChromaLocation frame property of the first clip's frame 0, as AviSynth+
+// Overlay and Layer choose it (chromaLocationToMaskPlacement). nullptr: no valid property, the format default applies.
+static const char *CplaceFromFrameProps(const AVSValue &first_clip, IScriptEnvironment *env)
+{
+    try {
+        env->CheckVersion(8); // frame properties
+    }
+    catch (const AvisynthError &) {
+        return nullptr;
+    }
+    ::PClip clip = first_clip.AsClip();
+    const VideoInfo &vi = clip->GetVideoInfo();
+    if (vi.num_frames <= 0 || !vi.IsPlanar() || !vi.IsYUV() || vi.IsY())
+        return nullptr;
+    const bool is440 = vi.GetPlaneWidthSubsampling(PLANAR_U) == 0 && vi.GetPlaneHeightSubsampling(PLANAR_U) == 1;
+    PVideoFrame frame0 = clip->GetFrame(0, env);
+    const AVSMap *props = env->getFramePropsRO(frame0);
+    if (env->propNumElements(props, "_ChromaLocation") <= 0)
+        return nullptr;
+    int error = 0;
+    const int64_t location = env->propGetInt(props, "_ChromaLocation", 0, &error);
+    if (error)
+        return nullptr;
+    enum { LEFT, CENTER, TOP_LEFT, TOP, BOTTOM_LEFT, BOTTOM, DV };
+    switch (location) {
+    case LEFT: case BOTTOM_LEFT: case DV: return is440 ? "mpeg1" : "mpeg2";
+    case CENTER: case BOTTOM: return "mpeg1";
+    case TOP: return is440 ? "top_left" : "mpeg1";
+    case TOP_LEFT: return "top_left";
+    default: return nullptr;
+    }
+}
+
 Parameters GetParameters(const AVSValue &args, const Signature &signature, bool has_avs_expr_support, IScriptEnvironment *env)
 {
     Parameters parameters;
 
-    UNUSED(env);
-
     for (int i = 0; i < signature.count(); i++) {
+      if (signature[i].getName() == "cplace") {
+        const String given = args[i].Defined() ? String(args[i].AsString()) : String("auto");
+        const char *from_props = (given == "" || given == "auto") ? CplaceFromFrameProps(args[0], env) : nullptr;
+        if (from_props) {
+          parameters.push_back(Parameter(Value(String(from_props)), signature[i].getName(), false));
+          continue;
+        }
+      }
       if (signature[i].getName() == "use_expr" && !has_avs_expr_support) {
         // v2.26 when no "Expr" support in avisynth then set use_expr to undefined (default 0)
         parameters.push_back(GetParameter(AVSValue(), signature[i]));
