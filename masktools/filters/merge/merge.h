@@ -291,8 +291,11 @@ public:
       String cplace = parameters["cplace"].toString();
       bool isMpeg2 = false;
       bool isTopLeft = false;
+      // Default siting of the format, as in AviSynth+: 4:4:0 top, 4:1:0 top_left, otherwise left.
+      if (cplace == "" || cplace == "auto")
+        cplace = (is440 || is410) ? "top_left" : "mpeg2";
       if (cplace != "mpeg1" && cplace != "mpeg2" && cplace != "topleft" && cplace != "top_left") {
-        error = "cplace: only mpeg1, mpeg2 and top_left allowed";
+        error = "cplace: only auto, mpeg1, mpeg2 and top_left allowed";
         return;
       }
       // 4:2:2 and 4:1:1 are subsampled only horizontally: top_left and mpeg2 are the same siting there
@@ -622,7 +625,7 @@ public:
       add_defaults( signature );
 
       signature.add(Parameter(false, "stacked", false));
-      signature.add(Parameter(String("mpeg2"), "cplace", false));
+      signature.add(Parameter(String("auto"), "cplace", false));
       return signature;
    }
 };
