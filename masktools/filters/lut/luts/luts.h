@@ -345,6 +345,10 @@ public:
 
      /* get the pixels list */
      FillCoordinates(parameters["pixels"].toString());
+     if (nCoordinates == 0 || nCoordinates % 2 != 0) {
+       error = "pixels must be a list of x y coordinate pairs, at least one (see mt_square etc.)";
+       return;
+     }
 
      /* choose the mode */
      mode = parameters["mode"].toString();
