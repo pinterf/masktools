@@ -140,22 +140,35 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Merge 
      }
    }
 
-   void merge32_luma_411_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
+   namespace {
+   template<MaskFilter H>
+   void internal_merge32_luma_411_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
      const uint8_t *pMask, ptrdiff_t nMaskPitch, int nWidth, int nHeight)
    {
      for (int y = 0; y < nHeight; ++y) {
-       const float *mask = reinterpret_cast<const float *>(pMask);
        float *dst = reinterpret_cast<float *>(pDst);
        const float *src = reinterpret_cast<const float *>(pSrc1);
        for (int x = 0; x < nWidth; ++x) {
-         // Float counterpart of the integer pairwise 4:1:1 reduction; no integer rounding.
-         const float m = ((mask[x * 4] + mask[x * 4 + 1]) + (mask[x * 4 + 2] + mask[x * 4 + 3])) * 0.25f;
+         const float m = get_mask_filtered_c<float, H, MF_ID>(pMask, nMaskPitch, x, y, nWidth, nHeight);
          dst[x] = (1.0f - m) * dst[x] + m * src[x];
        }
        pDst += nDstPitch;
        pSrc1 += nSrc1Pitch;
        pMask += nMaskPitch;
      }
+   }
+   } // namespace
+
+   void merge32_luma_411_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
+     const uint8_t *pMask, ptrdiff_t nMaskPitch, int nWidth, int nHeight)
+   {
+     internal_merge32_luma_411_c<MF_TRI8>(pDst, nDstPitch, pSrc1, nSrc1Pitch, pMask, nMaskPitch, nWidth, nHeight);
+   }
+
+   void merge32_luma_411_mpeg2_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
+     const uint8_t *pMask, ptrdiff_t nMaskPitch, int nWidth, int nHeight)
+   {
+     internal_merge32_luma_411_c<MF_TENT7>(pDst, nDstPitch, pSrc1, nSrc1Pitch, pMask, nMaskPitch, nWidth, nHeight);
    }
 
    template<bool allow_leftminus1>
@@ -207,7 +220,7 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Merge 
        float *dst = reinterpret_cast<float*>(pDst);
        const float *src = reinterpret_cast<const float*>(pSrc);
        for (int x = 0; x < width; ++x) {
-         const float m = get_mask_410_c<float, left, top>(pMask, mask_pitch, x, y);
+         const float m = get_mask_filtered_c<float, left ? MF_TENT7 : MF_TRI8, top ? MF_TENT7 : MF_TRI8>(pMask, mask_pitch, x, y, width, height);
          dst[x] = (1.0f - m) * dst[x] + m * src[x];
        }
        pDst += dst_pitch;

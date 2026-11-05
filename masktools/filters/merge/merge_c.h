@@ -207,23 +207,28 @@ MT_FORCEINLINE static uint8_t merge8_core_c(uint8_t dst, uint8_t src, uint8_t ma
      internal_merge_luma_422_mpeg2_c<true>(pDst, nDstPitch, pSrc1, nSrc1Pitch, pMask, nSrc2Pitch, nWidth, nHeight);
    }
 
-   void merge_luma_411_t_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
+   template<MaskFilter H>
+   void internal_merge_luma_411_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
      const uint8_t *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
    {
      for (int y = 0; y < nHeight; ++y)
      {
        for (int x = 0; x < nWidth; ++x)
-       {
-         const int nMask = (
-           ((pMask[x * 4 + 0] + pMask[x * 4 + 1] + 1) >> 1) +
-           ((pMask[x * 4 + 2] + pMask[x * 4 + 3] + 1) >> 1)
-           + 1) >> 1; // 411: averaging from four pixels of full size mask
-         pDst[x] = merge8_core_c(pDst[x], pSrc1[x], static_cast<uint8_t>(nMask));
-       }
+         pDst[x] = merge8_core_c(pDst[x], pSrc1[x], get_mask_filtered_c<uint8_t, H, MF_ID>(pMask, nSrc2Pitch, x, y, nWidth, nHeight));
        pDst += nDstPitch;
        pSrc1 += nSrc1Pitch;
        pMask += nSrc2Pitch;
      }
+   }
+
+   void merge_luma_411_t_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
+     const uint8_t *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight) {
+     internal_merge_luma_411_c<MF_TRI8>(pDst, nDstPitch, pSrc1, nSrc1Pitch, pMask, nSrc2Pitch, nWidth, nHeight);
+   }
+
+   void merge_luma_411_mpeg2_t_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
+     const uint8_t *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight) {
+     internal_merge_luma_411_c<MF_TENT7>(pDst, nDstPitch, pSrc1, nSrc1Pitch, pMask, nSrc2Pitch, nWidth, nHeight);
    }
 
 template<bool left, bool top>
@@ -232,7 +237,7 @@ void merge_luma_410_t_c(uint8_t *dst, ptrdiff_t dst_pitch, const uint8_t *src, p
 {
   for (int y = 0; y < height; ++y) {
     for (int x = 0; x < width; ++x)
-      dst[x] = merge8_core_c(dst[x], src[x], get_mask_410_c<uint8_t, left, top>(mask, mask_pitch, x, y));
+      dst[x] = merge8_core_c(dst[x], src[x], get_mask_filtered_c<uint8_t, left ? MF_TENT7 : MF_TRI8, top ? MF_TENT7 : MF_TRI8>(mask, mask_pitch, x, y, width, height));
     dst += dst_pitch;
     src += src_pitch;
     mask += mask_pitch * 4;
