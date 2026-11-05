@@ -254,13 +254,12 @@ MT_FORCEINLINE typename Ops<T>::V get_mask_filtered_simd(const T *const *rows, i
   return O::template normalize<mask_filter_log2<H> + mask_filter_log2<V>>(mask_filter_sum_simd<H, O>(columns));
 }
 
-template<typename T, bool left, bool top, template<typename> class Ops, auto blend>
-void merge_410_simd(uint8_t *dst, ptrdiff_t dst_pitch, const uint8_t *src, ptrdiff_t src_pitch,
+template<typename T, MaskFilter H, MaskFilter V, template<typename> class Ops, auto blend>
+void merge_mask_filtered_simd(uint8_t *dst, ptrdiff_t dst_pitch, const uint8_t *src, ptrdiff_t src_pitch,
   const uint8_t *mask, ptrdiff_t mask_pitch, int width, int height, int bits)
 {
   using O = Ops<T>;
-  constexpr MaskFilter H = left ? MF_TENT7 : MF_TRI8;
-  constexpr MaskFilter V = top ? MF_TENT7 : MF_TRI8;
+  constexpr int v_ratio = mask_filter_ratio<V>;
   constexpr int block = O::bytes / sizeof(T);
   // The triangle reads into the block after the last lane, and clamps in the last column.
   constexpr int right_margin = H == MF_TRI8 ? 1 : 0;
@@ -270,11 +269,11 @@ void merge_410_simd(uint8_t *dst, ptrdiff_t dst_pitch, const uint8_t *src, ptrdi
     const T *s = reinterpret_cast<const T*>(src);
     const T *rows[8];
     for (int j = 0; j < mask_filter_taps<V>; ++j) {
-      const int luma_y = std::min(std::max(y * 4 + mask_filter_first<V> + j, 0), height * 4 - 1);
-      rows[j] = reinterpret_cast<const T*>(mask + (luma_y - y * 4) * mask_pitch);
+      const int luma_y = std::min(std::max(y * v_ratio + mask_filter_first<V> + j, 0), height * v_ratio - 1);
+      rows[j] = reinterpret_cast<const T*>(mask + (luma_y - y * v_ratio) * mask_pitch);
     }
     auto scalar = [&](int x) {
-      const T m = get_mask_filtered_c<T, left ? MF_TENT7 : MF_TRI8, top ? MF_TENT7 : MF_TRI8>(mask, mask_pitch, x, y, width, height);
+      const T m = get_mask_filtered_c<T, H, V>(mask, mask_pitch, x, y, width, height);
       if constexpr (std::is_same<T, float>::value) d[x] = (1.0f - m) * d[x] + m * s[x];
       else d[x] = T((uint32_t(d[x]) * (max - m) + uint32_t(s[x]) * m + max / 2) / max);
     };
@@ -293,7 +292,7 @@ void merge_410_simd(uint8_t *dst, ptrdiff_t dst_pitch, const uint8_t *src, ptrdi
         blend(d + x, 0, s + x, 0, reduced, 0, block, 1);
     }
     for (; x < width; ++x) scalar(x);
-    dst += dst_pitch; src += src_pitch; mask += mask_pitch * 4;
+    dst += dst_pitch; src += src_pitch; mask += mask_pitch * v_ratio;
   }
 }
 
@@ -301,14 +300,28 @@ template<typename T, bool left, bool top, template<typename> class Ops, auto ble
 void merge_410_t(uint8_t *dst, ptrdiff_t dst_pitch, const uint8_t *src, ptrdiff_t src_pitch,
   const uint8_t *mask, ptrdiff_t mask_pitch, int width, int height)
 {
-  merge_410_simd<T, left, top, Ops, blend>(dst, dst_pitch, src, src_pitch, mask, mask_pitch, width, height, 8);
+  merge_mask_filtered_simd<T, left ? MF_TENT7 : MF_TRI8, top ? MF_TENT7 : MF_TRI8, Ops, blend>(dst, dst_pitch, src, src_pitch, mask, mask_pitch, width, height, 8);
 }
 
 template<bool left, bool top, template<typename> class Ops, auto blend>
 void merge16_410_t(uint8_t *dst, ptrdiff_t dst_pitch, const uint8_t *src, ptrdiff_t src_pitch,
   const uint8_t *mask, ptrdiff_t mask_pitch, int width, int height, int bits)
 {
-  merge_410_simd<uint16_t, left, top, Ops, blend>(dst, dst_pitch, src, src_pitch, mask, mask_pitch, width, height, bits);
+  merge_mask_filtered_simd<uint16_t, left ? MF_TENT7 : MF_TRI8, top ? MF_TENT7 : MF_TRI8, Ops, blend>(dst, dst_pitch, src, src_pitch, mask, mask_pitch, width, height, bits);
+}
+
+template<typename T, bool left, template<typename> class Ops, auto blend>
+void merge_411_t(uint8_t *dst, ptrdiff_t dst_pitch, const uint8_t *src, ptrdiff_t src_pitch,
+  const uint8_t *mask, ptrdiff_t mask_pitch, int width, int height)
+{
+  merge_mask_filtered_simd<T, left ? MF_TENT7 : MF_TRI8, MF_ID, Ops, blend>(dst, dst_pitch, src, src_pitch, mask, mask_pitch, width, height, 8);
+}
+
+template<bool left, template<typename> class Ops, auto blend>
+void merge16_411_t(uint8_t *dst, ptrdiff_t dst_pitch, const uint8_t *src, ptrdiff_t src_pitch,
+  const uint8_t *mask, ptrdiff_t mask_pitch, int width, int height, int bits)
+{
+  merge_mask_filtered_simd<uint16_t, left ? MF_TENT7 : MF_TRI8, MF_ID, Ops, blend>(dst, dst_pitch, src, src_pitch, mask, mask_pitch, width, height, bits);
 }
 
 } // namespace

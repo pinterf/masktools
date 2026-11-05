@@ -48,31 +48,6 @@ void merge32_luma_420_topleft_simd(uint8_t *dst, ptrdiff_t dst_pitch, const uint
   }
 }
 
-template<template<typename> class Ops>
-void merge32_luma_411_simd(uint8_t *dst, ptrdiff_t dst_pitch, const uint8_t *src, ptrdiff_t src_pitch,
-  const uint8_t *mask, ptrdiff_t mask_pitch, int width, int height)
-{
-  using O = Ops<float>;
-  const int wmod = width / O::lanes * O::lanes;
-  for (int y = 0; y < height; ++y) {
-    auto d = reinterpret_cast<float*>(dst);
-    auto s = reinterpret_cast<const float*>(src);
-    auto m = reinterpret_cast<const float*>(mask);
-    for (int x = 0; x < wmod; x += O::lanes) {
-      typename O::V c[4];
-      O::columns(m + x * 4, c);
-      auto reduced = O::template normalize<2>(O::add(O::add(c[0], c[1]), O::add(c[2], c[3])));
-      alignas(32) float values[O::lanes];
-      O::store(values, reduced);
-      O::blend(d + x, s + x, values);
-    }
-    if (width > wmod)
-      merge32_luma_411_c(dst + wmod * sizeof(float), 0, src + wmod * sizeof(float), 0,
-        mask + wmod * 4 * sizeof(float), 0, width - wmod, 1);
-    dst += dst_pitch; src += src_pitch; mask += mask_pitch;
-  }
-}
-
 } // namespace
 
 } } } }

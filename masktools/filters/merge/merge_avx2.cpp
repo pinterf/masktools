@@ -268,58 +268,6 @@ namespace {
      }
    }
 
-   // 411: the masks of 16 chroma pixels from 64 luma mask pixels of the row, as words (lo: 0-7, hi: 8-15);
-   // pair averages of pair averages, as the C version
-   MT_FORCEINLINE void mask_411_sse2(const uint8_t *pMask, __m128i &mask_lo, __m128i &mask_hi) {
-     auto v255 = _mm_set1_epi16(0x00FF);
-     auto m0 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pMask));
-     auto m1 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pMask + 16));
-     auto m2 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pMask + 32));
-     auto m3 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pMask + 48));
-     // pair averages at the even bytes
-     auto p0 = _mm_and_si128(_mm_avg_epu8(m0, _mm_srli_si128(m0, 1)), v255);
-     auto p1 = _mm_and_si128(_mm_avg_epu8(m1, _mm_srli_si128(m1, 1)), v255);
-     auto p2 = _mm_and_si128(_mm_avg_epu8(m2, _mm_srli_si128(m2, 1)), v255);
-     auto p3 = _mm_and_si128(_mm_avg_epu8(m3, _mm_srli_si128(m3, 1)), v255);
-     auto p01 = _mm_packus_epi16(p0, p1);
-     auto p23 = _mm_packus_epi16(p2, p3);
-     // and their pair averages
-     mask_lo = _mm_and_si128(_mm_avg_epu8(p01, _mm_srli_si128(p01, 1)), v255);
-     mask_hi = _mm_and_si128(_mm_avg_epu8(p23, _mm_srli_si128(p23, 1)), v255);
-   }
-
-   void merge_luma_411_avx2_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
-     const uint8_t *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
-   {
-     int wMod32 = (nWidth / 32) * 32;
-     auto pDst_s = pDst;
-     auto pSrc1_s = pSrc1;
-     auto pMask_s = pMask;
-     auto zero = _mm256_setzero_si256();
-#pragma warning(disable: 4309)
-#pragma warning(default: 4309)
-     for (int j = 0; j < nHeight; ++j) {
-       for (int i = 0; i < wMod32; i += 32) {
-         // preparing mask: two halves of 16 pixels
-         __m128i lo0, hi0, lo1, hi1;
-         mask_411_sse2(pMask + i * 4, lo0, hi0);
-         mask_411_sse2(pMask + i * 4 + 64, lo1, hi1);
-         auto mask_t1 = _mm256_set_m128i(lo1, lo0);
-         auto mask_t2 = _mm256_set_m128i(hi1, hi0);
-
-         auto result = merge_avx2_core(pDst + i, pSrc1 + i, mask_t1, mask_t2, zero);
-
-         _mm256_storeu_si256(reinterpret_cast<__m256i*>(pDst + i), result);
-       }
-       pDst += nDstPitch;
-       pSrc1 += nSrc1Pitch;
-       pMask += nSrc2Pitch;
-     }
-     if (nWidth > wMod32) {
-       merge_luma_411_t_c(pDst_s + wMod32, nDstPitch, pSrc1_s + wMod32, nSrc1Pitch, pMask_s + wMod32 * 4, nSrc2Pitch, nWidth - wMod32, nHeight);
-     }
-   }
-
 } // namespace
 
    Processor *merge_avx2 = merge_avx2_t;
@@ -328,7 +276,8 @@ namespace {
    Processor *merge_luma_422_mpeg2_avx2 = merge_weighted_avx2_t<WeightedMask::M422>;
    Processor *merge_luma_420_avx2 = merge_luma_420_avx2_t;
    Processor *merge_luma_422_avx2 = merge_luma_422_avx2_t;
-   Processor *merge_luma_411_avx2 = merge_luma_411_avx2_t;
+   Processor *merge_luma_411_avx2 = merge_411_t<uint8_t, false, Mask410AVX, merge_avx2_t>;
+   Processor *merge_luma_411_mpeg2_avx2 = merge_411_t<uint8_t, true, Mask410AVX, merge_avx2_t>;
    Processor *merge_luma_440_avx2 = merge_luma_440_avx2_t<false>;
    Processor *merge_luma_440_topleft_avx2 = merge_luma_440_avx2_t<true>;
    Processor *merge_luma_410_avx2 = merge_410_t<uint8_t, false, false, Mask410AVX, merge_avx2_t>;

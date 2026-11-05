@@ -373,53 +373,6 @@ namespace {
      }
    }
 
-   // 411: the masks of 16 chroma pixels from 64 luma mask pixels of the row, as words (lo: 0-7, hi: 8-15);
-   // pair averages of pair averages, as the C version
-   MT_FORCEINLINE void mask_411_sse2(const uint8_t *pMask, __m128i &mask_lo, __m128i &mask_hi) {
-     auto v255 = _mm_set1_epi16(0x00FF);
-     auto m0 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pMask));
-     auto m1 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pMask + 16));
-     auto m2 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pMask + 32));
-     auto m3 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(pMask + 48));
-     // pair averages at the even bytes
-     auto p0 = _mm_and_si128(_mm_avg_epu8(m0, _mm_srli_si128(m0, 1)), v255);
-     auto p1 = _mm_and_si128(_mm_avg_epu8(m1, _mm_srli_si128(m1, 1)), v255);
-     auto p2 = _mm_and_si128(_mm_avg_epu8(m2, _mm_srli_si128(m2, 1)), v255);
-     auto p3 = _mm_and_si128(_mm_avg_epu8(m3, _mm_srli_si128(m3, 1)), v255);
-     auto p01 = _mm_packus_epi16(p0, p1);
-     auto p23 = _mm_packus_epi16(p2, p3);
-     // and their pair averages
-     mask_lo = _mm_and_si128(_mm_avg_epu8(p01, _mm_srli_si128(p01, 1)), v255);
-     mask_hi = _mm_and_si128(_mm_avg_epu8(p23, _mm_srli_si128(p23, 1)), v255);
-   }
-
-   void merge_luma_411_sse2_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
-     const uint8_t *pMask, ptrdiff_t nSrc2Pitch, int nWidth, int nHeight)
-   {
-     int wMod16 = (nWidth / 16) * 16;
-     auto pDst_s = pDst;
-     auto pSrc1_s = pSrc1;
-     auto pMask_s = pMask;
-     auto zero = _mm_setzero_si128();
-     for (int j = 0; j < nHeight; ++j) {
-       for (int i = 0; i < wMod16; i += 16) {
-         // preparing mask
-         __m128i mask_t1, mask_t2;
-         mask_411_sse2(pMask + i * 4, mask_t1, mask_t2);
-
-         auto result = merge_sse2_core(pDst + i, pSrc1 + i, mask_t1, mask_t2, zero);
-
-         _mm_storeu_si128(reinterpret_cast<__m128i*>(pDst + i), result);
-       }
-       pDst += nDstPitch;
-       pSrc1 += nSrc1Pitch;
-       pMask += nSrc2Pitch;
-     }
-     if (nWidth > wMod16) {
-       merge_luma_411_t_c(pDst_s + wMod16, nDstPitch, pSrc1_s + wMod16, nSrc1Pitch, pMask_s + wMod16 * 4, nSrc2Pitch, nWidth - wMod16, nHeight);
-     }
-   }
-
 } // namespace
 
 } } } }

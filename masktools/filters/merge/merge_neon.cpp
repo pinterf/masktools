@@ -14,7 +14,7 @@ namespace Filtering { namespace MaskTools { namespace Filters { namespace Merge 
 
 namespace {
 
-enum class Mode { M444, M420, M422, M411, M440, TopLeft440 };
+enum class Mode { M444, M420, M422, M440, TopLeft440 };
 
 /* 8 bit */
 
@@ -39,14 +39,10 @@ MT_FORCEINLINE uint8x16_t mask8(const uint8_t *pMask, ptrdiff_t pitch, int x, pt
     uint8x16x2_t r = vld2q_u8(pMask + x * 2);
     return vrhaddq_u8(r.val[0], r.val[1]);
   }
-  else if constexpr (mode == Mode::M420) {
+  else {
     uint8x16x2_t r1 = vld2q_u8(pMask + x * 2);
     uint8x16x2_t r2 = vld2q_u8(pMask + pitch + x * 2);
     return vrhaddq_u8(vrhaddq_u8(r1.val[0], r2.val[0]), vrhaddq_u8(r1.val[1], r2.val[1]));
-  }
-  else {
-    uint8x16x4_t r = vld4q_u8(pMask + x * 4);
-    return vrhaddq_u8(vrhaddq_u8(r.val[0], r.val[1]), vrhaddq_u8(r.val[2], r.val[3]));
   }
 }
 
@@ -72,7 +68,7 @@ template<Mode mode>
 void merge8_neon_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
                    const uint8_t *pMask, ptrdiff_t nMaskPitch, int nWidth, int nHeight)
 {
-  constexpr int mstep = mode == Mode::M420 || mode == Mode::M422 ? 2 : mode == Mode::M411 ? 4 : 1;
+  constexpr int mstep = mode == Mode::M420 || mode == Mode::M422 ? 2 : 1;
   const int wmod = nWidth / 16 * 16;
   uint8_t *pDst0 = pDst;
   const uint8_t *pSrc0 = pSrc1, *pMask0 = pMask;
@@ -86,7 +82,7 @@ void merge8_neon_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptr
   if (nWidth > wmod) {
     Processor *c = mode == Mode::M444 ? merge_t_c : mode == Mode::M420 ? merge_luma_420_t_c :
       mode == Mode::M440 ? merge_luma_440_t_c<false> : mode == Mode::TopLeft440 ? merge_luma_440_t_c<true> :
-      mode == Mode::M422 ? merge_luma_422_t_c : merge_luma_411_t_c;
+      merge_luma_422_t_c;
     c(pDst0 + wmod, nDstPitch, pSrc0 + wmod, nSrc1Pitch, pMask0 + wmod * mstep, nMaskPitch, nWidth - wmod, nHeight);
   }
 }
@@ -115,15 +111,11 @@ MT_FORCEINLINE uint16x8_t mask16(const uint8_t *pMask, ptrdiff_t pitch, int x, p
     uint16x8x2_t r = vld2q_u16(m + x * 2);
     return vrhaddq_u16(r.val[0], r.val[1]);
   }
-  else if constexpr (mode == Mode::M420) {
+  else {
     const uint16_t *m2 = reinterpret_cast<const uint16_t *>(pMask + pitch);
     uint16x8x2_t r1 = vld2q_u16(m + x * 2);
     uint16x8x2_t r2 = vld2q_u16(m2 + x * 2);
     return vrhaddq_u16(vrhaddq_u16(r1.val[0], r2.val[0]), vrhaddq_u16(r1.val[1], r2.val[1]));
-  }
-  else {
-    uint16x8x4_t r = vld4q_u16(m + x * 4);
-    return vrhaddq_u16(vrhaddq_u16(r.val[0], r.val[1]), vrhaddq_u16(r.val[2], r.val[3]));
   }
 }
 
@@ -154,7 +146,7 @@ template<Mode mode>
 void merge16_neon_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, ptrdiff_t nSrc1Pitch,
                     const uint8_t *pMask, ptrdiff_t nMaskPitch, int nWidth, int nHeight, int bits_per_pixel)
 {
-  constexpr int mstep = mode == Mode::M420 || mode == Mode::M422 ? 2 : mode == Mode::M411 ? 4 : 1;
+  constexpr int mstep = mode == Mode::M420 || mode == Mode::M422 ? 2 : 1;
   const uint32_t max = (1u << bits_per_pixel) - 1;
   const MergeMagicDiv magic = get_merge_magic_div(bits_per_pixel);
   const int wmod = nWidth / 8 * 8;
@@ -172,7 +164,7 @@ void merge16_neon_t(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc1, pt
   if (nWidth > wmod) {
     Processor16 *c = mode == Mode::M444 ? merge16_c : mode == Mode::M420 ? merge16_luma_420_c :
       mode == Mode::M440 ? merge16_luma_440_c : mode == Mode::TopLeft440 ? merge16_luma_440_topleft_c :
-      mode == Mode::M422 ? merge16_luma_422_c : merge16_luma_411_c;
+      merge16_luma_422_c;
     c(pDst0 + wmod * 2, nDstPitch, pSrc0 + wmod * 2, nSrc1Pitch, pMask0 + wmod * 2 * mstep, nMaskPitch, nWidth - wmod, nHeight, bits_per_pixel);
   }
 }
@@ -354,7 +346,8 @@ Processor *merge_luma_420_mpeg2_neon = merge_weighted_neon_t<uint8_t, WeightedMo
 Processor *merge_luma_420_topleft_neon = merge_weighted_neon_t<uint8_t, WeightedMode::TopLeft420>;
 Processor *merge_luma_422_mpeg2_neon = merge_weighted_neon_t<uint8_t, WeightedMode::M422>;
 Processor *merge_luma_422_neon = &merge8_neon_t<Mode::M422>;
-Processor *merge_luma_411_neon = &merge8_neon_t<Mode::M411>;
+Processor *merge_luma_411_neon = merge_411_t<uint8_t, false, Mask410NEON, merge8_neon_t<Mode::M444>>;
+Processor *merge_luma_411_mpeg2_neon = merge_411_t<uint8_t, true, Mask410NEON, merge8_neon_t<Mode::M444>>;
 Processor *merge_luma_440_neon = &merge8_neon_t<Mode::M440>;
 Processor *merge_luma_440_topleft_neon = &merge8_neon_t<Mode::TopLeft440>;
 Processor *merge_luma_410_neon = merge_410_t<uint8_t, false, false, Mask410NEON, merge8_neon_t<Mode::M444>>;
@@ -367,7 +360,8 @@ Processor16 *merge16_luma_420_mpeg2_neon = merge_weighted_neon<uint16_t, Weighte
 Processor16 *merge16_luma_420_topleft_neon = merge_weighted_neon<uint16_t, WeightedMode::TopLeft420>;
 Processor16 *merge16_luma_422_mpeg2_neon = merge_weighted_neon<uint16_t, WeightedMode::M422>;
 Processor16 *merge16_luma_422_neon = &merge16_neon_t<Mode::M422>;
-Processor16 *merge16_luma_411_neon = &merge16_neon_t<Mode::M411>;
+Processor16 *merge16_luma_411_neon = merge16_411_t<false, Mask410NEON, merge16_neon_t<Mode::M444>>;
+Processor16 *merge16_luma_411_mpeg2_neon = merge16_411_t<true, Mask410NEON, merge16_neon_t<Mode::M444>>;
 Processor16 *merge16_luma_440_neon = &merge16_neon_t<Mode::M440>;
 Processor16 *merge16_luma_440_topleft_neon = &merge16_neon_t<Mode::TopLeft440>;
 Processor16 *merge16_luma_410_neon = merge16_410_t<false, false, Mask410NEON, merge16_neon_t<Mode::M444>>;
@@ -376,7 +370,8 @@ Processor16 *merge16_luma_410_topleft_neon = merge16_410_t<true, true, Mask410NE
 
 Processor32 *merge32_neon = &merge32_neon_t<Mode::M444>;
 Processor32 *merge32_luma_420_neon = &merge32_neon_t<Mode::M420>;
-Processor32 *merge32_luma_411_neon = merge32_luma_411_simd<Mask410NEON>;
+Processor32 *merge32_luma_411_neon = merge_411_t<float, false, Mask410NEON, nullptr>;
+Processor32 *merge32_luma_411_mpeg2_neon = merge_411_t<float, true, Mask410NEON, nullptr>;
 Processor32 *merge32_luma_420_mpeg2_neon = merge_weighted_neon_t<float, WeightedMode::M420>;
 Processor32 *merge32_luma_420_topleft_neon = merge_weighted_neon_t<float, WeightedMode::TopLeft420>;
 Processor32 *merge32_luma_422_mpeg2_neon = merge_weighted_neon_t<float, WeightedMode::M422>;
