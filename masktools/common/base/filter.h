@@ -210,6 +210,31 @@ public:
 
     bool isStacked; // stacked 16 bit (MSB/LSB halves of an 8 bit clip): processed as native 16 bit, see stacked.h
 
+    // Does an expression of a processed plane use the plane or frame context? A precomputed lut cannot do that.
+    template<class ExpressionParser>
+    bool expressions_use_context(ExpressionParser &parser, const char *const *plane_expressions, const char *expression)
+    {
+        for (int i = 0; i < 4; i++) {
+            if (operators[i] != PROCESS)
+                continue;
+            if (parameters[plane_expressions[i]].is_defined()) {
+                if (parser.dependencies(parameters[plane_expressions[i]].toString()) != 0)
+                    return true;
+            }
+            else if (parameters[expression].is_defined()) {
+                if (parser.dependencies(parameters[expression].toString()) != 0)
+                    return true;
+            }
+        }
+        return false;
+    }
+
+    template<class ExpressionContext>
+    void set_plane_context(ExpressionContext &ctx, const Plane<uint8_t> &dst, int n) const
+    {
+        ctx.set_plane(dst.width(), dst.height(), n, childs[0]->frame_count());
+    }
+
     Filter(const Parameters &parameters, FilterProcessingType processingType, CpuFlags _flags) :
         parameters(parameters),
         flags(_flags),

@@ -29,7 +29,9 @@ void Filtering::MaskTools::Filters::Lut::Single::realtime16_c(uint8_t* dstp, ptr
   const int max_pixel_value = (1 << bits_per_pixel) - 1;
   for (int y = 0; y < height; y++)
   {
+    ctx.set_row(y);
     for (int x = 0; x < width; x++) {
+      ctx.set_column(x);
       const int pixel = min((int)reinterpret_cast<uint16_t*>(dstp)[x], max_pixel_value);
       reinterpret_cast<uint16_t*>(dstp)[x] = ctx.compute_word_x(pixel, bits_per_pixel);
     }

@@ -34,7 +34,9 @@ void Filtering::MaskTools::Filters::Lut::Dual::realtime8_c(uint8_t *dstp, ptrdif
 {
   for (int y = 0; y < height; y++)
   {
+    ctx.set_row(y);
     for (int x = 0; x < width; x++) {
+      ctx.set_column(x);
       dstp[x] = ctx.compute_byte_xy(dstp[x], srcp[x]);
     }
     dstp += dst_pitch;
@@ -47,7 +49,9 @@ void Filtering::MaskTools::Filters::Lut::Dual::realtime16_c(uint8_t *dstp, ptrdi
   const int max_pixel_value = (1 << bits_per_pixel) - 1;
   for (int y = 0; y < height; y++)
   {
+    ctx.set_row(y);
     for (int x = 0; x < width; x++) {
+      ctx.set_column(x);
       const int pixelX = min((int)reinterpret_cast<uint16_t *>(dstp)[x], max_pixel_value); // clamp input below 16 bit
       const int pixelY = min((int)reinterpret_cast<const uint16_t *>(srcp)[x], max_pixel_value);
       reinterpret_cast<uint16_t *>(dstp)[x] = ctx.compute_word_xy(pixelX, pixelY, bits_per_pixel);
@@ -61,7 +65,9 @@ void Filtering::MaskTools::Filters::Lut::Dual::realtime32_c(uint8_t *dstp, ptrdi
 {
   for (int y = 0; y < height; y++)
   {
+    ctx.set_row(y);
     for (int x = 0; x < width; x++) {
+      ctx.set_column(x);
       reinterpret_cast<float *>(dstp)[x] = ctx.compute_float_xy(reinterpret_cast<float *>(dstp)[x], reinterpret_cast<const float *>(srcp)[x], chroma);
     }
     dstp += dst_pitch;

@@ -112,6 +112,11 @@ Parser::Parser &Parser::Parser::parse_internal(const String &_parsed_string, con
    return *this;
 }
 
+int Parser::Parser::dependencies(const String &expression)
+{
+   return expression_dependencies(parse_strict(expression, SYMBOL_SEPARATORS).getExpression());
+}
+
 String Parser::Parser::getParsedString() const
 {
    return parsed_string;
@@ -131,7 +136,7 @@ Parser::Parser Parser::getDefaultParser()
    /* comparison operators */
    parser.addSymbol(Symbol::Equal).addSymbol(Symbol::Equal2).addSymbol(Symbol::NotEqual).addSymbol(Symbol::Inferior).addSymbol(Symbol::InferiorStrict).addSymbol(Symbol::Superior).addSymbol(Symbol::SuperiorStrict);
    /* logic operators */
-   parser.addSymbol(Symbol::And).addSymbol(Symbol::Or).addSymbol(Symbol::AndNot).addSymbol(Symbol::Xor);
+   parser.addSymbol(Symbol::And).addSymbol(Symbol::Or).addSymbol(Symbol::AndNot).addSymbol(Symbol::Xor).addSymbol(Symbol::XorName).addSymbol(Symbol::Not);
    /* unsigned binary operators */
    parser.addSymbol(Symbol::AndUB).addSymbol(Symbol::OrUB).addSymbol(Symbol::XorUB).addSymbol(Symbol::NegateUB).addSymbol(Symbol::PosShiftUB).addSymbol(Symbol::NegShiftUB);
    /* signed binary operators */
@@ -139,7 +144,7 @@ Parser::Parser Parser::getDefaultParser()
    /* ternary operator */
    parser.addSymbol(Symbol::Interrogation);
    /* function */
-   parser.addSymbol(Symbol::Abs).addSymbol(Symbol::Acos).addSymbol(Symbol::Asin).addSymbol(Symbol::Atan).addSymbol(Symbol::Atan2).addSymbol(Symbol::Cos).addSymbol(Symbol::Exp).addSymbol(Symbol::Log).addSymbol(Symbol::Sin).addSymbol(Symbol::Tan).addSymbol(Symbol::Min).addSymbol(Symbol::Max).addSymbol(Symbol::Clip);
+   parser.addSymbol(Symbol::Abs).addSymbol(Symbol::Acos).addSymbol(Symbol::Asin).addSymbol(Symbol::Atan).addSymbol(Symbol::Atan2).addSymbol(Symbol::Cos).addSymbol(Symbol::Exp).addSymbol(Symbol::Log).addSymbol(Symbol::Sin).addSymbol(Symbol::Tan).addSymbol(Symbol::Min).addSymbol(Symbol::Max).addSymbol(Symbol::Clip).addSymbol(Symbol::Sqrt).addSymbol(Symbol::Neg).addSymbol(Symbol::Sgn);
    /* rounding */
    parser.addSymbol(Symbol::Round).addSymbol(Symbol::Floor).addSymbol(Symbol::Trunc).addSymbol(Symbol::Ceil);
    /* number */
@@ -161,6 +166,10 @@ Parser::Parser Parser::getDefaultParser()
    parser.addSymbol(Symbol::RANGE_HALF).addSymbol(Symbol::RANGE_MIN).addSymbol(Symbol::RANGE_MAX).addSymbol(Symbol::YRANGE_HALF).addSymbol(Symbol::YRANGE_MIN).addSymbol(Symbol::YRANGE_MAX).addSymbol(Symbol::RANGE_SIZE);
    parser.addSymbol(Symbol::YMIN).addSymbol(Symbol::YMAX);
    parser.addSymbol(Symbol::CMIN).addSymbol(Symbol::CMAX);
+   /* per plane and per frame context */
+   parser.addSymbol(Symbol::Width).addSymbol(Symbol::Height);
+   parser.addSymbol(Symbol::SpatialX).addSymbol(Symbol::SpatialY).addSymbol(Symbol::SpatialXRelative).addSymbol(Symbol::SpatialYRelative);
+   parser.addSymbol(Symbol::FrameNo).addSymbol(Symbol::Time);
 
    /* Symbol X, X and Y, X and Y and Z are added additionally at before processing lut expression */
    /* like this:       

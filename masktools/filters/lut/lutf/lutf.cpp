@@ -22,6 +22,18 @@ static void frame_c(uint8_t *dstp, ptrdiff_t dst_pitch, const uint8_t *srcp, ptr
     // lutf: treat it as if the first frame was constant, result of avg/min/max, etc...
     if (realtime) {
       const uint8_t X = processor.finalize();
+      if (ctx->is_position_dependent()) {
+        for (int j = 0; j < height; j++) {
+          ctx->set_row(j);
+          for (int i = 0; i < width; i++) {
+            ctx->set_column(i);
+            dstp[i] = ctx->compute_byte_xy(X, srcp[i]);
+          }
+          srcp += src_pitch;
+          dstp += dst_pitch;
+        }
+        return;
+      }
       // no 2D lut needed, X is constant
       // speedwise (expr = "x ymin - ymax ymin - / range_max *")
       // real lut: 180fps, 
@@ -75,6 +87,18 @@ static void frame16_c(uint16_t *dstp, ptrdiff_t dst_pitch, const uint16_t *srcp,
   // lutf: treat it as if the first frame was constant, result of avg/min/max, etc...
   if (realtime) {
     const uint16_t X = processor.finalize();
+    if (ctx->is_position_dependent()) {
+      for (int j = 0; j < height; j++) {
+        ctx->set_row(j);
+        for (int i = 0; i < width; i++) {
+          ctx->set_column(i);
+          dstp[i] = ctx->compute_word_xy(X, min(srcp[i], max_pixel_value), bits_per_pixel);
+        }
+        srcp += src_pitch;
+        dstp += dst_pitch;
+      }
+      return;
+    }
     // no 2D lut needed, X is constant
     // speedwise (expr = "x ymin - ymax ymin - / range_max *")
     // real lut: 180fps, 
@@ -133,7 +157,9 @@ static void frame32_c(float *dstp, ptrdiff_t dst_pitch, const float *srcp, ptrdi
 
   // always full realtime
   for (int j = 0; j < height; j++) {
+    ctx->set_row(j);
     for (int i = 0; i < width; i++) {
+      ctx->set_column(i);
       dstp[i] = ctx->compute_float_xy(X, srcp[i], chroma);
     }
     srcp += src_pitch;

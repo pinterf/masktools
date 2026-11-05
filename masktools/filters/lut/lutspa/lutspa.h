@@ -15,11 +15,53 @@ class Lutspa : public MaskTools::Filter
    uint8_t *luts[4] = {};
    int bits_per_pixel;
    int pixelsize;
+   bool is_relative;
+   bool is_biased;
+   String scale_inputs;
+   int clamp_float_i;
+   // frameno, time: computed for each frame
+   std::deque<Parser::Symbol> *parsed_expressions[4] = {};
+
+   void fill_plane(uint8_t *out, ptrdiff_t pitch, int w, int h, int nPlane, Parser::Context &ctx) const
+   {
+      const int divisor_x = (is_biased || w < 2) ? w : w - 1;
+      const int divisor_y = (is_biased || h < 2) ? h : h - 1;
+      const bool chroma = !isRGB && (nPlane == 1 || nPlane == 2); // not RGB and plane U or V
+      for (int y = 0; y < h; y++) {
+         ctx.set_row(y);
+         for (int x = 0; x < w; x++) {
+            ctx.set_column(x);
+            switch (bits_per_pixel) {
+            case 8:
+               out[x] = is_relative ? ctx.compute_byte_xy_dblinput(x * 1.0 / divisor_x, y * 1.0 / divisor_y) : ctx.compute_byte_xy(x, y);
+               break;
+            case 32:
+               reinterpret_cast<float *>(out)[x] = is_relative ?
+                  ctx.compute_float_xy(x * 1.0 / divisor_x, y * 1.0 / divisor_y, chroma) : ctx.compute_float_xy(x, y, chroma);
+               break;
+            default:
+               // input is not integer, don't use compute_word_xy<n>; bit depth goes to param B
+               reinterpret_cast<uint16_t *>(out)[x] = is_relative ?
+                  ctx.compute_word_xy_safe_dblinput(x * 1.0 / divisor_x, y * 1.0 / divisor_y, bits_per_pixel) :
+                  ctx.compute_word_xy_safe(x, y, bits_per_pixel);
+               break;
+            }
+         }
+         out += pitch;
+      }
+   }
 
 protected:
     virtual void process(int n, const Plane<uint8_t> &dst, int nPlane, const Filtering::Frame<const uint8_t> frames[4], const Constraint constraints[4]) override
     {
-        UNUSED(n); UNUSED(frames); UNUSED(constraints);
+        UNUSED(frames); UNUSED(constraints);
+        if (parsed_expressions[nPlane]) {
+           // thread safety
+           Parser::Context ctx(*parsed_expressions[nPlane], scale_inputs, clamp_float_i);
+           set_plane_context(ctx, dst, n);
+           fill_plane(dst.data(), dst.pitch(), dst.width(), dst.height(), nPlane, ctx);
+           return;
+        }
         Functions::copy_plane(dst.data(), dst.pitch(), luts[nPlane], dst.width() * pixelsize, dst.width() * pixelsize, dst.height());
         // copy_plane needs row_size in bytes
     }
@@ -31,8 +73,8 @@ public:
       pixelsize = bits_per_pixel == 8 ? 1 : (bits_per_pixel <= 16) ? 2 : 4;
 
       static const char *expr_strs[] = { "yExpr", "uExpr", "vExpr", "aExpr" };
-      bool is_relative = parameters["relative"].toBool();
-      bool is_biased = parameters["biased"].toBool();
+      is_relative = parameters["relative"].toBool();
+      is_biased = parameters["biased"].toBool();
       
       if (parameters["mode"].is_defined())
       {
@@ -46,8 +88,6 @@ public:
 
       Parser::Parser parser = Parser::getDefaultParser().addSymbol(Parser::Symbol::X).addSymbol(Parser::Symbol::Y);
 
-      String scale_inputs;
-      int clamp_float_i;
       scale_inputs = parameters["scale_inputs"].toString();
       if (!checkValidScaleInputs(scale_inputs, error))
         return; // error message filled
@@ -91,44 +131,14 @@ public:
             return;
          }
 
-         luts[i] = reinterpret_cast<uint8_t*>(_aligned_malloc(w*h*pixelsize, 16));
-
-         switch(bits_per_pixel) {
-         case 8:
-           for (int x = 0; x < w; x++)
-             for (int y = 0; y < h; y++)
-               luts[i][x + y*w] = is_relative ?
-               ctx.compute_byte_xy_dblinput(x * 1.0 / ((is_biased || w < 2) ? w : w - 1),
-                 y * 1.0 / ((is_biased || h < 2) ? h : h - 1))
-               : ctx.compute_byte_xy(x, y);
-           break;
-         case 10:
-         case 12:
-         case 14:
-         case 16:
-           for (int x = 0; x < w; x++)
-             for (int y = 0; y < h; y++) {
-               // input is not integer, don't use compute_word_xy<n>
-               uint16_t val = is_relative ?
-                 ctx.compute_word_xy_safe_dblinput(x * 1.0 / ((is_biased || w < 2) ? w : w - 1),
-                   y * 1.0 / ((is_biased || h < 2) ? h : h - 1),
-                   bits_per_pixel // new: bit-depth goes to param B
-                 ) : ctx.compute_word_xy_safe(x, y, bits_per_pixel);
-               reinterpret_cast<uint16_t *>(luts[i])[x + y*w] = val;
-             }
-           break;
-         case 32:
-           const bool chroma = !isRGB && (i == 1 || i == 2); // not RGB and plane U or V
-           for (int x = 0; x < w; x++)
-             for (int y = 0; y < h; y++) {
-               float val = is_relative ?
-                 ctx.compute_float_xy(x * 1.0 / ((is_biased || w < 2) ? w : w - 1),
-                   y * 1.0 / ((is_biased || h < 2) ? h : h - 1), chroma) 
-                 : ctx.compute_float_xy(x, y, chroma);
-               reinterpret_cast<float *>(luts[i])[x + y*w] = val;
-             }
-           break;
+         if (Parser::expression_dependencies(parser.getExpression()) & Parser::DEPENDS_ON_FRAME) {
+            parsed_expressions[i] = new std::deque<Parser::Symbol>(parser.getExpression());
+            continue;
          }
+
+         luts[i] = reinterpret_cast<uint8_t*>(_aligned_malloc(w*h*pixelsize, 16));
+         ctx.set_plane(w, h, 0, childs[0]->frame_count());
+         fill_plane(luts[i], (ptrdiff_t)w * pixelsize, w, h, i, ctx);
       }
    }
 
@@ -136,6 +146,7 @@ public:
    {
        for (int i = 0; i < 4; i++) {
            _aligned_free(luts[i]);
+           delete parsed_expressions[i];
        }
    }
 

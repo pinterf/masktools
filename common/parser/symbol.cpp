@@ -28,6 +28,7 @@ static double _and             (double x, double y) { return x > 0 && y > 0 ? 1 
 static double _or              (double x, double y) { return x > 0 || y > 0 ? 1 : -1; }
 static double andNot          (double x, double y) { return x > 0 && y <= 0 ? 1 : -1; }
 static double _xor             (double x, double y) { return (x > 0 && y <= 0) || (x <= 0 && y > 0)? 1 : -1; }
+static double _not             (double x) { return x > 0 ? -1 : 1; }
 // Unsigned Bit arithmetic
 static double andUB           (double x, double y) { return double(clip<uint64_t, double>(x) & clip<uint64_t, double>(y)); }
 static double orUB            (double x, double y) { return double(clip<uint64_t, double>(x) | clip<uint64_t, double>(y)); }
@@ -60,6 +61,9 @@ static double mtmax             (double x, double y) { return max<double>( x, y 
 static double mtfloor           (double x) { return floor(x); }
 static double mtceil            (double x) { return ceil(x); }
 static double mttrunc           (double x) { return double(int64_t(x)); }
+static double mtsqrt            (double x) { return x > 0 ? sqrt(x) : 0; } // negative: 0, as the Expr JIT
+static double mtneg             (double x) { return -x; }
+static double mtsgn             (double x) { return x < 0 ? -1 : x > 0 ? 1 : 0; }
 
 // bit depth conversion helpers. x:value on 8 bit scale y: target bit depth 8-32 z:base bit depth
 static double do_upscaleByShift(double x, int y, int z, bool chroma, bool shift_float)
@@ -183,7 +187,7 @@ Symbol Symbol::Addition       ("+" , OPERATOR, addition);
 Symbol Symbol::Multiplication ("*" , OPERATOR, multiplication);
 Symbol Symbol::Division       ("/" , OPERATOR, division);
 Symbol Symbol::Substraction   ("-" , OPERATOR, substraction);
-Symbol Symbol::Power          ("^" , OPERATOR, power);
+Symbol Symbol::Power          ("^" , "pow", OPERATOR, power);
 Symbol Symbol::Modulo         ("%" , OPERATOR, modulo);
 Symbol Symbol::Interrogation  ("?" , TERNARY , interrogation);
 Symbol Symbol::Equal          ("==", OPERATOR, equal);
@@ -193,10 +197,12 @@ Symbol Symbol::Inferior       ("<=", OPERATOR, inferior);
 Symbol Symbol::InferiorStrict ("<" , OPERATOR, inferiorStrict);
 Symbol Symbol::Superior       (">=", OPERATOR, superior);
 Symbol Symbol::SuperiorStrict (">" , OPERATOR, superiorStrict);
-Symbol Symbol::And            ("&" , OPERATOR, _and);
-Symbol Symbol::Or             ("|" , OPERATOR, _or);
+Symbol Symbol::And            ("&" , "and", OPERATOR, _and);
+Symbol Symbol::Or             ("|" , "or", OPERATOR, _or);
 Symbol Symbol::AndNot         ("&!", OPERATOR, andNot);
 Symbol Symbol::Xor            ("\xB0" , "@", OPERATOR, _xor); // degree-sign 0xB0, has codepage problems, kept only for compatibility
+Symbol Symbol::XorName        ("\xB0" , "xor", OPERATOR, _xor);
+Symbol Symbol::Not            ("not", FUNCTION, _not);
 Symbol Symbol::AndUB          ("&u" , OPERATOR, andUB);
 Symbol Symbol::OrUB           ("|u" , OPERATOR, orUB);
 Symbol Symbol::XorUB          ("\xB0u" , "@u", OPERATOR, xorUB); // degree-sign 0xB0, has codepage problems, kept only for compatibility
@@ -231,6 +237,14 @@ Symbol Symbol::YMIN           ("ymin", VARIABLE, VARIABLE_YMIN); // 16 scaled
 Symbol Symbol::YMAX           ("ymax", VARIABLE, VARIABLE_YMAX); // 235 or scaled
 Symbol Symbol::CMIN           ("cmin", VARIABLE, VARIABLE_CMIN); // 16 scaled = LIMITED_YMIN
 Symbol Symbol::CMAX           ("cmax", VARIABLE, VARIABLE_CMAX); // 240 scaled
+Symbol Symbol::Width          ("width", VARIABLE, VARIABLE_WIDTH);
+Symbol Symbol::Height         ("height", VARIABLE, VARIABLE_HEIGHT);
+Symbol Symbol::SpatialX       ("sx", VARIABLE, VARIABLE_SX);
+Symbol Symbol::SpatialY       ("sy", VARIABLE, VARIABLE_SY);
+Symbol Symbol::SpatialXRelative("sxr", VARIABLE, VARIABLE_SXR);
+Symbol Symbol::SpatialYRelative("syr", VARIABLE, VARIABLE_SYR);
+Symbol Symbol::FrameNo        ("frameno", VARIABLE, VARIABLE_FRAMENO);
+Symbol Symbol::Time           ("time", VARIABLE, VARIABLE_TIME);
 // Math
 Symbol Symbol::Cos            ("cos", FUNCTION, mtcos);
 Symbol Symbol::Sin            ("sin", FUNCTION, mtsin);
@@ -249,6 +263,9 @@ Symbol Symbol::Max            ("max", FUNCTION, mtmax);
 Symbol Symbol::Ceil           ("ceil", FUNCTION, mtceil);
 Symbol Symbol::Floor          ("floor", FUNCTION, mtfloor);
 Symbol Symbol::Trunc          ("trunc", FUNCTION, mttrunc);
+Symbol Symbol::Sqrt           ("sqrt", FUNCTION, mtsqrt);
+Symbol Symbol::Neg            ("neg", FUNCTION, mtneg);
+Symbol Symbol::Sgn            ("sgn", FUNCTION, mtsgn);
 // automatic bit-depth scaling helpers, since v2.2.1
 Symbol Symbol::ScaleByShift   ("scaleb", "@B", FUNCTION_WITH_BITDEPTH_AS_AUTOPARAM, upscaleByShift); // v 2.2.5: #B, #F -> @B, @F
 Symbol Symbol::ScaleByStretch ("scalef", "@F", FUNCTION_WITH_BITDEPTH_AS_AUTOPARAM, upscaleByStretch); // with optinal scaleb and scalef aliases
@@ -384,7 +401,7 @@ Symbol::Symbol(String value, Type type, ProcessScale process) :
 // variables
 // Type=VARIABLE always
 Symbol::Symbol(String value, Type type, VarType vartype) :
-  type(type), vartype(vartype), value(value), value2(""), nParameter(0)
+  type(type), vartype(vartype), value(value), value2(""), nParameter(0), dValue(0.0)
 {
 }
 
@@ -408,6 +425,41 @@ double Symbol::getValue(double x, double y, double z) const
    }
 }
 
+
+int Filtering::Parser::expression_dependencies(const std::deque<Symbol> &expression)
+{
+  int dependencies = 0;
+  for (const Symbol &s : expression) {
+    if (s.type != Symbol::VARIABLE)
+      continue;
+    switch (s.vartype) {
+    case Symbol::VARIABLE_SX: case Symbol::VARIABLE_SY:
+    case Symbol::VARIABLE_SXR: case Symbol::VARIABLE_SYR:
+      dependencies |= DEPENDS_ON_POSITION;
+      break;
+    case Symbol::VARIABLE_WIDTH: case Symbol::VARIABLE_HEIGHT:
+      dependencies |= DEPENDS_ON_SIZE;
+      break;
+    case Symbol::VARIABLE_FRAMENO: case Symbol::VARIABLE_TIME:
+      dependencies |= DEPENDS_ON_FRAME;
+      break;
+    default:
+      break;
+    }
+  }
+  return dependencies;
+}
+
+void Context::set_plane(int width, int height, int frame_number, int frame_count)
+{
+  plane_width = width;
+  plane_height = height;
+  // as Expr: 0..1 inclusive, 0 on a single column or row
+  sxr_divisor = width > 1 ? width - 1 : 1;
+  syr_divisor = height > 1 ? height - 1 : 1;
+  frameno = frame_number;
+  reltime = frame_count > 1 ? (double)frame_number / (frame_count - 1) : 0.0;
+}
 
 void Context::calc_helpers()
 {
@@ -510,6 +562,7 @@ Context::Context(const std::deque<Symbol> &expression, String scale_inputs, int 
 
 Context::Context(const std::deque<Symbol> &expression)
 {
+   position_dependent = (expression_dependencies(expression) & DEPENDS_ON_POSITION) != 0;
    pSymbols.reserve(expression.size());
    exprstack.reserve(expression.size());
 
@@ -657,6 +710,14 @@ double Context::rec_compute()
     case Symbol::VARIABLE_YMAX: { last = bitdepth == 32 ? ymax_f : a_ymax[bitdepth - 8]; break; } // 235 scaled
     case Symbol::VARIABLE_CMIN: { last = bitdepth == 32 ? cmin_f : a_cmin[bitdepth - 8]; break;  } // 16 scaled
     case Symbol::VARIABLE_CMAX: { last = bitdepth == 32 ? cmax_f : a_cmax[bitdepth - 8]; break;  } // 240 scaled
+    case Symbol::VARIABLE_WIDTH: { last = plane_width; break; }
+    case Symbol::VARIABLE_HEIGHT: { last = plane_height; break; }
+    case Symbol::VARIABLE_SX: { last = sx; break; }
+    case Symbol::VARIABLE_SY: { last = sy; break; }
+    case Symbol::VARIABLE_SXR: { last = sx / sxr_divisor; break; }
+    case Symbol::VARIABLE_SYR: { last = sy / syr_divisor; break; }
+    case Symbol::VARIABLE_FRAMENO: { last = frameno; break; }
+    case Symbol::VARIABLE_TIME: { last = reltime; break; }
     default: {
       compute_error = compute_error_t::CE_INVALID_INTERNAL_VARIABLE; // this is internal error, cannot happen
       assert(0);
@@ -701,6 +762,14 @@ double Context::rec_compute()
       case Symbol::VARIABLE_YMAX: { last = bitdepth == 32 ? ymax_f : a_ymax[bitdepth - 8]; break; } // 235 scaled
       case Symbol::VARIABLE_CMIN: { last = bitdepth == 32 ? cmin_f : a_cmin[bitdepth - 8]; break;  } // 16 scaled
       case Symbol::VARIABLE_CMAX: { last = bitdepth == 32 ? cmax_f : a_cmax[bitdepth - 8]; break;  } // 240 scaled
+      case Symbol::VARIABLE_WIDTH: { last = plane_width; break; }
+      case Symbol::VARIABLE_HEIGHT: { last = plane_height; break; }
+      case Symbol::VARIABLE_SX: { last = sx; break; }
+      case Symbol::VARIABLE_SY: { last = sy; break; }
+      case Symbol::VARIABLE_SXR: { last = sx / sxr_divisor; break; }
+      case Symbol::VARIABLE_SYR: { last = sy / syr_divisor; break; }
+      case Symbol::VARIABLE_FRAMENO: { last = frameno; break; }
+      case Symbol::VARIABLE_TIME: { last = reltime; break; }
       default: assert(0);
       }
       break;
@@ -877,7 +946,10 @@ String Context::infix()
       case Symbol::OPERATOR: {
          auto op2 = pop();
          auto op1 = pop();
-         stack.push_back("(" + op1 + s.value + op2 + ")");
+         // "x&sy" reads back as x &s y: a space keeps the sx, sy constant after an operator with a signed form
+         const bool has_signed_form = s.value == "&" || s.value == "|" || s.value == "\xB0" || s.value == "<<" || s.value == ">>";
+         const bool needs_space = has_signed_form && (op2.compare(0, 2, "sx") == 0 || op2.compare(0, 2, "sy") == 0);
+         stack.push_back("(" + op1 + s.value + (needs_space ? " " : "") + op2 + ")");
          break;
       }
       case Symbol::TERNARY: {

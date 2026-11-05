@@ -42,8 +42,10 @@ static void custom_realtime_8_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_
   U new_value2(mode2);
   for (int j = 0; j < nHeight; j++)
   {
+    ctx->set_row(j);
     for (int i = 0; i < nWidth; i++)
     {
+      ctx->set_column(i);
       new_value1.reset();
       new_value2.reset();
       for (int k = 0; k < nCoordinates; k += 2)
@@ -81,8 +83,10 @@ static void custom_realtime_uint16_c(uint8_t *pDst, ptrdiff_t nDstPitch, const u
   nDstPitch /= sizeof(uint16_t);
   for (int j = 0; j < nHeight; j++)
   {
+    ctx->set_row(j);
     for (int i = 0; i < nWidth; i++)
     {
+      ctx->set_column(i);
       new_value1.reset();
       new_value2.reset();
       for (int k = 0; k < nCoordinates; k += 2)
@@ -120,8 +124,10 @@ static void custom_realtime_32_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8
   nDstPitch /= sizeof(float);
   for (int j = 0; j < nHeight; j++)
   {
+    ctx->set_row(j);
     for (int i = 0; i < nWidth; i++)
     {
+      ctx->set_column(i);
       new_value1.reset();
       new_value2.reset();
       for (int k = 0; k < nCoordinates; k += 2)

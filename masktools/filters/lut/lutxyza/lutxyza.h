@@ -69,11 +69,11 @@ class Lutxyza : public MaskTools::Filter
 protected:
     virtual void process(int n, const Plane<uint8_t> &dst, int nPlane, const Filtering::Frame<const uint8_t> frames[4], const Constraint constraints[4]) override
     {
-        UNUSED(n);
         UNUSED(constraints);
         if (realtime) {
           // thread safety
           Parser::Context ctx(*parsed_expressions[nPlane], scale_inputs, clamp_float_i);
+          set_plane_context(ctx, dst, n);
 
           if (bits_per_pixel == 8)
             processorCtx(dst.data(), dst.pitch(),
@@ -135,6 +135,10 @@ public:
       }
 
       static const char *expr_strs[] = { "yExpr", "uExpr", "vExpr", "aExpr" };
+      Parser::Parser parser = Parser::getDefaultParser().addSymbol(Parser::Symbol::X).addSymbol(Parser::Symbol::Y).addSymbol(Parser::Symbol::Z).addSymbol(Parser::Symbol::A);
+
+      if (expressions_use_context(parser, expr_strs, "expr"))
+        realtime = true; // width, height, sx, sy, sxr, syr, frameno, time: no lut, whatever 'realtime' says
 
       // 2.2.15- decide on using external Expr filter
       // This part is duplicated in lut, lutxy, lutxyz, lutxyza
@@ -151,12 +155,8 @@ public:
       if (use_expr == 3) // mode 3: use Expr always
         use_external_expr = true;
       if (use_external_expr) {
-        if (nXOffset != 0 || nYOffset != 0) {
-          error = "X and Y offset must be zero when using 'use_expr'";
-          return;
-        }
-        if (nWidth != nCoreWidth || nHeight != nCoreHeight) {
-          error = "Cannot change original width or height when using 'use_expr'";
+        if (nXOffset != 0 || nYOffset != 0 || nWidth != nCoreWidth || nHeight != nCoreHeight) {
+          error = "use_expr: only the full frame can be passed to Expr, offx, offy, w and h cannot be used";
           return;
         }
 
@@ -202,7 +202,6 @@ public:
         } // planes
       }
       else {
-        Parser::Parser parser = Parser::getDefaultParser().addSymbol(Parser::Symbol::X).addSymbol(Parser::Symbol::Y).addSymbol(Parser::Symbol::Z).addSymbol(Parser::Symbol::A);
 
         /* compute the luts */
         for (int i = 0; i < 4; i++)

@@ -71,11 +71,11 @@ class Lutf : public MaskTools::Filter
 protected:
     virtual void process(int n, const Plane<uint8_t> &dst, int nPlane, const Filtering::Frame<const uint8_t> frames[4], const Constraint constraints[4]) override
     {
-        UNUSED(n);
         
         if (realtime) {
           // thread safety
           Parser::Context ctx(*parsed_expressions[nPlane], scale_inputs, clamp_float_i);
+          set_plane_context(ctx, dst, n);
           if (bits_per_pixel == 8)
             processors.best_processor(constraints[nPlane])(dst.data(), dst.pitch(),
               frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
@@ -149,6 +149,9 @@ public:
           realtime = true; // not even possible a real 16 bit lutxy on 32 bit environment
         }
       }
+
+      if (expressions_use_context(parser, expr_strs, "expr"))
+        realtime = true; // width, height, sx, sy, sxr, syr, frameno, time: no lut, whatever 'realtime' says
 
       /* compute the luts */
       for ( int i = 0; i < 4; i++ )

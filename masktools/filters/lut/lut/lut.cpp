@@ -17,7 +17,9 @@ void Filtering::MaskTools::Filters::Lut::Single::realtime8_c(uint8_t *dstp, ptrd
 {
   for (int y = 0; y < height; y++)
   {
+    ctx.set_row(y);
     for (int x = 0; x < width; x++) {
+      ctx.set_column(x);
       dstp[x] = ctx.compute_byte_x(dstp[x]);
     }
     dstp += dst_pitch;
@@ -29,7 +31,9 @@ void Filtering::MaskTools::Filters::Lut::Single::realtime32_c(uint8_t *dstp, ptr
 {
   for (int y = 0; y < height; y++)
   {
+    ctx.set_row(y);
     for (int x = 0; x < width; x++) {
+      ctx.set_column(x);
       reinterpret_cast<float *>(dstp)[x] = ctx.compute_float_x(reinterpret_cast<float *>(dstp)[x], chroma);
     }
     dstp += dst_pitch;

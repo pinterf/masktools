@@ -30,6 +30,8 @@ private:
 public:
    Parser& parse(const String& parsed_string, const String& separators);
    Parser& parse_strict(const String& parsed_string, const String& separators);
+   // ExpressionDependency flags of an expression (none when it is invalid: the regular parse reports that)
+   int dependencies(const String& expression);
 
    String getParsedString() const;
    int count() const;

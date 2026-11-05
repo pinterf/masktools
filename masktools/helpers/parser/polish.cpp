@@ -39,7 +39,8 @@ struct Function {
 
 const char *const constants[] = {
    "bitdepth", "sbitdepth", "range_half", "range_min", "range_max", "yrange_half", "yrange_min", "yrange_max",
-   "range_size", "ymin", "ymax", "cmin", "cmax", "pi"
+   "range_size", "ymin", "ymax", "cmin", "cmax", "pi",
+   "width", "height", "sxr", "syr", "sx", "sy", "frameno", "time" // sxr before sx: the first match wins
 };
 
 const Function functions[] = {
@@ -51,7 +52,8 @@ const Function functions[] = {
    { "dup7", 1 }, { "dup8", 1 }, { "dup9", 1 }, { "dup", 1 },
    { "swap1", 1 }, { "swap2", 1 }, { "swap3", 1 }, { "swap4", 1 }, { "swap5", 1 }, { "swap6", 1 }, { "swap7", 1 },
    { "swap8", 1 }, { "swap9", 1 }, { "swap", 1 },
-   { "min", 2 }, { "max", 2 }, { "clip", 3 }
+   { "min", 2 }, { "max", 2 }, { "clip", 3 },
+   { "sqrt", 1 }, { "neg", 1 }, { "sgn", 1 }, { "not", 1 }, { "pow", 2 }
 };
 
 const char *const variables[] = { "x", "y", "z", "a" };
@@ -340,6 +342,20 @@ class InfixToPolish {
       return false;
    }
 
+   // "x&sy" stays x &s y, as before the sx and sy constants: only a space ("x & sy") gives the constant.
+   // Called after the operator: is it directly followed by the s of its signed form and by x or y?
+   bool is_signed_operator_ahead(int level, const char *op) const
+   {
+      if (pos + 1 >= str.size() || str[pos] != 's' || (str[pos + 1] != 'x' && str[pos + 1] != 'y')
+          || (pos + 2 < str.size() && str[pos + 2] == 'r'))
+         return false;
+      const String signed_op = String(op) + "s";
+      for (int i = 0; i < levels[level].count; i++)
+         if (signed_op == levels[level].operators[i])
+            return true;
+      return false;
+   }
+
    bool term(int level)
    {
       if (level == 0)
@@ -352,7 +368,7 @@ class InfixToPolish {
          bool matched = false;
          for (int i = 0; i < levels[level].count && !matched; i++) {
             const char *op = levels[level].operators[i];
-            if (literal(op) && term(level - 1)) {
+            if (literal(op) && !is_signed_operator_ahead(level, op) && term(level - 1)) {
                add(strcmp(op, "!&") == 0 ? "&!" : op); // and-not: "&!" in reverse polish
                matched = true;
             }

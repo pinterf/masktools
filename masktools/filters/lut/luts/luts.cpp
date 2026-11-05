@@ -16,6 +16,10 @@ static void custom_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *pSrc, pt
    {
       for ( int i = 0; i < nWidth; i++ )
       {
+         if (realtime) {
+           ctx->set_row(j);
+           ctx->set_column(i);
+         }
          new_value.reset();
          for ( int k = 0; k < nCoordinates; k+=2 )
          {
@@ -53,6 +57,12 @@ static void custom_weight_c(uint8_t *pDst, ptrdiff_t nDstPitch, const uint8_t *p
   {
     for (int i = 0; i < nWidth; i++)
     {
+      if (realtime) {
+        ctx->set_row(j);
+        ctx->set_column(i);
+        ctx_w->set_row(j);
+        ctx_w->set_column(i);
+      }
       new_value.reset_w(); // different from non-weight version
       for (int k = 0; k < nCoordinates; k += 2)
       {
@@ -103,6 +113,10 @@ static void custom16_c(uint8_t *pDst8, ptrdiff_t nDstPitch, const uint8_t *pSrc8
   {
     for (int i = 0; i < nWidth; i++)
     {
+      if (realtime) {
+        ctx->set_row(j);
+        ctx->set_column(i);
+      }
       new_value.reset();
       const int PixelX = min((int)pDst[i], max_pixel_value);
       for (int k = 0; k < nCoordinates; k += 2)
@@ -147,6 +161,12 @@ static void custom16_weight_c(uint8_t *pDst8, ptrdiff_t nDstPitch, const uint8_t
   {
     for (int i = 0; i < nWidth; i++)
     {
+      if (realtime) {
+        ctx->set_row(j);
+        ctx->set_column(i);
+        ctx_w->set_row(j);
+        ctx_w->set_column(i);
+      }
       new_value.reset_w(); // different from non-weight version
       const int PixelX = min((int)pDst[i], max_pixel_value);
       for (int k = 0; k < nCoordinates; k += 2)
@@ -205,6 +225,8 @@ static void custom32_c(uint8_t *pDst8, ptrdiff_t nDstPitch, const uint8_t *pSrc8
   {
     for (int i = 0; i < nWidth; i++)
     {
+      ctx->set_row(j);
+      ctx->set_column(i);
       new_value.reset();
       for (int k = 0; k < nCoordinates; k += 2)
       {
@@ -247,6 +269,10 @@ static void custom32_weight_c(uint8_t *pDst8, ptrdiff_t nDstPitch, const uint8_t
   {
     for (int i = 0; i < nWidth; i++)
     {
+      ctx->set_row(j);
+      ctx->set_column(i);
+      ctx_w->set_row(j);
+      ctx_w->set_column(i);
       new_value.reset_w(); // different from non-weight version
       for (int k = 0; k < nCoordinates; k += 2)
       {

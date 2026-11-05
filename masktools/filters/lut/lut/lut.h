@@ -77,12 +77,12 @@ class Lutx : public MaskTools::Filter
 protected:
     virtual void process(int n, const Plane<uint8_t> &dst, int nPlane, const ::Filtering::Frame<const uint8_t> frames[4], const Constraint constraints[4]) override
     {
-        UNUSED(n);
         UNUSED(constraints);
         UNUSED(frames);
         if (realtime) {
           // thread safety
           Parser::Context ctx(*parsed_expressions[nPlane], scale_inputs, clamp_float_i);
+          set_plane_context(ctx, dst, n);
           if (bits_per_pixel == 8)
             processorCtx(dst.data(), dst.pitch(), dst.width(), dst.height(), ctx);
           else if (bits_per_pixel <= 16)
@@ -138,6 +138,9 @@ public:
         realtime = true;
       }
 
+      if (expressions_use_context(parser, expr_strs, "expr"))
+        realtime = true; // width, height, sx, sy, sxr, syr, frameno, time: no lut, whatever 'realtime' says
+
       // 2.2.15- decide on using external Expr filter
       // This part is duplicated in lut, lutxy, lutxyz, lutxyza
       use_expr = parameters["use_expr"].toInt();
@@ -155,12 +158,8 @@ public:
       if (isStacked) // Expr would see the 8 bit double height clip: always the internal 16 bit calculation
         use_external_expr = false;
       if (use_external_expr) {
-        if (nXOffset != 0 || nYOffset != 0) {
-          error = "X and Y offset must be zero when using 'use_expr'";
-          return;
-        }
-        if (nWidth != nCoreWidth || nHeight != nCoreHeight) {
-          error = "Cannot change original width or height when using 'use_expr'";
+        if (nXOffset != 0 || nYOffset != 0 || nWidth != nCoreWidth || nHeight != nCoreHeight) {
+          error = "use_expr: only the full frame can be passed to Expr, offx, offy, w and h cannot be used";
           return;
         }
 

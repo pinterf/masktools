@@ -23,7 +23,9 @@ void Filtering::MaskTools::Filters::Lut::Quad::realtime8_c(uint8_t *dstp, ptrdif
 {
   for (int y = 0; y < height; y++)
   {
+    ctx.set_row(y);
     for (int x = 0; x < width; x++) {
+      ctx.set_column(x);
       dstp[x] = ctx.compute_byte_xyza(dstp[x], srcp[x], srcp2[x], srcp3[x]);
     }
     dstp += dst_pitch;
@@ -39,7 +41,9 @@ void Filtering::MaskTools::Filters::Lut::Quad::realtime16_c(uint8_t *dstp, ptrdi
   const int max_pixel_value = (1 << bits_per_pixel) - 1;
   for (int y = 0; y < height; y++)
   {
+    ctx.set_row(y);
     for (int x = 0; x < width; x++) {
+      ctx.set_column(x);
       const int pixelX = min((int)reinterpret_cast<uint16_t *>(dstp)[x], max_pixel_value); // clamp input below 16 bit
       const int pixelY = min((int)reinterpret_cast<const uint16_t *>(srcp)[x], max_pixel_value); // clamp input below 16 bit
       const int pixelZ = min((int)reinterpret_cast<const uint16_t *>(srcp2)[x], max_pixel_value); // clamp input below 16 bit
@@ -61,7 +65,9 @@ void Filtering::MaskTools::Filters::Lut::Quad::realtime32_c(uint8_t *dstp, ptrdi
 {
   for (int y = 0; y < height; y++)
   {
+    ctx.set_row(y);
     for (int x = 0; x < width; x++) {
+      ctx.set_column(x);
       reinterpret_cast<float *>(dstp)[x] = ctx.compute_float_xyza(reinterpret_cast<float *>(dstp)[x],
         reinterpret_cast<const float *>(srcp)[x],
         reinterpret_cast<const float *>(srcp2)[x],

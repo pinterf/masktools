@@ -50,6 +50,16 @@ public:
      VARIABLE_CMIN,
      VARIABLE_CMAX,
 
+     // per plane and per frame context, see Context::set_plane
+     VARIABLE_WIDTH,
+     VARIABLE_HEIGHT,
+     VARIABLE_SX,
+     VARIABLE_SY,
+     VARIABLE_SXR,
+     VARIABLE_SYR,
+     VARIABLE_FRAMENO,
+     VARIABLE_TIME,
+
      VARIABLE_UNDEFINED,
    } VarType;
 
@@ -122,6 +132,8 @@ public:
    static Symbol Or;
    static Symbol AndNot;
    static Symbol Xor;
+   static Symbol XorName;
+   static Symbol Not;
    static Symbol AndUB;
    static Symbol OrUB;
    static Symbol XorUB;
@@ -156,6 +168,14 @@ public:
    static Symbol YMAX;
    static Symbol CMIN;
    static Symbol CMAX;
+   static Symbol Width;
+   static Symbol Height;
+   static Symbol SpatialX;
+   static Symbol SpatialY;
+   static Symbol SpatialXRelative;
+   static Symbol SpatialYRelative;
+   static Symbol FrameNo;
+   static Symbol Time;
 
    static Symbol Cos;
    static Symbol Sin;
@@ -174,6 +194,9 @@ public:
    static Symbol Ceil;
    static Symbol Floor;
    static Symbol Trunc;
+   static Symbol Sqrt;
+   static Symbol Neg;
+   static Symbol Sgn;
    // auto bit depth conversions
    static Symbol ScaleByShift;
    static Symbol ScaleByStretch;
@@ -218,6 +241,14 @@ public:
    static Symbol Dup9;
 };
 
+// What an expression needs beyond its input pixels. Any of them rules out a precomputed lut.
+enum ExpressionDependency {
+   DEPENDS_ON_POSITION = 1, // sx, sy, sxr, syr
+   DEPENDS_ON_SIZE = 2, // width, height
+   DEPENDS_ON_FRAME = 4 // frameno, time
+};
+int expression_dependencies(const std::deque<Symbol> &expression);
+
 class Context {
 
    std::vector<Symbol> pSymbols;
@@ -225,6 +256,18 @@ class Context {
    int compute_error; // CE_xx
 
    double x, y, z, a;
+
+   // processed plane (the window of it when offx, offy, w, h are given) and frame
+   int sx = 0;
+   int sy = 0;
+   double plane_width = 0;
+   double plane_height = 0;
+   double sxr_divisor = 1;
+   double syr_divisor = 1;
+   double frameno = 0;
+   double reltime = 0;
+   bool position_dependent = false;
+
    int bitdepth; // bit depth
    int luma_chroma; // 0: luma(non-chroma) 1: chroma
 
@@ -289,6 +332,13 @@ public:
    ~Context();
 
    bool SetScaleInputs(String scale_inputs); // v2.2.15-
+
+   // width, height: of the processed plane or window; frameno, time: of the current frame
+   void set_plane(int width, int height, int frame_number, int frame_count);
+   // sx, sy: of the next computed pixel, relative to the processed plane or window
+   MT_FORCEINLINE void set_row(int row) { sy = row; }
+   MT_FORCEINLINE void set_column(int column) { sx = column; }
+   bool is_position_dependent() const { return position_dependent; }
 
    bool check();
 
