@@ -580,6 +580,11 @@ Context::Context(const std::deque<Symbol> &expression)
        }
      }
      else {
+       // a constant power of 0.5 is sqrt, as Expr compiles it: a negative base gives 0, not NaN
+       if (it.value == "^" && pSymbols.size() >= 2 && pSymbols.back().type == Symbol::NUMBER && pSymbols.back().dValue == 0.5) {
+         pSymbols.back() = Symbol::Sqrt;
+         continue;
+       }
        pSymbols.push_back(it);
      }
    }
