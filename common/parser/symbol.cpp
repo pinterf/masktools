@@ -66,52 +66,74 @@ static double mtneg             (double x) { return -x; }
 static double mtsgn             (double x) { return x < 0 ? -1 : x > 0 ? 1 : 0; }
 
 // bit depth conversion helpers. x:value on 8 bit scale y: target bit depth 8-32 z:base bit depth
+// Range and offset constants for any bit depth and full / limited mix: get_bits_conv_constants of AviSynth+
+// (convert_helper.h), the routine of ConvertBits and of scaleb, scalef in Expr. Keep them the same.
+// A level conversion: chroma is scaled around its center, limited range luma between 16 and 235.
+namespace {
+
+// The limited range convention of 32 bit float, see limited_range_float.h in AviSynth+
+constexpr float limited_float_luma_span = 219 / 255.0f;   // 16..235
+constexpr float limited_float_luma_offset = 16.0f / 255;  // float value of 16
+constexpr float limited_float_chroma_span = 112 / 255.0f; // +/-112
+
+struct bits_conv_constants {
+  float src_offset;
+  float mul_factor;
+  float dst_offset;
+};
+
+bits_conv_constants get_bits_conv_constants(bool use_chroma, bool fulls, bool fulld, int srcBitDepth, int dstBitDepth)
+{
+  bits_conv_constants d;
+  float src_span, dst_span;
+  if (use_chroma) {
+    // full range chroma span is intentionally 255/2.0, 127.5 at 8 bit
+    src_span = (srcBitDepth == 32) ?
+      (fulls ? 0.5f : limited_float_chroma_span) :
+      (fulls ? (float)((1 << srcBitDepth) - 1) / 2.0f : (float)(112 << (srcBitDepth - 8)));
+    dst_span = (dstBitDepth == 32) ?
+      (fulld ? 0.5f : limited_float_chroma_span) :
+      (fulld ? (float)((1 << dstBitDepth) - 1) / 2.0f : (float)(112 << (dstBitDepth - 8)));
+    d.src_offset = (srcBitDepth == 32) ? 0.0f : (float)(1 << (srcBitDepth - 1));
+    d.dst_offset = (dstBitDepth == 32) ? 0.0f : (float)(1 << (dstBitDepth - 1));
+  }
+  else {
+    src_span = (srcBitDepth == 32) ?
+      (fulls ? 1.0f : limited_float_luma_span) :
+      (float)(fulls ? ((1 << srcBitDepth) - 1) : (219 << (srcBitDepth - 8)));
+    dst_span = (dstBitDepth == 32) ?
+      (fulld ? 1.0f : limited_float_luma_span) :
+      (float)(fulld ? ((1 << dstBitDepth) - 1) : (219 << (dstBitDepth - 8)));
+    d.src_offset = (srcBitDepth == 32) ?
+      (fulls ? 0.0f : limited_float_luma_offset) :
+      (fulls ? 0.0f : (float)(16 << (srcBitDepth - 8)));
+    d.dst_offset = (dstBitDepth == 32) ?
+      (fulld ? 0.0f : limited_float_luma_offset) :
+      (fulld ? 0.0f : (float)(16 << (dstBitDepth - 8)));
+  }
+  d.mul_factor = dst_span / src_span;
+  return d;
+}
+
+double scale_level(double x, int target_bit_depth, int source_bit_depth, bool chroma, bool shift_float, bool full)
+{
+  // no shortcut for the same depth: Expr goes through the steps there too, they can round
+  bits_conv_constants d = get_bits_conv_constants(chroma, full, full, source_bit_depth, target_bit_depth);
+  if (chroma && shift_float && target_bit_depth == 32 && source_bit_depth < 32) // "floatUV": from -0.5..0.5 to 0..1
+    d.dst_offset = 0.5f;
+  // in 32 bit float, step by step, as Expr: the stored float result is then the same to the last bit
+  float result = (float)x;
+  result -= d.src_offset;
+  result *= d.mul_factor;
+  result += d.dst_offset;
+  return result;
+}
+
+} // namespace
+
 static double do_upscaleByShift(double x, int y, int z, bool chroma, bool shift_float)
 {
-  const int target_bit_depth = y;
-  const int source_bit_depth = z;
-
-  if (target_bit_depth == source_bit_depth) return x; // same bit 
-  
-  if (target_bit_depth == 32) { // target float
-    if (chroma) {
-      const int src_middle_chroma = 1 << (source_bit_depth - 1);
-      const int max_pixel_value_source = (1 << source_bit_depth) - 1;
-#ifdef FLOAT_CHROMA_IS_HALF_CENTERED
-      return (x - src_middle_chroma) / max_pixel_value_source + 0.5;
-#else
-      double result = (x - src_middle_chroma) / max_pixel_value_source;
-      if (shift_float) result += 0.5; // "floatUV"
-      return result;
-#endif
-    }
-    else {
-      const int max_pixel_value_source = (1 << source_bit_depth) - 1;
-      return x / max_pixel_value_source;
-    }
-  }
-  if (source_bit_depth == 32) {
-    // treat original as float, target 8-16 bits
-    // for 32bit float: same as scaleb
-    if (chroma) {
-      const int target_middle_chroma = 1 << (target_bit_depth - 1);
-      const int max_pixel_value_target = (1 << target_bit_depth) - 1;
-#ifdef FLOAT_CHROMA_IS_HALF_CENTERED
-      return (x - 0.5) * max_pixel_value_target + target_middle_chroma;
-#else
-      return (x - 0.0) * max_pixel_value_target + target_middle_chroma;
-#endif
-    }
-    else {
-      const int max_pixel_value_target = (1 << target_bit_depth) - 1;
-      return x * max_pixel_value_target;
-    }
-  }
-  // 8-16 <-> 8-16
-  if (target_bit_depth > source_bit_depth) // e.g. 8-->10
-    return double(x * (1 << (target_bit_depth - source_bit_depth))); // upscale, mul by 2^N bits
-  else
-    return double(x / (1 << (source_bit_depth - target_bit_depth))); // downscale: div by 2^N bits
+  return scale_level(x, y, z, chroma, shift_float, false);
 }
 
 static double upscaleByShift(double x, int y, int z, bool chroma, bool shift_float)
@@ -125,51 +147,9 @@ static double upscaleByShiftY(double x, int y, int z, bool chroma, bool shift_fl
   return do_upscaleByShift(x, y, z, false, shift_float); // force non-chroma
 }
 
-static double do_upscaleByStretch(double x, int y, int z, bool chroma, bool shift_float) // e.g. 8->10 bit rgb: x/255*1023
+static double do_upscaleByStretch(double x, int y, int z, bool chroma, bool shift_float)
 {
-  const int target_bit_depth = y;
-  const int source_bit_depth = z;
-  if (target_bit_depth == source_bit_depth) return x; // same bit 
-  
-  if (target_bit_depth == 32) { // target float
-    // for 32bit float: same as scaleb
-    if (chroma) {
-      const int src_middle_chroma = 1 << (source_bit_depth - 1);
-      const int max_pixel_value_source = (1 << source_bit_depth) - 1;
-#ifdef FLOAT_CHROMA_IS_HALF_CENTERED
-      return (x - src_middle_chroma) / max_pixel_value_source + 0.5;
-#else
-      double result = (x - src_middle_chroma) / max_pixel_value_source;
-      if (shift_float) result += 0.5; // "floatUV"
-      return result;
-#endif
-    }
-    else {
-      const int max_pixel_value_source = (1 << source_bit_depth) - 1;
-      return x / max_pixel_value_source;
-    }
-  }
-  if (source_bit_depth == 32) {
-    // treat original as float, target 8-16 
-    // for 32bit float: same as scaleb
-    if (chroma) {
-      const int target_middle_chroma = 1 << (target_bit_depth - 1);
-      const int max_pixel_value_target = (1 << target_bit_depth) - 1;
-#ifdef FLOAT_CHROMA_IS_HALF_CENTERED
-      return (x - 0.5) * max_pixel_value_target + target_middle_chroma;
-#else
-      return (x - 0.0) * max_pixel_value_target + target_middle_chroma;
-#endif
-    }
-    else {
-      const int max_pixel_value_target = (1 << target_bit_depth) - 1;
-      return x * max_pixel_value_target;
-    }
-  }
-  // 8-16 <-> 8-16
-  const int max_pixel_value_source = (1 << source_bit_depth) - 1;
-  const int max_pixel_value_target = (1 << target_bit_depth) - 1;
-  return double(x * max_pixel_value_target / max_pixel_value_source); // upscale or downscale
+  return scale_level(x, y, z, chroma, shift_float, true);
 }
 
 static double upscaleByStretch(double x, int y, int z, bool chroma, bool shift_float) // e.g. 8->10 bit rgb: x/255*1023

@@ -237,9 +237,10 @@ public:
     }
 
     template<class ExpressionContext>
-    void set_plane_context(ExpressionContext &ctx, const Plane<uint8_t> &dst, int n) const
+    void set_plane_context(ExpressionContext &ctx, const Plane<uint8_t> &dst, int n, int nPlane) const
     {
         ctx.set_plane(dst.width(), dst.height(), n, childs[0]->frame_count());
+        ctx.set_integer_chroma(!isRGB && (nPlane == 1 || nPlane == 2));
     }
 
     Filter(const Parameters &parameters, FilterProcessingType processingType, CpuFlags _flags) :

@@ -24,10 +24,11 @@ class Lutxyz : public MaskTools::Filter
         uint8_t *ptr;
     };
 
-   Lut luts[4+1];
+   Lut luts[4 + 2];
 
-   static uint8_t *calculateLut(const std::deque<Filtering::Parser::Symbol> &expr, String scale_inputs, int clamp_float, int& compute_error) {
+   static uint8_t *calculateLut(const std::deque<Filtering::Parser::Symbol> &expr, bool chroma, String scale_inputs, int clamp_float, int& compute_error) {
        Parser::Context ctx(expr, scale_inputs, clamp_float);
+    ctx.set_integer_chroma(chroma);
        uint8_t *lut = new uint8_t[256 * 256 * 256];
 
        for ( int x = 0; x < 256; x++ ) {
@@ -63,7 +64,7 @@ protected:
         if (realtime) {
           // thread safety
           Parser::Context ctx(*parsed_expressions[nPlane], scale_inputs, clamp_float_i);
-          set_plane_context(ctx, dst, n);
+          set_plane_context(ctx, dst, n, nPlane);
 
           if (bits_per_pixel == 8)
             processorCtx(dst.data(), dst.pitch(),
@@ -99,7 +100,7 @@ public:
         parsed_expressions[i] = nullptr;
       }
 
-      for (int i = 0; i < 4+1; ++i) {
+      for (int i = 0; i < 4 + 2; ++i) {
           luts[i].used = false;
           luts[i].ptr = nullptr;
       }
@@ -232,16 +233,18 @@ public:
 
           int compute_error = Parser::Context::compute_error_t::CE_NONE;
 
+          const bool chroma = !isRGB && (i == 1 || i == 2);
+          const int shared = chroma && Parser::lut_depends_on_plane(parser.getExpression()) ? 5 : 4; // 0..3: planes
           if (customExpressionDefined) {
             luts[i].used = true;
-            luts[i].ptr = calculateLut(parser.getExpression(), scale_inputs, clamp_float, /*ref*/ compute_error); // 8 bit always
+            luts[i].ptr = calculateLut(parser.getExpression(), chroma, scale_inputs, clamp_float, /*ref*/ compute_error); // 8 bit always
           }
           else {
-            if (luts[4].ptr == nullptr) {
-              luts[4].used = true;
-              luts[4].ptr = calculateLut(parser.getExpression(), scale_inputs, clamp_float, /*ref*/ compute_error);
+            if (luts[shared].ptr == nullptr) {
+              luts[shared].used = true;
+              luts[shared].ptr = calculateLut(parser.getExpression(), chroma, scale_inputs, clamp_float, /*ref*/ compute_error);
             }
-            luts[i].ptr = luts[4].ptr;
+            luts[i].ptr = luts[shared].ptr;
           }
 
           if (compute_error != Parser::Context::compute_error_t::CE_NONE) {
@@ -255,7 +258,7 @@ public:
 
    ~Lutxyz()
    {
-       for (int i = 0; i < 4+1; ++i) {
+       for (int i = 0; i < 4 + 2; ++i) {
            if (luts[i].used) {
                delete[] luts[i].ptr;
            }

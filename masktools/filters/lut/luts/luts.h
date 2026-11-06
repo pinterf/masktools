@@ -54,17 +54,18 @@ class Luts : public MaskTools::Filter
      uint8_t *ptr;
    };
 
-   Lut luts[4+1];
+   Lut luts[4 + 2];
 
    struct Lut_w {
      bool used;
      float *ptr;
    };
 
-   Lut_w luts_weight[4+1]; // max planes + 1
+   Lut_w luts_weight[4 + 2]; // max planes + 2 shared
 
-   static uint8_t *calculateLut(const std::deque<Filtering::Parser::Symbol> &expr, int bits_per_pixel, String scale_inputs, int clamp_float) {
+   static uint8_t *calculateLut(const std::deque<Filtering::Parser::Symbol> &expr, bool chroma, int bits_per_pixel, String scale_inputs, int clamp_float) {
      Parser::Context ctx(expr, scale_inputs, clamp_float);
+    ctx.set_integer_chroma(chroma);
      int pixelsize = bits_per_pixel == 8 ? 1 : 2; // byte / uint16_t
      size_t buffer_size = ((size_t)1 << bits_per_pixel) * ((size_t)1 << bits_per_pixel) *pixelsize;
      uint8_t *lut = new (std::nothrow) uint8_t[buffer_size];
@@ -88,8 +89,9 @@ class Luts : public MaskTools::Filter
    }
 
    // weight luts: float content
-   static float *calculateLut_w(const std::deque<Filtering::Parser::Symbol> &expr, int bits_per_pixel, String scale_inputs, int clamp_float) {
+   static float *calculateLut_w(const std::deque<Filtering::Parser::Symbol> &expr, bool chroma, int bits_per_pixel, String scale_inputs, int clamp_float) {
      Parser::Context ctx(expr, scale_inputs, clamp_float);
+    ctx.set_integer_chroma(chroma);
      const int size = 1 << bits_per_pixel;
 
      size_t buffer_size = ((size_t)size) * ((size_t)size);
@@ -124,7 +126,7 @@ protected:
         if (realtime) {
           // thread safety
           Parser::Context ctx(*parsed_expressions[nPlane], scale_inputs, clamp_float_i);
-          set_plane_context(ctx, dst, n);
+          set_plane_context(ctx, dst, n, nPlane);
           if (!parsed_expressions_w[nPlane]) {
             // no weights
             if (bits_per_pixel <= 16) {
@@ -141,7 +143,7 @@ protected:
           }
           else {
             Parser::Context ctx_w(*parsed_expressions_w[nPlane]);
-            set_plane_context(ctx_w, dst, n);
+            set_plane_context(ctx_w, dst, n, nPlane);
             if (bits_per_pixel <= 16) {
               processors_weight.best_processor(constraints[nPlane])(dst.data(), dst.pitch(),
                 frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(),
@@ -178,7 +180,7 @@ public:
        parsed_expressions_w[i] = nullptr;
      }
 
-     for (int i = 0; i < 4+1; ++i) {
+     for (int i = 0; i < 4 + 2; ++i) {
        luts[i].used = false;
        luts[i].ptr = nullptr;
        luts_weight[i].used = false;
@@ -270,16 +272,18 @@ public:
        else {
          // pure lut, no realtime
          // save memory, reuse luts, like in xyz
+         const bool chroma = !isRGB && (i == 1 || i == 2);
+         const int shared = chroma && Parser::lut_depends_on_plane(parser.getExpression()) ? 5 : 4; // 0..3: planes
          if (customExpressionDefined) {
            luts[i].used = true;
-           luts[i].ptr = calculateLut(parser.getExpression(), bits_per_pixel, scale_inputs, clamp_float);
+           luts[i].ptr = calculateLut(parser.getExpression(), chroma, bits_per_pixel, scale_inputs, clamp_float);
          }
          else {
-           if (luts[4].ptr == nullptr) { // 0..3 planes, 4:extra
-             luts[4].used = true;
-             luts[4].ptr = calculateLut(parser.getExpression(), bits_per_pixel, scale_inputs, clamp_float);
+           if (luts[shared].ptr == nullptr) { // 0..3 planes, 4:extra
+             luts[shared].used = true;
+             luts[shared].ptr = calculateLut(parser.getExpression(), chroma, bits_per_pixel, scale_inputs, clamp_float);
            }
-           luts[i].ptr = luts[4].ptr;
+           luts[i].ptr = luts[shared].ptr;
          }
          if (luts[i].ptr == nullptr) {
            error = "not enough memory for the lut, use realtime=true";
@@ -325,16 +329,18 @@ public:
        else {
          // pure lut, no realtime
          // save memory, reuse luts, like in xyz
+         const bool chroma_w = !isRGB && (i == 1 || i == 2);
+         const int shared_w = chroma_w && Parser::lut_depends_on_plane(parser.getExpression()) ? 5 : 4;
          if (customExpressionDefined_w) {
            luts_weight[i].used = true;
-           luts_weight[i].ptr = calculateLut_w(parser.getExpression(), bits_per_pixel, scale_inputs, clamp_float);
+           luts_weight[i].ptr = calculateLut_w(parser.getExpression(), chroma_w, bits_per_pixel, scale_inputs, clamp_float);
          }
          else {
-           if (luts_weight[4].ptr == nullptr) {
-             luts_weight[4].used = true;
-             luts_weight[4].ptr = calculateLut_w(parser.getExpression(), bits_per_pixel, scale_inputs, clamp_float);
+           if (luts_weight[shared_w].ptr == nullptr) {
+             luts_weight[shared_w].used = true;
+             luts_weight[shared_w].ptr = calculateLut_w(parser.getExpression(), chroma_w, bits_per_pixel, scale_inputs, clamp_float);
            }
-           luts_weight[i].ptr = luts_weight[4].ptr;
+           luts_weight[i].ptr = luts_weight[shared_w].ptr;
          }
          if (luts_weight[i].ptr == nullptr) {
            error = "not enough memory for the lut, use realtime=true";
@@ -379,7 +385,7 @@ public:
    {
      if (pCoordinates) delete[] pCoordinates;
      
-     for (int i = 0; i < 4+1; ++i) {
+     for (int i = 0; i < 4 + 2; ++i) {
        if (luts[i].used) {
          delete[] luts[i].ptr;
        }

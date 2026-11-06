@@ -27,6 +27,7 @@ class Lutspa : public MaskTools::Filter
       const int divisor_x = (is_biased || w < 2) ? w : w - 1;
       const int divisor_y = (is_biased || h < 2) ? h : h - 1;
       const bool chroma = !isRGB && (nPlane == 1 || nPlane == 2); // not RGB and plane U or V
+      ctx.set_integer_chroma(chroma);
       for (int y = 0; y < h; y++) {
          ctx.set_row(y);
          for (int x = 0; x < w; x++) {
@@ -58,7 +59,7 @@ protected:
         if (parsed_expressions[nPlane]) {
            // thread safety
            Parser::Context ctx(*parsed_expressions[nPlane], scale_inputs, clamp_float_i);
-           set_plane_context(ctx, dst, n);
+           set_plane_context(ctx, dst, n, nPlane);
            fill_plane(dst.data(), dst.pitch(), dst.width(), dst.height(), nPlane, ctx);
            return;
         }

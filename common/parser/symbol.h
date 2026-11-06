@@ -249,6 +249,19 @@ enum ExpressionDependency {
 };
 int expression_dependencies(const std::deque<Symbol> &expression);
 
+// An integer lut table of this expression can differ between luma and chroma. Only the scale operators see the plane
+// there: scalef always, scaleb coming from a float base. Otherwise one table serves all planes.
+inline bool lut_depends_on_plane(const std::deque<Symbol> &expression)
+{
+   bool scalef = false, scaleb = false, base_f32 = false;
+   for (const Symbol &s : expression) {
+      scalef = scalef || s.value == "scalef";
+      scaleb = scaleb || s.value == "scaleb";
+      base_f32 = base_f32 || s.value == "f32";
+   }
+   return scalef || (scaleb && base_f32);
+}
+
 class Context {
 
    std::vector<Symbol> pSymbols;
@@ -260,6 +273,7 @@ class Context {
    // processed plane (the window of it when offx, offy, w, h are given) and frame
    int sx = 0;
    int sy = 0;
+   bool integer_chroma = false;
    double plane_width = 0;
    double plane_height = 0;
    double sxr_divisor = 1;
@@ -336,6 +350,8 @@ public:
    // width, height: of the processed plane or window; frameno, time: of the current frame
    void set_plane(int width, int height, int frame_number, int frame_count);
    // sx, sy: of the next computed pixel, relative to the processed plane or window
+   // The plane being processed, for the integer paths (the float ones get it per call): scaleb, scalef depend on it
+   void set_integer_chroma(bool chroma) { integer_chroma = chroma; }
    MT_FORCEINLINE void set_row(int row) { sy = row; }
    MT_FORCEINLINE void set_column(int column) { sx = column; }
    bool is_position_dependent() const { return position_dependent; }
@@ -364,62 +380,62 @@ public:
    
    MT_FORCEINLINE uint8_t compute_byte_x(int _x) { 
      if (!scale_int || sbitdepth == 8)
-       return clip<uint8_t, double>(compute_1(_x, 8, false));
+       return clip<uint8_t, double>(compute_1(_x, 8, integer_chroma));
      // 1.) convert 8 bit data to all_autoscale_bitdepth 2.) Compute 3.) Convert Back to 8 bits
      if (!fullrange_autoscale) { // limited
        const int bitdiff = (sbitdepth - 8);
-       return clip<uint8_t, double>(compute_1(_x << bitdiff, sbitdepth, false) / (1 << bitdiff));
+       return clip<uint8_t, double>(compute_1(_x << bitdiff, sbitdepth, integer_chroma) / (1 << bitdiff));
      }
      else {
        const double factor = ((1 << sbitdepth) - 1) / 255.0;
-       return clip<uint8_t, double>(compute_1(_x * factor, sbitdepth, false) / factor);
+       return clip<uint8_t, double>(compute_1(_x * factor, sbitdepth, integer_chroma) / factor);
      }
-   } // byte: default 8 bit, chroma=false: n/a for 8 bits
+   } // byte: default 8 bit
 
    MT_FORCEINLINE uint8_t compute_byte_xy(int _x, int _y) { 
      if (!scale_int || sbitdepth == 8)
-       return clip<uint8_t, double>(compute_2(_x, _y, 8, false));
+       return clip<uint8_t, double>(compute_2(_x, _y, 8, integer_chroma));
      // 1.) convert 8 bit data to all_autoscale_bitdepth 2.) Compute 3.) Convert Back to 8 bits
      if (!fullrange_autoscale) { // limited
        const int bitdiff = (sbitdepth - 8);
-       return clip<uint8_t, double>(compute_2(_x << bitdiff, _y << bitdiff, sbitdepth, false) / (1 << bitdiff));
+       return clip<uint8_t, double>(compute_2(_x << bitdiff, _y << bitdiff, sbitdepth, integer_chroma) / (1 << bitdiff));
      }
      else {
        const double factor = ((1 << sbitdepth) - 1) / 255.0;
-       return clip<uint8_t, double>(compute_2(_x * factor, _y * factor, sbitdepth, false) / factor);
+       return clip<uint8_t, double>(compute_2(_x * factor, _y * factor, sbitdepth, integer_chroma) / factor);
      }
-   } // byte: default 8 bit, chroma=false: n/a for 8 bits
+   } // byte: default 8 bit
 
    MT_FORCEINLINE uint8_t compute_byte_xyz(int _x, int _y, int _z) { 
      if (!scale_int || sbitdepth == 8)
-       return clip<uint8_t, double>(compute_3(_x, _y, _z, 8, false));
+       return clip<uint8_t, double>(compute_3(_x, _y, _z, 8, integer_chroma));
      // 1.) convert 8 bit data to all_autoscale_bitdepth 2.) Compute 3.) Convert Back to 8 bits
      if (!fullrange_autoscale) { // limited
        const int bitdiff = (sbitdepth - 8);
-       return clip<uint8_t, double>(compute_3(_x << bitdiff, _y << bitdiff, _z << bitdiff, sbitdepth, false) / (1 << bitdiff));
+       return clip<uint8_t, double>(compute_3(_x << bitdiff, _y << bitdiff, _z << bitdiff, sbitdepth, integer_chroma) / (1 << bitdiff));
      }
      else {
        const double factor = ((1 << sbitdepth) - 1) / 255.0;
-       return clip<uint8_t, double>(compute_3(_x * factor, _y * factor, _z * factor, sbitdepth, false) / factor);
+       return clip<uint8_t, double>(compute_3(_x * factor, _y * factor, _z * factor, sbitdepth, integer_chroma) / factor);
      }
-   } // byte: default 8 bit, chroma=false: n/a for 8 bits
+   } // byte: default 8 bit
 
    MT_FORCEINLINE uint8_t compute_byte_xyza(int _x, int _y, int _z, int _a) { 
      if (!scale_int || sbitdepth == 8)
-       return clip<uint8_t, double>( compute_4(_x, _y, _z, _a, 8, false) );
+       return clip<uint8_t, double>( compute_4(_x, _y, _z, _a, 8, integer_chroma) );
      // 1.) convert 8 bit data to all_autoscale_bitdepth 2.) Compute 3.) Convert Back to 8 bits
      if (!fullrange_autoscale) { // limited
        const int bitdiff = (sbitdepth - 8);
-       return clip<uint8_t, double>(compute_4(_x << bitdiff, _y << bitdiff, _z << bitdiff, _a << bitdiff, sbitdepth, false) / (1 << bitdiff));
+       return clip<uint8_t, double>(compute_4(_x << bitdiff, _y << bitdiff, _z << bitdiff, _a << bitdiff, sbitdepth, integer_chroma) / (1 << bitdiff));
      }
      else {
        const double factor = ((1 << sbitdepth) - 1) / 255.0;
-       return clip<uint8_t, double>(compute_4(_x * factor, _y * factor, _z * factor, _a * factor, sbitdepth, false) / factor);
+       return clip<uint8_t, double>(compute_4(_x * factor, _y * factor, _z * factor, _a * factor, sbitdepth, integer_chroma) / factor);
      }
-   } // byte: default 8 bit, chroma=false: n/a for 8 bits
+   } // byte: default 8 bit
    
    //used from lutspa relative
-   uint8_t compute_byte_xy_dblinput(double _x, double _y) { return clip<uint8_t, double>(compute_2(_x, _y, 8, false)); } // byte: default 8 bit, chroma=false: n/a for 8 bits
+   uint8_t compute_byte_xy_dblinput(double _x, double _y) { return clip<uint8_t, double>(compute_2(_x, _y, 8, integer_chroma)); } // byte: default 8 bit
 
    // 10-16 bits: result clipped to 0..max (no-op for 16 bits); chroma = false: n/a for 10-16 bits
    static MT_FORCEINLINE uint16_t word_result(double v, int bits_per_pixel) {
@@ -428,76 +444,76 @@ public:
 
    MT_FORCEINLINE uint16_t compute_word_x(int _x, int bits_per_pixel) {
      if (!scale_int || sbitdepth == bits_per_pixel)
-       return word_result(compute_1(_x, bits_per_pixel, false), bits_per_pixel);
+       return word_result(compute_1(_x, bits_per_pixel, integer_chroma), bits_per_pixel);
      // 1.) convert 10-16 bits_per_pixel bit data to all_autoscale_bitdepth 2.) Compute 3.) Convert Back to bits_per_pixel bits
      if (!fullrange_autoscale) { // limited
        const int bitdiff = (sbitdepth - bits_per_pixel); // plus or minus
        if (bitdiff > 0) // shift to bigger
-         return word_result(compute_1(_x << bitdiff, sbitdepth, false) / (1 << bitdiff), bits_per_pixel);
+         return word_result(compute_1(_x << bitdiff, sbitdepth, integer_chroma) / (1 << bitdiff), bits_per_pixel);
        // shift to smaller. Do not shift as int, precision would be lost
        const double factor = (double)(1 << -bitdiff);
-       return word_result(compute_1(_x / factor, sbitdepth, false) * factor, bits_per_pixel);
+       return word_result(compute_1(_x / factor, sbitdepth, integer_chroma) * factor, bits_per_pixel);
      }
      const double factor = (double)((1 << sbitdepth) - 1) / ((1 << bits_per_pixel) - 1);
-     return word_result(compute_1(_x * factor, sbitdepth, false) / factor, bits_per_pixel);
+     return word_result(compute_1(_x * factor, sbitdepth, integer_chroma) / factor, bits_per_pixel);
    }
 
    MT_FORCEINLINE uint16_t compute_word_xy(int _x, int _y, int bits_per_pixel) {
      if (!scale_int || sbitdepth == bits_per_pixel)
-       return word_result(compute_2(_x, _y, bits_per_pixel, false), bits_per_pixel);
+       return word_result(compute_2(_x, _y, bits_per_pixel, integer_chroma), bits_per_pixel);
      // 1.) convert 10-16 bits_per_pixel bit data to all_autoscale_bitdepth 2.) Compute 3.) Convert Back to bits_per_pixel bits
      if (!fullrange_autoscale) { // limited
        const int bitdiff = (sbitdepth - bits_per_pixel); // plus or minus
        if (bitdiff > 0) // shift to bigger
-         return word_result(compute_2(_x << bitdiff, _y << bitdiff, sbitdepth, false) / (1 << bitdiff), bits_per_pixel);
+         return word_result(compute_2(_x << bitdiff, _y << bitdiff, sbitdepth, integer_chroma) / (1 << bitdiff), bits_per_pixel);
        // shift to smaller. Do not shift as int, precision would be lost
        const double factor = (double)(1 << -bitdiff);
-       return word_result(compute_2(_x / factor, _y / factor, sbitdepth, false) * factor, bits_per_pixel);
+       return word_result(compute_2(_x / factor, _y / factor, sbitdepth, integer_chroma) * factor, bits_per_pixel);
      }
      const double factor = (double)((1 << sbitdepth) - 1) / ((1 << bits_per_pixel) - 1);
-     return word_result(compute_2(_x * factor, _y * factor, sbitdepth, false) / factor, bits_per_pixel);
+     return word_result(compute_2(_x * factor, _y * factor, sbitdepth, integer_chroma) / factor, bits_per_pixel);
    }
 
    // for lutspa, no autoconvert bitdepth here
    MT_FORCEINLINE uint16_t compute_word_xy_safe(int _x, int _y, int _bitdepth)
    {
-     return min(clip<uint16_t, double>(compute_2(_x, _y, _bitdepth, false)), (uint16_t)((1 << _bitdepth) - 1));
+     return min(clip<uint16_t, double>(compute_2(_x, _y, _bitdepth, integer_chroma)), (uint16_t)((1 << _bitdepth) - 1));
    }
    MT_FORCEINLINE uint16_t compute_word_xy_safe_dblinput(double _x, double _y, int _bitdepth)
    {
-     return min(clip<uint16_t, double>(compute_2(_x, _y, _bitdepth, false)), (uint16_t)((1 << _bitdepth) - 1));
+     return min(clip<uint16_t, double>(compute_2(_x, _y, _bitdepth, integer_chroma)), (uint16_t)((1 << _bitdepth) - 1));
    }
 
    MT_FORCEINLINE uint16_t compute_word_xyz(int _x, int _y, int _z, int bits_per_pixel) {
      if (!scale_int || sbitdepth == bits_per_pixel)
-       return word_result(compute_3(_x, _y, _z, bits_per_pixel, false), bits_per_pixel);
+       return word_result(compute_3(_x, _y, _z, bits_per_pixel, integer_chroma), bits_per_pixel);
      // 1.) convert 10-16 bits_per_pixel bit data to all_autoscale_bitdepth 2.) Compute 3.) Convert Back to bits_per_pixel bits
      if (!fullrange_autoscale) { // limited
        const int bitdiff = (sbitdepth - bits_per_pixel); // plus or minus
        if (bitdiff > 0) // shift to bigger
-         return word_result(compute_3(_x << bitdiff, _y << bitdiff, _z << bitdiff, sbitdepth, false) / (1 << bitdiff), bits_per_pixel);
+         return word_result(compute_3(_x << bitdiff, _y << bitdiff, _z << bitdiff, sbitdepth, integer_chroma) / (1 << bitdiff), bits_per_pixel);
        // shift to smaller. Do not shift as int, precision would be lost
        const double factor = (double)(1 << -bitdiff);
-       return word_result(compute_3(_x / factor, _y / factor, _z / factor, sbitdepth, false) * factor, bits_per_pixel);
+       return word_result(compute_3(_x / factor, _y / factor, _z / factor, sbitdepth, integer_chroma) * factor, bits_per_pixel);
      }
      const double factor = (double)((1 << sbitdepth) - 1) / ((1 << bits_per_pixel) - 1);
-     return word_result(compute_3(_x * factor, _y * factor, _z * factor, sbitdepth, false) / factor, bits_per_pixel);
+     return word_result(compute_3(_x * factor, _y * factor, _z * factor, sbitdepth, integer_chroma) / factor, bits_per_pixel);
    }
 
    MT_FORCEINLINE uint16_t compute_word_xyza(int _x, int _y, int _z, int _a, int bits_per_pixel) {
      if (!scale_int || sbitdepth == bits_per_pixel)
-       return word_result(compute_4(_x, _y, _z, _a, bits_per_pixel, false), bits_per_pixel);
+       return word_result(compute_4(_x, _y, _z, _a, bits_per_pixel, integer_chroma), bits_per_pixel);
      // 1.) convert 10-16 bits_per_pixel bit data to all_autoscale_bitdepth 2.) Compute 3.) Convert Back to bits_per_pixel bits
      if (!fullrange_autoscale) { // limited
        const int bitdiff = (sbitdepth - bits_per_pixel); // plus or minus
        if (bitdiff > 0) // shift to bigger
-         return word_result(compute_4(_x << bitdiff, _y << bitdiff, _z << bitdiff, _a << bitdiff, sbitdepth, false) / (1 << bitdiff), bits_per_pixel);
+         return word_result(compute_4(_x << bitdiff, _y << bitdiff, _z << bitdiff, _a << bitdiff, sbitdepth, integer_chroma) / (1 << bitdiff), bits_per_pixel);
        // shift to smaller. Do not shift as int, precision would be lost
        const double factor = (double)(1 << -bitdiff);
-       return word_result(compute_4(_x / factor, _y / factor, _z / factor, _a / factor, sbitdepth, false) * factor, bits_per_pixel);
+       return word_result(compute_4(_x / factor, _y / factor, _z / factor, _a / factor, sbitdepth, integer_chroma) * factor, bits_per_pixel);
      }
      const double factor = (double)((1 << sbitdepth) - 1) / ((1 << bits_per_pixel) - 1);
-     return word_result(compute_4(_x * factor, _y * factor, _z * factor, _a * factor, sbitdepth, false) / factor, bits_per_pixel);
+     return word_result(compute_4(_x * factor, _y * factor, _z * factor, _a * factor, sbitdepth, integer_chroma) / factor, bits_per_pixel);
    }
 
    // single float parameter in, float result. _bitdepth is explicite 32

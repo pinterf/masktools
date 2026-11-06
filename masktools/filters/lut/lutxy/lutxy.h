@@ -29,10 +29,11 @@ class Lutxy : public MaskTools::Filter
      uint8_t *ptr;
    };
 
-   Lut luts[4+1];
+   Lut luts[4 + 2];
    
-   static uint8_t *calculateLut(const std::deque<Filtering::Parser::Symbol> &expr, int bits_per_pixel, String scale_inputs, int clamp_float, int& compute_error) {
+   static uint8_t *calculateLut(const std::deque<Filtering::Parser::Symbol> &expr, bool chroma, int bits_per_pixel, String scale_inputs, int clamp_float, int& compute_error) {
      Parser::Context ctx(expr, scale_inputs, clamp_float);
+    ctx.set_integer_chroma(chroma);
      int pixelsize = bits_per_pixel == 8 ? 1 : 2; // byte / uint16_t
      size_t buffer_size = ((size_t)1 << bits_per_pixel) * ((size_t)1 << bits_per_pixel) *pixelsize;
      uint8_t *lut = new (std::nothrow) uint8_t[buffer_size];
@@ -79,7 +80,7 @@ protected:
         if (realtime) {
           // thread safety
           Parser::Context ctx(*parsed_expressions[nPlane], scale_inputs, clamp_float_i);
-          set_plane_context(ctx, dst, n);
+          set_plane_context(ctx, dst, n, nPlane);
           if (bits_per_pixel == 8)
             processorCtx(dst.data(), dst.pitch(), frames[0].plane(nPlane).data(), frames[0].plane(nPlane).pitch(), dst.width(), dst.height(), ctx);
           else if (bits_per_pixel <= 16)
@@ -102,7 +103,7 @@ public:
         parsed_expressions[i] = nullptr;
       }
 
-      for (int i = 0; i < 4+1; ++i) {
+      for (int i = 0; i < 4 + 2; ++i) {
         luts[i].used = false;
         luts[i].ptr = nullptr;
       }
@@ -254,16 +255,18 @@ public:
           int compute_error = Parser::Context::compute_error_t::CE_NONE;
 
           // save memory, reuse luts, like in xyz
+          const bool chroma = !isRGB && (i == 1 || i == 2);
+          const int shared = chroma && Parser::lut_depends_on_plane(parser.getExpression()) ? 5 : 4; // 0..3: planes
           if (customExpressionDefined) {
             luts[i].used = true;
-            luts[i].ptr = calculateLut(parser.getExpression(), bits_per_pixel, scale_inputs, clamp_float_i, /*ref*/ compute_error); // fixme/fixed: this was clamp_float before 2.2.27
+            luts[i].ptr = calculateLut(parser.getExpression(), chroma, bits_per_pixel, scale_inputs, clamp_float_i, /*ref*/ compute_error); // fixme/fixed: this was clamp_float before 2.2.27
           }
           else {
-            if (luts[4].ptr == nullptr) {
-              luts[4].used = true;
-              luts[4].ptr = calculateLut(parser.getExpression(), bits_per_pixel, scale_inputs, clamp_float_i, /*ref*/ compute_error);
+            if (luts[shared].ptr == nullptr) {
+              luts[shared].used = true;
+              luts[shared].ptr = calculateLut(parser.getExpression(), chroma, bits_per_pixel, scale_inputs, clamp_float_i, /*ref*/ compute_error);
             }
-            luts[i].ptr = luts[4].ptr;
+            luts[i].ptr = luts[shared].ptr;
           }
 
           if (luts[i].ptr == nullptr) {
@@ -286,7 +289,7 @@ public:
 
    ~Lutxy()
    {
-     for (int i = 0; i < 4+1; ++i) {
+     for (int i = 0; i < 4 + 2; ++i) {
        if (luts[i].used) {
          delete[] luts[i].ptr;
        }
