@@ -31,6 +31,7 @@ template<class T>
 class Filter : public GenericVideoFilter
 {
     T _filter;
+    ::PClip expr_clip; // use_expr: the Expr filter doing the work, or empty
     Signature signature;
     int inputConfigSize; // to prevent MT static init problems with /Zc:threadSafeInit- settings for WinXP
 
@@ -39,45 +40,28 @@ class Filter : public GenericVideoFilter
       UNUSED(user_data);
       // pass "Expr" existance to override "use_expr" parameter value for old avisynth versions
       const bool has_avs_expr_support = env->FunctionExists("Expr");
-      return new Filter<T>(args[0].AsClip(), GetParameters(args, T::filter_signature(), has_avs_expr_support, env), env);
+      Filter<T> *filter = new Filter<T>(args[0].AsClip(), GetParameters(args, T::filter_signature(), has_avs_expr_support, env), env);
+      ::PClip holder = filter; // frees the filter when it is not returned
+      // use_expr: the Expr clip itself goes into the script, without this filter in front of it, which would only pass
+      // its frames through at the cost of one more filter in the chain
+      if (filter->expr_clip)
+        return filter->expr_clip;
+      return holder;
     }
-public:
-    Filter(::PClip child, const Parameters &parameters, IScriptEnvironment *env) : GenericVideoFilter(child), _filter(parameters, AvsToInternalCpuFlags(env->GetCPUFlags())), signature(T::filter_signature())
+    // lut, lutxy, lutxyz, lutxyza with use_expr: the work goes to AviSynth+ Expr. It is invoked once, here at filter
+    // creation (it was per frame, parsing and compiling the expression for every frame): nothing in its arguments
+    // depends on the frame.
+    void create_expr_clip(IScriptEnvironment *env)
     {
-        inputConfigSize = _filter.input_configuration().size();
-        // This is a warning left here intentionally, why multithreading and threadSafeInit- for winXp causes big troubles sometimes.
-        // When the above line is missing, problems kick in _filter.get_frame(n, destination, env)
-        // Why: "input_configuration" has static initializer that has problems in multithreaded environment
-        // when the XP compatible /Zc:threadSafeInit- switch is used for compiling in Visual Studio
-        // https://docs.microsoft.com/en-us/cpp/build/reference/zc-threadsafeinit-thread-safe-local-static-initialization
-        // In non-threadSafeInit mode (XP) when get_frame is called in multithreaded environment,
-        // the initialization is started in thread#1 and at specific timing conditions (e.g. debug mode is not OK) this initialization is not finished yet when
-        // thread#2 also calls into input_configuration().size().
-        // Real life problems: the proper size value is "2", but for thread#2 still "0" is reported!
-        // This resulted in zero sized local PVideoFrame array to be allocated, but later, when the initialization
-        // is finished in an other thread, size() turnes into "2". It needs only some 1/10000th seconds, but the problem is there by then.
-        // This zero sized array is then indexed with the proper size of "2" from 0..1 -> Access Violation
-        // Debuglog: Masktools2 Getframe #1
-        //  Masktools2 Getframe #0
-        //  Masktools2 Getframe 0, clipcount = 0 // should be 2!!
-        //  Masktools2 Getframe 0, clipcount2 = 2 // meanwhile the init was done in the background, we get 2 which is correct
-        //  Masktools2 Getframe 1, clipcount = 2
-        if (_filter.is_error())
-        {
-            env->ThrowError((signature.getName() + " : " + _filter.get_error()).c_str());
-        }
-    }
-
-    PVideoFrame __stdcall GetFrame(int n, IScriptEnvironment *env) override
-    {
-
       // v2.2.15-
       // lut, lutxy, lutxyz, lutxyza: 'use_expr' parameters option to pass expression to the Expr filter of avs+
       // which is much faster than masktools2 realtime interpreted pixel-by-pixel calculation
       // expr_need_process[4] and expr_list[4] are all filled for avs+ requirements
       // copy-plane or fill operators are also converted to valid expression strings (single "x" or like "128")
       const bool effective_expr_need_process = _filter.expr_need_process[0] || _filter.expr_need_process[1] || _filter.expr_need_process[2] || _filter.expr_need_process[3];
-      if (effective_expr_need_process) {
+      if (!effective_expr_need_process)
+        return;
+      {
         const int planecount = _filter.plane_count();
 
         // lut, lutxy, lutxyz, lutxyza: InPlaceTwoFrame: size is less by one, first clip is explicit
@@ -118,8 +102,9 @@ public:
 
         try {
           AVSValue clip_out = env->Invoke("Expr", AVSValue(new_args.data(), param_length), arg_names);
-          PVideoFrame dst = clip_out.AsClip()->GetFrame(n, env);
-          return dst;
+          if (!clip_out.IsClip())
+            env->ThrowError("masktools2 error on invoking \"Expr\" call with use_expr: no clip returned");
+          expr_clip = clip_out.AsClip();
         }
         catch (const IScriptEnvironment::NotFound&) {
           env->ThrowError("masktools2 error on invoking \"Expr\" call with use_expr: not found!");
@@ -131,6 +116,43 @@ public:
           env->ThrowError("masktools2 error on invoking \"Expr\" call with use_expr: C++ exception!");
         }
       }
+
+    }
+
+public:
+    Filter(::PClip child, const Parameters &parameters, IScriptEnvironment *env) : GenericVideoFilter(child), _filter(parameters, AvsToInternalCpuFlags(env->GetCPUFlags())), signature(T::filter_signature())
+    {
+        inputConfigSize = _filter.input_configuration().size();
+        // This is a warning left here intentionally, why multithreading and threadSafeInit- for winXp causes big troubles sometimes.
+        // When the above line is missing, problems kick in _filter.get_frame(n, destination, env)
+        // Why: "input_configuration" has static initializer that has problems in multithreaded environment
+        // when the XP compatible /Zc:threadSafeInit- switch is used for compiling in Visual Studio
+        // https://docs.microsoft.com/en-us/cpp/build/reference/zc-threadsafeinit-thread-safe-local-static-initialization
+        // In non-threadSafeInit mode (XP) when get_frame is called in multithreaded environment,
+        // the initialization is started in thread#1 and at specific timing conditions (e.g. debug mode is not OK) this initialization is not finished yet when
+        // thread#2 also calls into input_configuration().size().
+        // Real life problems: the proper size value is "2", but for thread#2 still "0" is reported!
+        // This resulted in zero sized local PVideoFrame array to be allocated, but later, when the initialization
+        // is finished in an other thread, size() turnes into "2". It needs only some 1/10000th seconds, but the problem is there by then.
+        // This zero sized array is then indexed with the proper size of "2" from 0..1 -> Access Violation
+        // Debuglog: Masktools2 Getframe #1
+        //  Masktools2 Getframe #0
+        //  Masktools2 Getframe 0, clipcount = 0 // should be 2!!
+        //  Masktools2 Getframe 0, clipcount2 = 2 // meanwhile the init was done in the background, we get 2 which is correct
+        //  Masktools2 Getframe 1, clipcount = 2
+        if (_filter.is_error())
+        {
+            env->ThrowError((signature.getName() + " : " + _filter.get_error()).c_str());
+        }
+        create_expr_clip(env);
+    }
+
+    PVideoFrame __stdcall GetFrame(int n, IScriptEnvironment *env) override
+    {
+
+      // use_expr: the Expr clip made at filter creation
+      if (expr_clip)
+        return expr_clip->GetFrame(n, env);
 
       // filter is not a lut or lut w/o "Expr" call
       PVideoFrame dst = _filter.is_in_place() ? 

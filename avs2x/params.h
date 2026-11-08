@@ -9,8 +9,9 @@ namespace Filtering { namespace Avisynth2x {
 // The host has frame properties (interface V8). Set once, in AvisynthPluginInit3.
 // C++17 inline variable: a single variable in the whole plugin, even if more source files include this header.
 // Not about code inlining, it stays a normal global, changeable at run time.
-// C++ interface only. On a move to the C interface, a single V9.1 check is enough instead: frame property access crashes
-// there in V8, avs_new_video_frame_p with a non-NULL source and avs_prop_get_data work from V9.1.
+// C++ interface only. On a move to the C interface: frame property access crashes there in V8. Reading properties needs
+// V9 and a non-NULL entry (Win32 3.7.1 is V9 with NULL entries) or V10; avs_new_video_frame_p with a non-NULL source and
+// avs_prop_get_data work from V10 (3.7.3).
 inline bool has_at_least_v8 = false;
 
 static Value AVSValueToValue(const AVSValue& value, const Parameter &param)

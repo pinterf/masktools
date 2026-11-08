@@ -32,6 +32,10 @@ https://github.com/tp7/masktools/
 
 Changelog
 **v2.3.0 (WIP)
+- use_expr: Expr is invoked once, when the filter is created, and returned as the filter itself; it was invoked for every frame,
+  parsing and compiling the expression each time. Measured at 1080p 10 bit: 17% of plain Expr's speed before, the same as Expr now;
+  at 320x240: 3% before, 87% now. A bad expression is reported at script load. Frame properties come from Expr: from the first
+  clip the expression uses, none for a constant expression.
 - Expressions: the stack is checked when the filter is created, as in Expr: not enough operands or more than one value left is an error,
   with the reason. Before, only the 8-16 bit lut tables caught missing operands; realtime and float gave 0, leftover values were ignored.
 - mt_expand, mt_inpand: a coordinate list (custom mode) with an odd number of values is an error; the last pair read past the list.

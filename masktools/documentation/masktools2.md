@@ -696,6 +696,8 @@ Expressions, `scale_inputs`, `clamp_float` and `clamp_float_UV` are passed on. P
 constant, copies `x`, `y`, `z` or `a`.
 
 - **Expr computes in 32 bit float inside**, MaskTools in 64 bit double. Results can differ slightly, and large values lose precision: a 32 bit float holds integers exactly only up to 2^24, which matters for large intermediate values and for `frameno` on very long clips.
+- **Frame properties come from Expr:** from the first clip the expression uses, not always from the first clip as in MaskTools,
+  and a constant expression gives a frame without properties. For example `mt_lutxy(a, b, "y 2 *", use_expr=3)` takes them from `b`.
 - **Only the full frame can be passed.** With `offX`, `offY`, `w` or `h` selecting less than the frame, it is an error whenever the
   call would go to Expr.
 - `use_expr` is ignored when the host has no `Expr`, and for stacked clips.
@@ -1312,6 +1314,7 @@ The complete history since 2.0 is in `README.md`.
 - **Platforms:** aarch64 with NEON on Linux and Windows.
 - **mt_merge:** SSE2, AVX2 and NEON for every luma mask.
 - **`opt`:** one parameter selects the code path, [on x86 and on aarch64](#opt).
+- **`use_expr` is as fast as Expr itself:** Expr is set up once and takes the place of the filter, not set up for every frame. At 1080p it ran at about a sixth of Expr's speed before.
 - **More AVX2:** in mt_binarize, mt_motion, mt_average and the morphological filters, at all depths, and AVX2 in mt_logic at 10-16 bit actually runs.
 
 ### Fixed crashes and wrong results without a compatibility side
