@@ -1,351 +1,27 @@
 ﻿### MaskTools 2 ###
 
-(20201229: can be built under linux/gcc)
-
 **Masktools2 v2.2.30 (20220219)**
 
 mod by pinterf
 
-Change log at the end of this document
+Mask creation, mask operations, lookup tables and expressions for AviSynth+ and classic AviSynth 2.6: mt_edge, mt_motion,
+mt_merge, mt_lut and family, mt_expand and the other morphological filters, and more. 8-16 bit and 32 bit float, YUV(A)
+including 4:1:1, 4:4:0 and 4:1:0, planar RGB(A), Y and YA.
 
-Differences to Masktools 2.0b1
+**Reference of every filter and parameter:** [masktools/documentation/masktools2.md](masktools/documentation/masktools2.md).
+It replaces the former list of differences to MaskTools 2.0b1, the parameter notes and the feature matrix that were here.
+The original 2.0 manual is kept for history: [mt_masktools.html](masktools/documentation/mt_masktools.html).
 
-- project moved to Visual Studio 2019, requires Visual Studio redistributables
-- add back "none" and "ignore" for values to "chroma" parameter (2.2.9-)
-- mt_merge at 8 bit clips: keep exact pixel values when mask is 0 or 255 (v2.2.7-)
-- Fix: mt_merge (and probably other multi-clip filters) may result in corrupted results 
-  under specific circumstances, due to using video frame pointers which were already released from memory
-- no special function names for high bit depth filters
-- filters are auto registering their mt mode as MT_NICE_FILTER for Avisynth+
-- Avisynth+ high bit depth support (incl. planar RGB, color spaces with alpha plane are supported from v2.2.7)
-  All filters are now supporting 10, 12, 14, 16 bits and float
-  Note: From v2.2.15 the 32 bit float U and V chroma channels are 0 centered instead of 0.5, supporting the change in Avisynth+ in May 2018. This change affects lut functions and mt_diff.
-  (The last Avisynth+ version that matches masktools 2.2.14 is Avs+ r2664, use r2724 or newer!)
-  Threshold and sc_value parameters are scaled automatically to the current bit depth (v2.2.5-) from a default 8-bit value.
-  Y,U,V,A (and parameters chroma/alpha) negative (memset) values are scaled automatically to the current bit depth (v2.2.7-, chroma/alpha v.2.2.8) from a default 8-bit value.
-  Default range of such parameters can be overridden to 8-16 bits or float.
-  Disable parameter scaling with paramscale="none"
-- New plane mode: 6 (copy from fourth clip) for "Y", "U", "V" and "A"
-  New "chroma" and "alpha" plane mode override: "copy fourth"
-  Use for mt_lutxyza which has four clips
-- YV411 (8 bit 4:1:1) support
-- mt_merge accepts 4:2:2 clips when luma=true (8-16 bit)
-- mt_merge accepts 4:1:1 clips when luma=true
-- mt_merge new parameter hint when luma=true and 4:2:0/4:2:2 'cplace' (2.2.15-). Possible values "mpeg1", "mpeg2" (default), "topleft" (2.2.37-)
-- mt_merge to discard U and V automatically when input is greyscale
-- some filters got AVX (float) and AVX2 (integer) support:
-  mt_merge: 8-16 bit: AVX2, float:AVX
-  mt_logic: 8-16 bit: AVX2, float:AVX
-  mt_edge: 8-16 bit: AVX2, 32 bit float AVX
-  mt_expand, mt_inpand: 10-16 bit: AVX2
-- mt_polish to recognize new constants and scaling operator, and some other operators introduced in earlier versions.
-  For a complete list, see v2.2.4 change log
-- new: mt_lutxyza. Accepts four clips. 4th variable name is 'a' (besides x, y and z)
-- new: mt_luts: weight expressions as an addon for then main expression(s) (martin53's idea)
-    - wexpr
-    - ywExpr, uwExpr, vwExpr
-  If the relevant parameter strings exist, the weighting expression is evaluated
-  for each source/neighborhood pixel values (lut or realtime, depending on the bit depth and the "realtime" parameter). 
-  Then the usual lut result is premultiplied by this weight factor before it gets accumulated. 
-  
-  Weights are float values. Weight luts are x,y (2D) luts, similarly to the base working mode,
-  where x is the base pixel, y is the current pixel from the neighbourhood, defined in "pixels".
-  
-  When the weighting expression is "1", the result is the same as the basic weightless mode.
-  
-  For modes "average" and "std" the weights are summed up. Result is: sum(value_i*weight_i)/sum(weight_i).
-  
-  When all weights are equal to 1.0 then the expression will result in the average: sum(value_i)/n.
-  
-  Same logic works for min/max/median/etc., the "old" lut values are pre-multiplied with the weights before accumulation.
+Builds: Windows x86, x64 and ARM64 (`masktools2.dll`), Linux x86-64 and aarch64 (`libmasktools2.so`), macOS not tested
+(`libmasktools2.dylib`). Build instructions at the end of this document.
 
-- expression syntax supporting bit depth independent expressions
-  - bit-depth aware scale operators
-  
-      operator "scaleb" scales from 8 bit to current bit depth using bit-shifts. scaleb alternative: @B (do not use, deprecated)
-               Use this for YUV. "235 scaleb" -> always results in max luma
-                  
-      operator "scalef" scales from 8 bit to current bit depth using full range stretch. scalef alternative: @F (do not use, deprecated)
-                  "255 scalef" results in maximum pixel value of current bit depth.
-                  Calculation: x/255*65535 for a 8->16 bit sample (rgb)
-
-      Warning: please use scaleb or scalef instead of @B and @F, to match the syntax with avisynth's Expr filter
-
-      Since v2.2.20:
-      "yscalef" and "yscaleb" keywords are similar to "scalef" and "scaleb" but scaling is forced to use rules for Y (non-UV) planes 
-            
-  - hints for non-8 bit based constants: 
-      Added configuration keywords i8, i10, i12, i14, i16 and f32 in order to tell the expression evaluator 
-      the bit depth of the values that are to scale by scaleb and scalef operators.
-            
-      By default scaleb, scalef, yscaleb and yscalef scales from 8 bit to the bit depth of the clip.
-      
-      i8 .. i16 and f32 sets the default conversion base to 8..16 bits or float, respectively.
-
-      When used with scale_inputs=true (v2.2.15-), it specifies the internal working range (temporary scaling target)
-      
-      These keywords can appear anywhere in the expression, but only the last occurence will be effective for the whole expression.
-      
-      Examples 
-```
-      8 bit video, no modifier: "x y - 256 scaleb *" evaluates as "x y - 256 *"
-      10 bit video, no modifier: "x y - 256 scaleb *" evaluates as "x y - 1024 *"
-      10 bit video: "i16 x y - 65536 scaleb *" evaluates as "x y - 1024 *"
-      8 bit video: "i10 x y - 512 scaleb *" evaluates as "x y - 128 *"                  
-```
-
-  - new pre-defined, bit depth aware constants
-  
-    - bitdepth: automatic silent parameter of the lut expression (clip bit depth)
-    - sbitdepth: automatic silent parameter of the lut expression (bit depth of values to scale)
-    - range_half --> autoscaled 128 or 0.5 for float luma/rgb, 0.0 for float chroma
-    - yrange_half --> autoscaled 128 or 0.5 for float (new since v2.2.20)
-    - range_min --> 0 for 8-16 bits and non-UV 32bit, or -0.5 for float UV chroma (new from 2.2.15)
-    - yrange_min --> 0 for 8-16 bits and 32bit (new since v2.2.20)
-    - range_max --> 255/1023/4095/16383/65535 or 1.0 for float luma or 0.5 for float chroma
-    - yrange_max --> 255/1023/4095/16383/65535 or 1.0 for float luma and float chroma (new since v2.2.20)
-    - range_size --> 256/1024...65536
-    - ymin, ymax, cmin, cmax --> 16/235 and 16/240 autoscaled. For zero based float: (16-128)/255.0 and (240-128)/255.0
-      
-Example #1 (bit depth dependent, all constants are treated as-is): 
-```
-      expr8_luma = "x 16 - 219 / 255 *"
-      expr10_luma = "x 64 - 876 / 1023 *"
-      expr16_luma = "x 4096 - 56064 / 65535 *"
-```
-      
-Example #2 (new, with auto-scale operators )      
-```
-      expr_luma =  "x 16 scaleb - 219 scaleb / 255 scalef *"
-      expr_chroma =  "x 16 scaleb - 224 scaleb / 255 scalef *"
-```
-      
-Example #3 (new, with constants)
-```
-      expr_luma = "x ymin - ymax ymin - / range_max *"
-      expr_chroma = "x cmin - cmax cmin - / range_max *"
-      or works for float with: range_min: expr_chroma = "x cmin - cmax cmin - / range_max range_min - *"
-```
-  - new option for Lut expressions: 
-
-    Parameter "clamp_float"
-
-    32 bit float video is always a bit different, as ususally no clamping is applied to valid ranges 
-    This parameter along with clamp_float_UV changes this behaviour.
-    
-    false: no clamp
-    true: standard clamp which is 0..1 for Luma or for RGB color space and -0.5..0.5 for YUV chroma UV 
-          chroma clamping can be set to 0..1 by using clamp_float_UV since v2.2.20
-	  Default: false
-    
-  - new option for Lut expressions: 
-
-    Parameter "clamp_float_UV" (since v2.2.20)
-
-    false: standard clamp which is 0..1 for Luma or for RGB color space and -0.5..0.5 for YUV chroma UV
-    true: chroma UV clamp same as luma 0..1, used in conjunction with expressions written for integer (positive only) U/V values in mind.
-	  Default: false
-
-  - new option for Lut expressions: 
-
-    parameter "scale_inputs" (default "none")
-
-    Autoscale any input (x,y,z,a) bit depths to 8-16 bit for internal expression use, the conversion method
-    is either full range or limited YUV range.
-    (Replaces clamp_f_i8, clamp_f_i10, clamp_f_i12, clamp_f_i14 or clamp_f_i16, clamp_f_f32 or clamp_f keywords)
-    
-    Feature is available from v2.2.15
-
-    The primary reason of this feature is the "easy" usage of formerly written expressions optimized for 8 bits.
-
-    Use
-    - "int" : scales limited range videos, only integer formats (8-16bits) to 8 (or bit depth specified by 'i8'..'i16')
-    - "intf": scales full range videos, only integer formats (8-16bits) to 8 (or bit depth specified by 'i8'..'i16')
-    - "float" or "floatf" : only scales 32 bit float format to 8 bit range (or bit depth specified by 'i8'..'i16')
-    - "floatUV" : affects the chroma plane expressions of 32 bit float formats. 
-      Shifts the input up by 0.5 before processing it in the expression, thus values from -0.5..0.5 (zero centered) range are converted to the 0..1 (0.5 centered) one.
-      Since the expression result internally has 0..1.0 range, this then is shifted back to the original -0.5..0.5 range. (since 2.2.20)
-      Note: predefined constants such as cmin, cmax, range_min, range_max and range_half will be shifted as well, e.g. the expression will see range_half = 0.5
-    - "all": scales videos to 8 (or bit depth specified by 'i8'..'i16') - conversion uses limited_range logic (mul/div by two's power)
-    - "allf": scales videos to 8 (or bit depth specified by 'i8'..'i16') - conversion uses full scale logic (stretch)
-    - "none": no magic
-
-    Usually limited range is for normal YUV videos, full scale is for RGB or known-to-be-fullscale YUV
-
-    By default the internal conversion target is 8 bits, so old expressions written for 8 bit videos will probably work.
-    This internal working bit-depth can be overwritten by the i8, i10, i12, i14, i16 specifiers.
-
-    When using autoscale mode, scaleb, scalef, yscaleb and yscalef keywords are meaningless for 8-16 bits, because there is nothing to scale.
-    32 bit (float) values will be scaled however when "float", "floatUV", "all", "allf" is specified.
-
-    How it works:
-    - This option scales (x,y,z,a) 8-32 bit inputs to a common bit depth value, which bit depth is 8 by default and can be 
-      set to 10, 12, 14 and 16 bits by the 'i10'..'i16' keywords
-      For example: scale_inputs="all" converts any inputs to 8 bit range. No truncation occurs however (no precision loss), 
-      because even a 16 bit data is converted to 8 bit in floating point precision, using division by 256.0 (2^16/2^8). 
-      So the conversion is _not_ a simple shift-right-8 in the integer domain, which would lose precision.
-    - Calculates expression
-    - Scales the result back to the output video bit depth.
-      Clamping (clipping to valid range) and converting to integer occurs here.
-
-    The predefined constants such as 'range_max', etc. will behave according to the internal working bit depth
-
-    Warning#1 
-    This feature was created for easy porting earlier 8-bit-video-only expressions.
-    You have to understand how it works internally.
-
-    Let's see a 16bit input in "all" and "allf" mode (target is the default 8 bits)
-
-    Limited range 16->8 bits conversion has a factor of 1/256.0 (Instead of shift right 8 in integer domain, float-division is used or else it would lose presision)
-    Full range 16->8 bits conversion has a factor of 255.0/65535
-
-    Using bit shifts (really it's division and multiplication by 2^8=256.0): 
-      result = calculate_lut_value(input / 256.0) * 256.0
-    Full scale 16-8-16 bit mode ('intf', 'allf')
-      result = calculate_lut_value(input / 65535.0 * 255.0 ) / 255.0 * 65535.0
-
-    Use scale_inputs = "all" ("int", "float") for YUV videos with 'limited' range e.g. in 8 bits: Y=16..235, UV=16..240).
-    Use scale_inputs = "allf" (intf, floatf) for RGB or YUV videos with 'full' range e.g. in 8 bits: channels 0..255.
-
-    When input is 32bit float, the 0..1.0 (luma) and -0.5..0.5 (chroma) channel is scaled
-    to 0..255 (8 bits), 0..1023 (i10 mode), 0..4095 (i12 mode), 0..16383(i14 mode), 0..65535(i16 mode) then back.
-
-    Warning#2
-    One cannot specify different conversion methods for converting before and after the expression.
-    Neither can you specify different methods for different input clips (e.g. x is full, y is limited is not supported).
- 
-  - (obsolate feature) 
-    New expression syntax for lut-type filters: auto scale modifiers for float clips:
-    !!! Note: these can be removed in later editions, pls. use "scale_inputs" and "clamp_float" parameters instead (since v2.2.15)
-    Keyword at the beginning of the expression:
-    - clamp_f_i8, clamp_f_i10, clamp_f_i12, clamp_f_i14 or clamp_f_i16 for scaling and clamping
-    - clamp_f_f32 or clamp_f: for clamping the result to 0..1 (floats are not clamped by default!)
-  
-    Input values 'x', 'y', 'z' and 'a' are autoscaled by 255.0, 1023.0, ... 65535.0 before the expression evaluation,
-    so the working range is similar to native 8, 10, ... 16 bits. The predefined constants 'range_max', etc. will behave for 8, 10,..16 bits accordingly.
-  
-    The result is automatically scaled back to 0..1 _and_ is clamped to that range.
-    When using clamp_f_f32 (or clamp_f) the scale factor is 1.0 (so there is no scaling), but the final clamping will be done anyway.
-    No integer rounding occurs.
-
-```
-    # obsolate examples, from v2.2.15 use scale_inputs and clamp_float parameter instead of clamp_f_xx keywords
-    expr = "x y - range_half +"  # good for 8..32 bits but float is not clamped
-    expr = "clamp_f y - range_half +"  # good for 8..32 bits and float clamped to 0..1 (or +/-0.5 when chroma)
-    expr = "x y - 128 + "  # good for 8 bits
-    expr = "clamp_f_i8 x y - 128 +" # good for 8 bits and float, float will be clamped to 0..1 (or +/-0.5 when chroma)
-    expr = "clamp_f_i8 x y - range_half +" # good for 8..32 bits, float will be clamped to 0..1 (or +/-0.5 when chroma)
-```  
-
-- parameter "stacked" (default false) for filters with stacked format support
-  Stacked support is not intentional, but since tp7 did it, I did not remove the feature.
-  Filters currently without stacked support will never have it. 
-- parameter "realtime" for lut-type filters, slower but at least works on those bit depths
-  where LUT tables would occupy too much memory.
-
-  Also see: 'use_expr' which can pass realtime calculation to Avisynth+ Expr filter!
-
-  For bit depth limits where realtime = true is set as the default working mode, see table below.
-    
-  realtime=true can be overridden, one can experiment and force realtime=false even for a 16 bit lutxy 
-  (8GBytes lut table!, x64 only) or for 8 bit lutxzya (4GBytes lut table)
-
-- parameter "use_expr" integer (default 0) for 'lut', 'lutxy', 'lutxyz', 'lutxyza' filters (from v2.2.15)
-  Use it when realtime calculation (interpreted pixel-by-pixel expression calculation) is slow and an appropriate Avisynth+ version (>r2712) is available.
-
-  By sending the expression to Avisynth+, lut filters can utilize a realtime JIT-compiled fast expression calculation.
-
-  Possible values:
-  0: uses lut and internal realtime calculation
-  1: Expr, when bit depth>=10 or lutxyza
-  2: When masktools would use realtime calc, passes the expressions and parameters to the "Expr" filter in Avisynth+
-  3: Expr, always passed (from 2.2.17)
-
-  For modes 1, 2 and 3: Passes the expressions, "scale_inputs", "clamp_float" and "clamp_float_UV" parameter to the "Expr" filter in Avisynth+
-  Note: clamp_float_UV is valid parameter only from Avisynth+ 3.5, and for compatiblity reasons is passed only when it's true, so when it differs 
-        from the default value.
-
-  Note #1: Avisynth+ internal precision is 32bit float, masktools2 is double (usually no difference can be seen)
-  Note #2: Some keywords (e.g. bit shift) are not available on Avisynth+
-  Note #3: Since "Expr" can work only on full sized clips, offX, offY, w and h parameters are ignored.
-  Note #4: Since v2.2.26 this parameter is silently ignored when "Expr" filter is missing from the actual Avisynth host.
-   
-- parameter "paramscale" for filters working with threshold-like parameters (v2.2.5-)
-  Filters: mt_binarize, mt_edge, mt_inpand, mt_expand, mt_inflate, mt_deflate, mt_motion, mt_logic, mt_clamp
-  paramscale can be "i8" (default), "i10", "i10", "i12", "i14", "i16", "f32" or "none" or ""
-  Using "paramscale" tells the filter that parameters are given at what bit depth range.
-  By default paramscale is "i8", so existing scripts with parameters in the 0..255 range are working at any bit depths
-```  
-  mt_binarize(threshold=80*256, paramscale="i16") # threshold is assumed in 16 bit range 
-  mt_binarize(threshold=80) # no param: threshold is assumed in 8 bit range
-  
-  thY1 = 0.1
-  thC1 = 0.1
-  thY2 = 0.1
-  thC2 = 0.1
-  paramscale="f32"
-  mt_edge(mode="sobel",u=3,v=3,thY1=thY1,thY2=thY2,thC1=thC1,thC2=thC2,paramscale=paramscale) # f32: parameters assumed as float (0..1.0)
-```  
-- new: "swap" keyword in expressions (v2.2.5-)
-  swaps the last two results during RPN evaluation. Not compatible with mt_infix()
-```  
-  expr="x 2 /"
-  expr="2 x swap /"
-```  
-- new: "swap1" to "swap9" keywords in expressions (v2.2.25-)
-  Swaps the Nth stack result with stack top (top is N=0) during RPN evaluation.
-  Appears as a function in mt_infix.
-
-- new: "dup" keyword in expressions (v2.2.5-)
-  Duplicates the last result and put on the top of RPN evaluation stack.
-```  
-  expr="x 3 / x 3 / +"
-  expr="x 3 / dup +"
-```  
-- new: "dup0" to "dup9" keyword in expressions (v2.2.25-)
-  Duplicates the Nth result and put on the top of RPN evaluation stack.
-  dup0 is the same as dup.
-  Appears as a function in mt_infix
-  
-   
-- Feature matrix   
-```
-                   8 bit | 10-16 bit | float | stacked | realtime       | use_expr
-      mt_invert      X         X         X        -
-      mt_binarize    X         X         X        X
-      mt_inflate     X         X         X        X
-      mt_deflate     X         X         X        X
-      mt_inpand      X         X         X        X
-      mt_expand      X         X         X        X
-      mt_lut         X         X         X        X      when float     yes
-      mt_lutxy       X         X         X        -      when bits>=14  yes
-      mt_lutxyz      X         X         X        -      when bits>=10  yes
-      mt_lutxyza     X         X         X        -      always         yes
-      mt_luts        X         X         X        -      when bits>=14  no
-      mt_lutf        X         X         X        -      when bits>=14  no
-      mt_lutsx       X         X         X        -      when bits>=10  no
-      mt_lutspa      X         X         X        -                     no
-      mt_merge       X         X         X        X
-      mt_logic       X         X         X        X
-      mt_convolution X         X         X        -
-      mt_mappedblur  X         X         X        -
-      mt_gradient    X         X         X        -
-      mt_makediff    X         X         X        X
-      mt_average     X         X         X        X
-      mt_adddiff     X         X         X        X
-      mt_clamp       X         X         X        X
-      mt_motion      X         X         X        -
-      mt_edge        X         X         X        -
-      mt_hysteresis  X         X         X        -
-      mt_infix/mt_polish: available only on non-XP builds
-``` 
 Masktools2 info:
 http://avisynth.nl/index.php/MaskTools2
 
 Forum:
 https://forum.doom9.org/showthread.php?t=174333
 
-Article by tp7
+Article by tp7:
 http://tp7.github.io/articles/masktools/
 
 Project:
@@ -355,6 +31,114 @@ Original version: tp7's MaskTools 2 repository.
 https://github.com/tp7/masktools/
 
 Changelog
+**v2.3.0 (WIP)
+- Dual filter signatures removed: one signature per filter, float parameters as float; integer arguments still work.
+- Expressions: a constant power of 0.5 is sqrt, as in Expr: x 0.5 ^ on a negative x gives 0, was NaN. An exponent from a clip stays pow.
+- scaleb, scalef are level conversions with the arithmetic of AviSynth+ Expr (and ConvertBits), for every base i8..f32: scalef on chroma scales around the center
+  (128 scalef at 10 bit: 512 on chroma, was 514; x 5 scalef + on 16 bit U: 33925, was 34053), scaleb between a 10-16 bit base and float uses 255 steps
+  (i10 940 scaleb: 0.92157, was 0.91887). Integer lut tables are per luma/chroma when the expression needs it. Docs: they are not for differences on chroma.
+- mt_merge 4:2:2, cplace="top_left": 1-2-1 mask as with "mpeg2" (same horizontal siting), was the 1-1 box of "mpeg1".
+- mt_merge luma=true on 4:1:1 and 4:1:0: low-pass mask kernels as in AviSynth+ Overlay. Centred: triangle 1-3-5-7-7-5-3-1, co-sited: tent
+  1-2-3-4-3-2-1. 4:1:1 mpeg1 8 taps, mpeg2 and top_left 7 taps; 4:1:0 mpeg1 8x8, mpeg2 7x8, top_left 7x7. Filters are clamped to the processed window.
+  C, SSE2, AVX2 and NEON at every depth; float results identical to C.
+- mt_merge, integer clips: the blend divides exactly by the maximum, as AviSynth+ Merge, Layer and Overlay do. It divided by 256 (2^bits), with only the end points patched.
+- mt_merge: the default of cplace is "auto": the _ChromaLocation frame property of clip1 (frame 0), else by format as in AviSynth+: 4:4:0 and 4:1:0 top_left, others mpeg2.
+- mt_edge: new "sobel_real" computes the standard 1-2-1 horizontal/vertical derivatives and
+  sqrt(Gx*Gx + Gy*Gy), unnormalized, with existing thresholds and mask-range clamping.
+  The historical "sobel" calculation and default mode are unchanged. C, SSE2, AVX2 and NEON at every depth.
+- mt_polish: numbers are written in their shortest exact form ("0.1", "1e-07", "1e+30"), with '.' whatever
+  the locale; they were cut to 6 decimals (0.0000001 gave 0) and to 19 characters (1e30 gave
+  1000000000000000019), 1e300 crashed. Numbers are read correctly rounded, independent of the locale.
+- mt_polish: integers above 2147483647 are accepted (as a double), the conversion stopped at them.
+- mt_polish: an expression which cannot be converted to its end is an error ("syntax error at position n"),
+  instead of the converted part only (e.g. "x y" gave "x ", "ceil(x)" gave "").
+- mt_polish: infix "!&" gives "&!" (and-not); the "!&" it gave was not known by the luts (since 2.2.4).
+- Linux (and other LP64 builds): mt_luts mode "avg" and mt_lutf mode "average" round the average again, they
+  truncated it (8 and 16 bit).
+- mt_infix: an invalid expression ("", "x +", "x y") is an error instead of a crash or garbage; dup and swap
+  are expanded ("x dup *" gives "(x*x)", was "(*dup(x))").
+- "%" is the floating point remainder (fmod) as in AviSynth+ Expr: 5.7 % 2.2 = 1.3, -5.7 % 2.2 = -1.3. It was the
+  integer remainder of the rounded operands (5.7 % 2.2 gave 0), a divisor below 0.5 crashed. x % 0 is NaN
+  (0 in integer formats).
+- mt_logic mode "andn": ~x & y everywhere, as the SIMD versions always computed it (x86 pandn operand order,
+  since MaskTools 2.0). The C version gave x & ~y (the old documentation), on narrow planes, with sse2=false and
+  in the last columns of a row when the width was not a multiple of 16 (32 with AVX2). Documentation corrected.
+- mt_expand, mt_inpand mode="square" with thY/thC < 255 (8 bit SSE2, 10-16 bit SSE4.1/AVX2): the result could
+  go up to 2 * thY away from the source pixel instead of thY (two separately limited passes); now as in C.
+- YV411 (4:1:1): the chroma planes were processed as 4x wide and 1/4 high (swapped ratios): wrong output in every
+  filter, rows left unwritten (since 2.2.1).
+- mt_edge prewitt, hprewitt, cartoon at 10-14 bit (SSE2, AVX2): values above the high threshold gave more than the
+  max pixel value instead of the max; now as in C.
+- mt_edge custom matrix at 10-14 bit (SSE2/SSE4.1/AVX2): sums above 32767 + half range gave 0 instead of the max
+  pixel value; 16 bit with thY1/thC1 = 65535: prewitt, hprewitt, cartoon, custom matrix values above 65535 gave 0
+  instead of the max. Now as in C.
+- mt_edge 8 bit and mt_expand, mt_inpand, mt_inflate, mt_deflate 8 bit: a plane exactly one vector wide (16, AVX2
+  32 pixels) got wrong left/right edge pixels (memory dependent for mt_edge); such planes use the C version.
+- mt_merge float luma=true on a CPU without SSE3: illegal instruction (SSE3 in the SSE2 version).
+- stacked=true: processed internally as native 16 bit (the SIMD versions serve it too). Now possible: mt_lut
+  realtime=true, mt_merge cplace="top_left" and 4:1:1 (YV411). mt_lut use_expr is ignored for stacked clips (Expr
+  computed the double height 8 bit clip: wrong result).
+- mt_luts, mt_lutsx, mt_lutspa: an invalid expression or scale_inputs could crash (heap corruption) instead of
+  giving the error message; mt_lutsx did not free its pixel list (memory leak).
+- mt_luts 16 bit with weights (wexpr) and realtime=false on 64 bit non-x86 (aarch64): the weights were ignored.
+- mt_lutxyza, mt_lutxy, mt_lutf, mt_luts realtime=false: an error message when the lut memory cannot be allocated
+  (4 GB for mt_lutxyza, 8 GB for 16 bit), instead of an unhandled exception.
+- mt_expand, mt_inpand (modes square, horizontal, both) SSE2/SSE4.1/AVX2: when the width was not a multiple of 16
+  (8 bit) or 8/16 (16 bit), read up to a vector past the end of the row (possible crash at the frame end).
+- mt_edge custom matrix, SSE2/SSE4.1: planes 8 or 16 pixels wide (8 bit) or 8 wide (16 bit) were read outside
+  the plane (possible crash); such planes now use the C version.
+- mt_mappedblur 10-16 bit and float, MSVC builds (the release DLLs): the mask was read from wrong rows (1/2 or 1/4
+  row apart), partly from the row padding (wrong output, unstable
+  on some widths); now as in the ClangCL and Linux builds.
+- offx/offy/w/h windows: a window empty after the snapping to the chroma grid (e.g. YV12 offx=0, w=1) crashed
+  every filter; now nothing is processed.
+- mt_convolution: works on planes and windows smaller than the kernel (a 1 pixel wide window corrupted the
+  heap, smaller clips were an error). Even vertical kernels: the last rows use the clamped bottom row (was the
+  row above it).
+- mt_edge, mt_mappedblur, mt_expand, mt_inpand, mt_inflate, mt_deflate: planes or windows 1 pixel wide or high
+  were read outside the plane; 1 pixel high ones also got a row written below them (possible crash).
+- mt_lutspa: windows not aligned to the chroma grid read outside the lut (wrong output, possible crash); the
+  alpha plane of YUVA 4:2:0 / 4:2:2 / 4:1:1 too (since alpha support).
+- mt_hysteresis: a window crashed (wrote past the frame end); unstable with multithreading (one shared buffer);
+  corners=false at 10-32 bit gave wrong output.
+- mt_binarize 10-16 bit mode "t x" and "x t": illegal instruction on CPUs without SSE4.1 (SSE4.1 in the SSE2
+  version); now SSE2.
+- mt_binarize: AVX2 versions (8, 10-16 bit, float).
+- mt_logic 10-16 bit: the AVX2 version is used; it was registered with the speed of SSE2 and never selected.
+- mt_luts float with weights: weight expressions are not implicitly clamped to 0..1. An uninitialized clamp
+  setting could change the result depending on memory layout (present in 2.2.30).
+- YA formats (Y + alpha) at 8/10/12/14/16 bit and float, including alpha controls and LUT expressions.
+- YUV/YUVA 4:1:1 at all supported bit depths; mt_merge luma-mask reduction includes float and native
+  10-16-bit SSE2/AVX2 kernels.
+- YUV/YUVA 4:4:0 at all supported bit depths. mt_merge luma masks use vertical pair averaging for
+  mpeg1/mpeg2, or a vertical 1-2-1 filter with top-edge replication for top_left/topleft;
+  C, SSE2, AVX2 and NEON kernels, including float.
+- YUV/YUVA 4:1:0 at all supported bit depths, with mt_merge luma masks at every placement.
+- mt_merge: complete the remaining luma-mask SIMD paths: float 4:1:1 and top_left 4:2:0
+  have SSE2/AVX2/NEON kernels; MPEG2 4:2:0/4:2:2 has NEON at every depth.
+- Expressions: dup1..dup9 give `a b dup1` = `a b a`, as documented and in Expr; the top of the stack was overwritten, `a a a` (since 2.2.25).
+- mt_edge, mt_motion: thC1, thC2 are scaled as differences, like thY1, thY2. On float YUV and RGB an explicit value with the default
+  paramscale went negative and made the chroma mask all 1; paramscale="f32" on integer YUV was wrong too.
+- mt_luts, mt_lutsx: an empty or odd pixels list is an error; empty crashed in "avg" (the default) and was meaningless otherwise.
+- sse2, sse3, ssse3, sse4, avx, avx2 replaced by opt: 0 auto, 1 C, 2 SSE2, 3 SSE4.1, 4 AVX, 5 AVX2; aarch64 1 C, else NEON. Naming an old one is
+  now an error. A, alpha, paramscale and the parameters after them move 5 positions forward.
+- mt_motion: no overflow of the scene change sum on very wide planes (worst case from width 32776 at 16 bit).
+- mt_motion: the scene change decision belongs to each frame. Under Prefetch the chroma of a frame could use another frame's decision;
+  with luma not processed it read an uninitialized value, now luma still decides for the whole frame. 8 bit: the limit overflowed
+  on very large frames (from thT=65 at 7680x4320), no scene change was detected.
+- Expressions (mt_lut, mt_lutxy, mt_lutxyz, mt_lutxyza, mt_lutf, mt_luts, mt_lutsx, mt_lutspa, mt_polish, mt_infix):
+  new sqrt (negative: 0), neg, sgn, not; pow, and, or, xor as names of ^, &, |, @.
+  Booleans stay 1 / -1 and round stays as it was (Expr: 1 / 0, nearest even).
+- Expressions: new width, height (of the plane), sx, sy, sxr, syr (position in it; sxr, syr 0..1 inclusive, 0 on a
+  single column or row), frameno, time (frameno / (frame count - 1), 0 on a single frame). As in AviSynth+ Expr.
+  With offx, offy, w, h they refer to the window: the result equals the filter on the cropped clip. x, y of mt_lutspa
+  are unchanged. Such expressions are computed per pixel whatever realtime says, and with use_expr=2 go to Expr.
+- use_expr with offx, offy, w or h: one error message, only the full frame can be passed to Expr.
+- aarch64 with NEON on Linux and Windows (llvm-mingw).
+- More AVX2: mt_motion, mt_average and the morphological filters at all depths.
+- AviSynth 2.5 is no longer supported, the minimum is classic AviSynth 2.6. Boost is no longer used, mt_polish and mt_infix are in every build.
+- Reference: masktools/documentation/masktools2.md.
+
 **v2.2.30 (20220218)
 - mt_hysteresis new parameter: 
     bool corners (default true)
@@ -705,38 +489,46 @@ Changelog
   
 Build instructions
 ==================
-VS2019: 
-  use IDE
 
-Windows GCC (mingw installed by msys2):
-  from the 'build' folder under project root:
+Windows, Visual Studio 2026 (MSVC or ClangCL)
+* Open `masktools.slnx`. Configurations: `Release` (MSVC), `Rel_Clang` (ClangCL, needs the "C++ Clang tools for Windows"
+  component), `Debug`; platforms `Win32` and `x64`. From the command line:
 
-  del ..\CMakeCache.txt
-  cmake .. -G "MinGW Makefiles" -DENABLE_INTEL_SIMD:bool=on
-  @rem test: cmake .. -G "MinGW Makefiles" -DENABLE_INTEL_SIMD:bool=off
-  cmake --build . --config Release  
+        msbuild masktools.slnx -m -p:Configuration=Release;Platform=x64
 
-Linux
-* Clone repo
-    
+* Output: `Build\x64\Release\masktools2.dll` (and `Build\Win32\...`, `Build\x64\Rel_Clang\...`).
+* The MSVC builds need the Microsoft Visual C++ Redistributable.
+
+Windows XP (`v141_xp`)
+* `masktools.sln` (Visual Studio 2022) with the `Release_v141_xp` configuration. It needs the v141_xp toolset installed.
+
+Windows with CMake: MinGW GCC or Clang (x64), llvm-mingw (ARM64)
+* x64, from the project root:
+
+        cmake -S . -B build/mingw -G Ninja -DCMAKE_BUILD_TYPE=Release
+        cmake --build build/mingw
+
+* ARM64 with llvm-mingw (https://github.com/mstorsjo/llvm-mingw, UCRT release), built on an x64 PC:
+
+        cmake -S . -B build/arm64_mingw -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=cmake/toolchains/llvm-mingw-aarch64.cmake -DLLVM_MINGW_ROOT=C:/path/to/llvm-mingw-ucrt-x86_64
+        cmake --build build/arm64_mingw
+
+* A MinGW or llvm-mingw built DLL needs a host built the same way: it cannot be used with an MSVC built AviSynth+.
+
+Linux (x86-64 or aarch64), with GCC or Clang
+* Clone and build:
+
         git clone https://github.com/pinterf/masktools
         cd masktools
-        cmake -B build -S .
+        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
         cmake --build build
 
-      Not working yet: 
-      Possible option test for C only on x86 arhitectures:
-        cmake -B build -S . -DENABLE_INTEL_SIMD:bool=off
-        cmake --build build
+* The SIMD code follows the target: `ENABLE_INTEL_SIMD` on x86, `ENABLE_NEON_SIMD` on aarch64. For a C only build turn the
+  option of the target off, e.g. `-DENABLE_INTEL_SIMD=OFF`.
+* Output: `build/masktools/libmasktools2.so`
+* Install into the AviSynth+ plugin directory (`lib/avisynth` under the install prefix), and uninstall:
 
-        Note: ENABLE_INTEL_SIMD is automatically off for non x86 arhitectures and ON for x86
+        sudo cmake --install build
+        sudo cmake --build build --target uninstall
 
-* Find binaries at
-    
-        build/masktools/libmasktools2.so
-
-* Install binaries
-
-        cd build
-        sudo make install
-
+macOS: the CMake build above (`libmasktools2.dylib`) is supported, but has not been tested.
