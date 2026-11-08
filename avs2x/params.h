@@ -26,7 +26,7 @@ static Value AVSValueToValue(const AVSValue& value, const Parameter &param)
     }
 }
 
-static String ParameterToString(const Parameter &parameter, bool intAlternative)
+static String ParameterToString(const Parameter &parameter)
 {
     String str = "";
 
@@ -36,7 +36,7 @@ static String ParameterToString(const Parameter &parameter, bool intAlternative)
     switch (parameter.getType())
     {
     case TYPE_INT: return str.append("i");
-    case TYPE_FLOAT: return intAlternative ? str.append("i") : str.append("f");
+    case TYPE_FLOAT: return str.append("f");
     case TYPE_STRING: return str.append("s");
     case TYPE_CLIP: return str.append("c");
     case TYPE_BOOL: return str.append("b");
@@ -44,12 +44,12 @@ static String ParameterToString(const Parameter &parameter, bool intAlternative)
     }
 }
 
-String SignatureToString(const Signature &signature, bool intAlternative)
+String SignatureToString(const Signature &signature)
 {
     String str;
 
     for (int i = 0; i < signature.count(); i++)
-      str.append(ParameterToString(signature[i], intAlternative));
+      str.append(ParameterToString(signature[i]));
 
     return str;
 }
