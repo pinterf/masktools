@@ -1,6 +1,6 @@
 ﻿### MaskTools 2 ###
 
-**Masktools2 v2.2.30 (20220219)**
+**Masktools2 v2.3 (20261108)**
 
 mod by pinterf
 
@@ -31,7 +31,7 @@ Original version: tp7's MaskTools 2 repository.
 https://github.com/tp7/masktools/
 
 Changelog
-**v2.3.0 (WIP)
+**v2.3 (20261108)
 - use_expr: Expr is invoked once, when the filter is created, and returned as the filter itself; it was invoked for every frame,
   parsing and compiling the expression each time. Measured at 1080p 10 bit: 17% of plain Expr's speed before, the same as Expr now;
   at 320x240: 3% before, 87% now. A bad expression is reported at script load. Frame properties come from Expr: from the first

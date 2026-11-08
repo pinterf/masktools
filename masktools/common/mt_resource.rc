@@ -14,8 +14,8 @@ LANGUAGE LANG_ENGLISH, SUBLANG_NEUTRAL
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 2,2,30,0
- PRODUCTVERSION 2,2,30,0
+ FILEVERSION 2,3,0,0
+ PRODUCTVERSION 2,3,0,0
  FILEFLAGSMASK 0x17L
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -32,14 +32,14 @@ BEGIN
         BEGIN
             VALUE "Comments", "Mask creation and LUT filters for AviSynth"
             VALUE "FileDescription", "MaskTools2 for AviSynth"
-            VALUE "FileVersion", "2.2.30"
+            VALUE "FileVersion", "2.3"
             VALUE "InternalName", "masktools2"
             // Keep this file ASCII: llvm-rc and windres ignore the code page pragma, so
             // non-ASCII characters are written as wide-string escapes (\x00E9 = e acute).
             VALUE "LegalCopyright", L"Copyright (C) 2005-2013 Mathieu Monnier (Manao), 2013 Victor Efimov (tp7), 2017-2026 Ferenc Pint\x00E9r"
             VALUE "OriginalFilename", "masktools2.dll"
             VALUE "ProductName", "MaskTools2"
-            VALUE "ProductVersion", "2.2.30"
+            VALUE "ProductVersion", "2.3"
         END
     END
     BLOCK "VarFileInfo"

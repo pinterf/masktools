@@ -1,6 +1,6 @@
 # MaskTools 2 reference
 
-MaskTools 2 version 2.3.0, for AviSynth+ and classic AviSynth 2.6.
+MaskTools 2 version 2.3, for AviSynth+ and classic AviSynth 2.6.
 
 Original authors: Kurosu, Manao, mg262 (MaskTools 2.0), tp7 (MaskTools 2 repository). High bit depth, later
 formats and ports: pinterf.
@@ -30,7 +30,7 @@ and the "differences to MaskTools 2.0" list. The full version history is in the 
 14. [Convolutions](#14-convolutions): mt_convolution, mt_mappedblur, mt_gradient
 15. [Helpers](#15-helpers): shape strings, mt_polish, mt_infix
 16. [Stacked 16 bit](#16-stacked-16-bit)
-17. [Changes in 2.3.0](#17-changes-in-230)
+17. [Changes in 2.3](#17-changes-in-23)
 
 ## 1. What MaskTools does
 
@@ -1271,7 +1271,7 @@ works on classic AviSynth 2.6. It is slower than a native 16 bit clip, because o
 
 On AviSynth+ use a native 16 bit clip when you can. The ConvertStacked plugin of AviSynth+ (`ConvertToStacked`, `ConvertFromStacked`) and Dither's tools convert between the two.
 
-## 17. Changes in 2.3.0
+## 17. Changes in 2.3
 
 The complete history since 2.0 is in `README.md`.
 
