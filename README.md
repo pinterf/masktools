@@ -32,6 +32,7 @@ https://github.com/tp7/masktools/
 
 Changelog
 **v2.3.0 (WIP)
+- mt_expand, mt_inpand: a coordinate list (custom mode) with an odd number of values is an error; the last pair read past the list.
 - Dual filter signatures removed: one signature per filter, float parameters as float; integer arguments still work.
 - Expressions: a constant power of 0.5 is sqrt, as in Expr: x 0.5 ^ on a negative x gives 0, was NaN. An exponent from a clip stays pow.
 - scaleb, scalef are level conversions with the arithmetic of AviSynth+ Expr (and ConvertBits), for every base i8..f32: scalef on chroma scales around the center

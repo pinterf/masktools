@@ -52,6 +52,12 @@ protected:
     {
         auto coeffs = Parser::getDefaultParser().parse(coordinates, Parser::SYMBOL_SEPARATORS_COORD).getExpression();
         coordinates_count = coeffs.size();
+        // the kernels read the list in x y pairs: an odd count would read past its end
+        if (coordinates_count % 2 != 0) {
+          error = "mode must be square, horizontal, vertical, both or a list of x y coordinate pairs (see mt_square etc.)";
+          coordinates_count = 0;
+          return;
+        }
         coordinates_list = new int[coordinates_count];
         int i = 0;
 

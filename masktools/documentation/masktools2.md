@@ -617,7 +617,7 @@ mt_expand replaces each pixel with the local maximum, mt_inpand with the local m
 | `"horizontal"` | 3x1 |
 | `"vertical"` | 1x3 |
 | `"both"` | A cross: `"horizontal"` + `"vertical"` |
-| A list of coordinates | Custom. `"0 0 -1 0 1 0"` equals `"horizontal"`. See [shape strings](#shape-strings). |
+| A list of coordinates | Custom. `"0 0 -1 0 1 0"` equals `"horizontal"`. See [shape strings](#shape-strings). An odd number of values is an error; an empty list leaves the plane unchanged. |
 
 ```avs
 c.mt_expand(mode=mt_circle(2))
@@ -1295,6 +1295,7 @@ The complete history since 2.0 is in `README.md`.
 - **mt_merge `cplace="top_left"` on 4:2:2:** the 1-2-1 mask, as `"mpeg2"`: the horizontal siting is the same. It was the box of `"mpeg1"`.
 - **`dup1`..`dup9` in expressions:** `a b dup1` gives `a b a` as documented and as in Expr. It overwrote the top of the stack and gave `a a a` (since 2.2.25). `dup` and `dup0` were right.
 - **mt_edge, mt_motion `thC1`, `thC2` on float clips:** scaled as a difference, like `thY1`, `thY2`. On float YUV and float RGB an explicit value with the default `paramscale` was scaled as a chroma level and went negative, so the chroma mask was all 1 (since float support). With `paramscale="f32"` on integer YUV they were wrong as well.
+- **mt_expand, mt_inpand `mode` as a list:** an odd number of values is an error. The last pair read one value past the list.
 - **mt_luts, mt_lutsx `pixels`:** an empty list or an odd number of values is an error. An empty list crashed in `"avg"` mode, the default, and gave a meaningless result in the others; an odd one read past the list.
 - **mt_motion with luma not processed:** the luma plane still decides on a scene change for the whole frame. It read an uninitialized value.
 - **mt_motion on very wide planes:** the scene change sum overflowed, in the worst case from width 32776 at 16 bit.
