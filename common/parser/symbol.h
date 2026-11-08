@@ -267,6 +267,7 @@ class Context {
    std::vector<Symbol> pSymbols;
 
    int compute_error; // CE_xx
+   String check_message;
 
    double x, y, z, a;
 
@@ -357,6 +358,7 @@ public:
    bool is_position_dependent() const { return position_dependent; }
 
    bool check();
+   const String &check_error() const { return check_message; } // why check() failed
 
    enum compute_error_t {
      CE_NONE = 0,

@@ -971,8 +971,34 @@ String Context::infix()
    return stack.back();
 }
 
+// The stack balance, as AviSynth+ Expr checks it when parsing: every token finds its operands, and exactly one value
+// is left at the end. Counted once, so the table, realtime and float paths all give the same error.
 bool Context::check()
 {
+   check_message = "";
+   int depth = 0;
+   for (const Symbol &s : pSymbols) {
+      int operands;
+      int results = 1;
+      switch (s.type) {
+      case Symbol::OPERATOR: operands = 2; break;
+      case Symbol::TERNARY: operands = 3; break;
+      case Symbol::FUNCTION: operands = s.nParameter; break;
+      case Symbol::FUNCTION_WITH_BITDEPTH_AS_AUTOPARAM: operands = 1; break;
+      case Symbol::DUP: operands = s.nParameter + 1; results = s.nParameter + 2; break; // keeps its operands, adds a copy
+      case Symbol::SWAP: operands = s.nParameter + 1; results = operands; break;
+      default: operands = 0; break; // variables, constants, numbers
+      }
+      if (depth < operands) {
+         check_message = "not enough operands for \"" + s.value + "\"";
+         return false;
+      }
+      depth += results - operands;
+   }
+   if (depth > 1) {
+      check_message = "stack unbalanced at the end of the expression (" + std::to_string(depth) + " values), exactly one is needed";
+      return false;
+   }
    return true;
 }
 

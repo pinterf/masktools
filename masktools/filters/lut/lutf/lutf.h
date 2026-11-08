@@ -185,7 +185,7 @@ public:
 
           if (!ctx.check())
           {
-            error = "invalid expression in the lut";
+            error = "invalid expression: " + ctx.check_error();
             return;
           }
 
